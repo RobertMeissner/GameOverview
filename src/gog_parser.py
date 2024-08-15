@@ -2,7 +2,7 @@ import json
 
 import pandas as pd
 
-from src.constants import games_folder, game_name, store_name, played_flag
+from src.constants import game_name, games_folder, played_flag, store_name
 
 
 def parse_gog_file_for_gamelist(file_path: str) -> pd.DataFrame:

@@ -2,13 +2,13 @@ import pandas as pd
 import streamlit as st
 
 from constants import (
-    games_folder,
-    game_name,
-    found_game_name,
-    played_flag,
-    app_id,
     MINIMUM_RATING,
     RATING_FIELD,
+    app_id,
+    found_game_name,
+    game_name,
+    games_folder,
+    played_flag,
 )
 
 

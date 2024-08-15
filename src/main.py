@@ -3,11 +3,8 @@ import os
 import pandas as pd
 from dotenv import load_dotenv
 
-from src.gog_parser import (
-    parse_gog_file_for_gamelist,
-    save_data,
-)
 from src.constants import games_folder, played_flag
+from src.gog_parser import parse_gog_file_for_gamelist, save_data
 from src.markdown_parser import read_and_filter_markdown
 from src.request_rating import request_rating
 

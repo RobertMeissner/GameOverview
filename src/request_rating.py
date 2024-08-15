@@ -3,13 +3,12 @@ import logging
 import os
 import re
 import traceback
-from dotenv import load_dotenv
 
 import pandas as pd
 import requests
+from dotenv import load_dotenv
 
-from src.constants import game_name, RATING_FIELD
-
+from src.constants import RATING_FIELD, game_name
 
 load_dotenv()
 
