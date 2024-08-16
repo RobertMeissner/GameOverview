@@ -4,13 +4,11 @@ import pandas as pd
 from dotenv import load_dotenv
 
 from src.constants import game_name, played_flag, store_name
+from src.utils import add_columns, init_df
 
 
 def read_and_filter_markdown(file_path: str, store="", played=False) -> pd.DataFrame:
-    df = pd.DataFrame(columns=[game_name, store_name, played_flag])
-    df[played_flag] = df[played_flag].astype(bool)
-    df[store_name] = df[store_name].astype(str)
-    df[game_name] = df[game_name].astype(str)
+    df = init_df()
 
     # Check if file exists
     if os.path.exists(file_path):
@@ -33,7 +31,7 @@ def read_and_filter_markdown(file_path: str, store="", played=False) -> pd.DataF
         df = df.sort_values(by="name", ascending=True)
         df = df.drop_duplicates(subset="name")
 
-    return df
+    return add_columns(df)
 
 
 if __name__ == "__main__":

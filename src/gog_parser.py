@@ -2,14 +2,12 @@ import json
 
 import pandas as pd
 
-from src.constants import game_name, games_folder, played_flag, store_name
+from src.constants import game_name, played_flag, store_name
+from src.utils import add_columns, init_df
 
 
 def parse_gog_file_for_gamelist(file_path: str) -> pd.DataFrame:
-    df = pd.DataFrame(columns=[game_name, store_name, played_flag])
-    df[played_flag] = df[played_flag].astype(bool)
-    df[store_name] = df[store_name].astype(str)
-    df[game_name] = df[game_name].astype(str)
+    df = init_df()
 
     with open(file_path, "r") as file:
         data = file.read()
@@ -47,10 +45,8 @@ def parse_gog_file_for_gamelist(file_path: str) -> pd.DataFrame:
                 ignore_index=True,
             )
         print("Game Titles:", df.info())
-        return df
     else:
         print("No games found in provided data.")
 
+    return add_columns(df)
 
-def save_data(df: pd.DataFrame, filename=games_folder + "/" + "data.parquet"):
-    df.to_parquet(filename)

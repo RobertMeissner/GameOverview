@@ -8,3 +8,10 @@ WIP: Combination of scraper and dashboard to find the currently highest ranked g
 Run `src/main.py` to parse Steam API.
 
 Run
+
+
+# Sources
+
+## Epic Games
+
+Go to your account, transaction history, copy the html
