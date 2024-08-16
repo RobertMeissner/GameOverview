@@ -11,3 +11,5 @@ review_score = "review_score"
 total_reviews = "total_reviews"
 
 MINIMUM_RATING = 0.8
+
+DATA_FILEPATH = games_folder + "/" + "data.parquet"

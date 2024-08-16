@@ -3,12 +3,12 @@ import os
 import pandas as pd
 from dotenv import load_dotenv
 
-from src.constants import games_folder, total_reviews
+from src.constants import games_folder, total_reviews, DATA_FILEPATH
 from src.epic_parser import parse_epic_file_for_gamelist
 from src.gog_parser import parse_gog_file_for_gamelist
 from src.markdown_parser import read_and_filter_markdown
 from src.request_rating import request_rating
-from src.utils import init_df
+from src.utils import init_df, load_data
 
 load_dotenv()
 
@@ -17,10 +17,13 @@ def save_data(df: pd.DataFrame, filename=games_folder + "/" + "data.parquet"):
     df.to_parquet(filename)
 
 def main():
+
+    if os.path.exists(DATA_FILEPATH):
+        df = load_data()
+    else:
+        df = init_df()
+
     file_path = games_folder + "/gog_1"
-
-    df = init_df()
-
     df_gog = parse_gog_file_for_gamelist(file_path)
     df = pd.concat(
         [

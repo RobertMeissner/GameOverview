@@ -40,7 +40,7 @@ logging.basicConfig(
 )
 
 
-def request_rating(df: pd.Series) -> pd.DataFrame:
+def request_rating(df: pd.Series) -> pd.Series:
     # API: https://www.algolia.com/doc/rest-api/search/#search-multiple-indices
     payload = (
         '{"hitsPerPage":3,"attributesToSnippet":null,"attributesToHighlight":"name","query":"'

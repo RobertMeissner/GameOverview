@@ -7,14 +7,9 @@ from constants import (
     app_id,
     found_game_name,
     game_name,
-    games_folder,
     played_flag,
 )
-
-
-def load_data(filename=games_folder + "/" + "data.parquet") -> pd.DataFrame:
-    return pd.read_parquet(filename)
-
+from utils import load_data
 
 # Define columns that should be deactivated by default
 columns_off_by_default = [
@@ -78,6 +73,13 @@ def display_dataframe(df):
     for col, show in column_choices.items():
         if show:
             columns_to_show.append(col)
+
+    # Fetch unique stores for selection
+    store_list = df["store"].unique()
+
+    # Multi-select sidebar option
+    selected_stores = st.sidebar.multiselect('Select Stores:', store_list, default=store_list)
+    df = df[df['store'].isin(selected_stores)]
 
     st.data_editor(
         df[columns_to_show],

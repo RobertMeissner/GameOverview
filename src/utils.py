@@ -1,6 +1,6 @@
 import pandas as pd
 
-from src.constants import played_flag, total_reviews, game_name, store_name
+from constants import played_flag, total_reviews, game_name, store_name, DATA_FILEPATH
 
 
 def add_columns(df) -> pd.DataFrame:
@@ -24,3 +24,7 @@ def init_df():
     df[store_name] = df[store_name].astype(str)
     df[game_name] = df[game_name].astype(str)
     return df
+
+
+def load_data(filename=DATA_FILEPATH) -> pd.DataFrame:
+    return pd.read_parquet(filename)
