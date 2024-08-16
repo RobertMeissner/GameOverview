@@ -3,7 +3,7 @@ import os
 import pandas as pd
 from dotenv import load_dotenv
 
-from src.constants import games_folder, total_reviews, DATA_FILEPATH
+from src.constants import games_folder, total_reviews, DATA_FILEPATH, game_name
 from src.epic_parser import parse_epic_file_for_gamelist
 from src.gog_parser import parse_gog_file_for_gamelist
 from src.markdown_parser import read_and_filter_markdown
@@ -12,9 +12,15 @@ from src.utils import init_df, load_data
 
 load_dotenv()
 
+rerun = False
 
 def save_data(df: pd.DataFrame, filename=games_folder + "/" + "data.parquet"):
     df.to_parquet(filename)
+
+def concat_if_new(df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame:
+    # Filter df2 to include only names not in df1
+    mask = ~df2[game_name].isin(df1[game_name])
+    return pd.concat([df1, df2[mask]], ignore_index=True)
 
 def main():
 
@@ -25,6 +31,7 @@ def main():
 
     file_path = games_folder + "/gog_1"
     df_gog = parse_gog_file_for_gamelist(file_path)
+    df = concat_if_new(df, df_gog)
     df = pd.concat(
         [
             df, df_gog

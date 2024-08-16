@@ -33,31 +33,16 @@ def display_dataframe(df):
         # Display rows where selected columns have different values
         mask = df[game_name] != df[found_game_name]
         df = df[mask]
-        if not df.empty:
-            st.write(f"Rows where {game_name} differs from {found_game_name}")
-            # st.dataframe(differing_rows)
-        else:
-            st.write("No differing rows for the selected columns.")
 
     if st.sidebar.checkbox("Only not-played games?"):
         # Display rows where selected columns have different values
         mask = df[played_flag] == False  # noqa: E712
         df = df[mask]
-        if not df.empty:
-            st.write("Non played games")
-            # st.dataframe(differing_rows)
-        else:
-            st.write("Everything played.")
 
     if st.sidebar.checkbox("Only rated games?"):
         # Display rows where selected columns have different values
         mask = df["total_reviews"] != -1
         df = df[mask]
-        if not df.empty:
-            st.write("Non rated games")
-            # st.dataframe(differing_rows)
-        else:
-            st.write("Everything rated.")
 
     if st.sidebar.checkbox("Hide 'bad' games?", value=True):
         df = df[df[RATING_FIELD] >= MINIMUM_RATING]
@@ -81,6 +66,7 @@ def display_dataframe(df):
     selected_stores = st.sidebar.multiselect('Select Stores:', store_list, default=store_list)
     df = df[df['store'].isin(selected_stores)]
 
+    st.write(f"Number of games: {len(df)}.")
     st.data_editor(
         df[columns_to_show],
         column_config={
