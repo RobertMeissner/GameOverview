@@ -31,7 +31,7 @@ def read_and_filter_markdown(file_path: str, store="", played=False) -> pd.DataF
         df = df.sort_values(by="name", ascending=True)
         df = df.drop_duplicates(subset="name")
 
-    return add_columns(df)
+    return df
 
 
 if __name__ == "__main__":

@@ -39,22 +39,6 @@ def main():
         ignore_index=True,
     )
 
-    store_identifier = ""
-    df_old = read_and_filter_markdown(
-        os.path.join(
-            os.getenv("MARKDOWN_PATH", ""), "gespielte Computerspiele.md"
-        ),
-        store_identifier,
-        True,
-    ),
-    df = pd.concat(
-        [
-            df, df_old[0] # FIXMe: why is df_old a tuple?
-
-        ],
-        ignore_index=True,
-    )
-
     file_path = games_folder + "/epic.html"
     df_epic = parse_epic_file_for_gamelist(file_path)
     df = pd.concat(
@@ -63,6 +47,23 @@ def main():
         ],
         ignore_index=True,
     )
+
+    store_identifier = "unknown"
+    df_played = read_and_filter_markdown(
+        os.path.join(
+            os.getenv("MARKDOWN_PATH", ""), "gespielte Computerspiele.md"
+        ),
+        store_identifier,
+        True,
+    ),
+
+    # Merging df1 and df2 on 'name' while updating 'played' from df2 where names match
+    df = df.merge(df_played[0], on='name', how='left', suffixes=('', '_md'))
+    df.loc[df['played_md'] == True, 'played'] = True
+
+    # Dropping the original 'played_x' column from df1
+    df.drop('played_md', axis=1, inplace=True)
+    df.drop('store_md', axis=1, inplace=True)
 
     print(f"Games to cycle: {len(df)}")
     for index, row in df.iterrows():
