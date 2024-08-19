@@ -8,6 +8,7 @@ from src.epic_parser import parse_epic_file_for_gamelist
 from src.gog_parser import parse_gog_file_for_gamelist
 from src.markdown_parser import read_and_filter_markdown
 from src.request_rating import request_rating
+from src.steam_parser import parse_steam_file_for_gamelist
 from src.utils import init_df, load_data
 
 load_dotenv()
@@ -48,6 +49,16 @@ def main():
         ignore_index=True,
     )
 
+    file_path = games_folder + "/steam"
+    df_epic = parse_steam_file_for_gamelist(file_path)
+    df = pd.concat(
+        [
+            df, df_epic
+        ],
+        ignore_index=True,
+    )
+
+
     store_identifier = "unknown"
     df_played = read_and_filter_markdown(
         os.path.join(
@@ -64,6 +75,10 @@ def main():
     # Dropping the original 'played_x' column from df1
     df.drop('played_md', axis=1, inplace=True)
     df.drop('store_md', axis=1, inplace=True)
+
+    # FIXME: Test this deduplication
+    df.sort_values(by='app_id', ascending=False, inplace=True)
+    df = df.groupby('name').first().reset_index()
 
     print(f"Games to cycle: {len(df)}")
     for index, row in df.iterrows():
