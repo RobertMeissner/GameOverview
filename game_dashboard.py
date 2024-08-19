@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 
-from constants import (
+from src.constants import (
     MINIMUM_RATING,
     RATING_FIELD,
     app_id,
@@ -9,7 +9,7 @@ from constants import (
     game_name,
     played_flag,
 )
-from utils import load_data
+from src.utils import load_data
 
 # Define columns that should be deactivated by default
 columns_off_by_default = [
