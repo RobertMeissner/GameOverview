@@ -7,7 +7,7 @@ from src.constants import (
     app_id,
     found_game_name,
     game_name,
-    played_flag,
+    played_flag, REVIEW_SCORE_FIELD, CUSTOM_RATING,
 )
 from src.utils import load_data
 
@@ -17,6 +17,9 @@ columns_off_by_default = [
     "review_score_desc",
     "total_positive",
     "total_negative",
+    RATING_FIELD,
+    REVIEW_SCORE_FIELD,
+    "total_reviews"
 ]
 
 
@@ -24,9 +27,6 @@ columns_off_by_default = [
 def display_dataframe(df):
     # Setting 'name' column to type string
     df[game_name] = df[game_name].astype(str)
-    # Move 'game' column to the first position
-    game_column = df.pop(game_name)
-    df.insert(0, game_name, game_column)
 
     st.sidebar.write("### Filter rows:")
     if st.sidebar.checkbox("Show Rows with Differences"):
@@ -47,6 +47,12 @@ def display_dataframe(df):
     if st.sidebar.checkbox("Hide 'bad' games?", value=True):
         df = df[df[RATING_FIELD] >= MINIMUM_RATING]
 
+
+    df[CUSTOM_RATING] = df[RATING_FIELD] * df[REVIEW_SCORE_FIELD] / 9
+    # sort columns
+    df.insert(0, game_name, df.pop(game_name))
+    df.insert(1, CUSTOM_RATING, df.pop(CUSTOM_RATING))
+
     st.sidebar.write("### Select the columns to display:")
     columns_to_show = []
     all_columns = df.columns.tolist()
@@ -66,6 +72,10 @@ def display_dataframe(df):
     selected_stores = st.sidebar.multiselect('Select Stores:', store_list, default=store_list)
     df = df[df['store'].isin(selected_stores)]
 
+
+
+
+
     st.write(f"Number of games: {len(df)}.")
     st.data_editor(
         df[columns_to_show],
@@ -74,6 +84,7 @@ def display_dataframe(df):
                 app_id,
                 max_chars=100,
                 display_text="https://store\.steampowered\.com/app/([0-9]*)",  # noqa: W605
+                disabled=True
             ),
         },
         hide_index=True,
@@ -84,7 +95,6 @@ def display_dataframe(df):
 
 # If running in Streamlit, load and display the data from file
 loaded_data = load_data()
-
 
 base_steam_url = "https://store.steampowered.com/app/"
 
