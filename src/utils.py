@@ -28,6 +28,8 @@ def init_df():
 
 
 def load_data(filename=DATA_FILEPATH) -> pd.DataFrame:
+
+    print("loading raw")
     df = pd.read_parquet(filename)
     df[HIDE_FIELD].fillna(False, inplace=True)
 

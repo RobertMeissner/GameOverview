@@ -29,25 +29,42 @@ columns_off_by_default = [
 editable_columns = [played_flag]
 
 
-def save_changes(edits: pd.DataFrame, df_raw: pd.DataFrame):
-    st.session_state.df = edits
-    # df = pd.merge(df_raw, edits[[game_name, HIDE_FIELD]], on=game_name, suffixes=('', '_from_saved'))
-    # df[HIDE_FIELD] = df[f"{HIDE_FIELD}_from_saved"]  # Prioritize 'played' from saved_df
-    # print(df.head())
-    # df.drop(f"{HIDE_FIELD}_from_saved", axis=1, inplace=True)
-    # save_data(df)
+def save_changes(edited_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFrame:
+    # FIXME: This is hardcore frustrating, toggling filters in the sidebar resets these values - I seemingly misunderstand state
+    # Merge raw and edited DataFrames based on 'name'
+    merged_df = pd.merge(df, edited_df, on='name', suffixes=('_raw', '_edited'))
+
+    # Find rows where 'hide' status is different
+    mask = merged_df['hide_raw'] != merged_df['hide_edited']
+    print(len(mask), mask.sum())
+
+    # Update 'hide' in raw_df based on changes in edited_df
+    # Dictionary maps 'name' to new 'hide' values where they differ
+    updates_dict = pd.Series(merged_df.loc[mask, 'hide_edited'].values, index=merged_df.loc[mask, 'name']).to_dict()
+
+    # Apply updates
+    for name, new_hide in updates_dict.items():
+        df.loc[df['name'] == name, 'hide'] = new_hide
+
+    #
+    ## Assuming 'name' is unique and can serve as an identifier
+    #for _, edited_row in edited_df.iterrows():
+    #    # Find index of matching name in raw dataframe
+    #    mask = df[game_name] == edited_row[game_name]
+    #    if df.loc[mask, HIDE_FIELD].item() != edited_row[HIDE_FIELD]:
+    #        df.loc[mask, HIDE_FIELD] = edited_row[HIDE_FIELD]
+    #        print(f'Updated {edited_row[game_name]} hide status to {edited_row[HIDE_FIELD]}')
+    #
+    #    if df.loc[mask, played_flag].item() != edited_row[played_flag]:
+    #        df.loc[mask, played_flag] = edited_row[played_flag]
+    #        print(f'Updated {edited_row[game_name]} played status to {edited_row[played_flag]}')
+    save_data(df.copy(deep=True))
+    return df.copy(deep=True)
 
 
 # Create a function to display the DataFrame in Streamlit with filter and sorting options
-def display_dataframe(df):
-    # Setting 'name' column to type string
-    hidden_count = df[HIDE_FIELD].sum()  # `True` in boolean context is treated as 1
-    st.write(f"Number of hidden elements: {hidden_count}")
-
-    # Use tabs for multiple views
+def display_dataframe(df: pd.DataFrame):
     tab1, tab2 = st.tabs(['Dataframe', 'Rating Distribution'])
-
-    # Display the dataframe in the first tab
     with tab1:
 
         st.sidebar.write("### Filter rows:")
@@ -97,7 +114,7 @@ def display_dataframe(df):
         selected_stores = st.sidebar.multiselect('Select Stores:', store_list, default=store_list)
         df = df[df['store'].isin(selected_stores)]
 
-        st.write(f"Number of games: {len(df)}.")
+        st.write(f"Number of games: {len(df)}. Hidden: {df[HIDE_FIELD].sum()}")
 
         column_config = {
             app_id: st.column_config.LinkColumn(
@@ -115,11 +132,16 @@ def display_dataframe(df):
             disabled=[s for s in all_columns if s not in [played_flag, HIDE_FIELD]],
         )
 
-        hidden_count = df[HIDE_FIELD].sum()  # `True` in boolean context is treated as 1
-        st.write(f"Number of hidden elements: {hidden_count}")
 
         if edited_df is not None:
-            save_changes(edited_df, df_raw=st.session_state.raw_df)
+            display_columns = [game_name, played_flag, HIDE_FIELD]
+            print(edited_df[display_columns].head())
+            print(st.session_state.df[display_columns].head())
+            print(st.session_state.raw_df[display_columns].head())
+            st.session_state.df = save_changes(edited_df, df=st.session_state.raw_df.copy(deep=True))
+            print(edited_df[display_columns].head())
+            print(st.session_state.df[display_columns].head())
+            print(st.session_state.raw_df[display_columns].head())
 
 
     # Display the graph in the second tab
@@ -131,10 +153,10 @@ def display_dataframe(df):
         labels.insert(0, '0')  # Insert labels for 0 ratings
 
         # Bin data, with a specific category for zero
-        st.session_state.raw_df['binned'] = pd.cut(st.session_state.raw_df[RATING_FIELD], bins=[0] + list(bins), right=False, labels=labels)
+        st.session_state.df_graph['binned'] = pd.cut(st.session_state.df_graph[RATING_FIELD], bins=[0] + list(bins), right=False, labels=labels)
 
         # Count the ratings in each bin/category
-        ratings_count = st.session_state.raw_df['binned'].value_counts().sort_index()
+        ratings_count = st.session_state.df_graph['binned'].value_counts().sort_index()
 
         # Create a bar plot
         plt.figure(figsize=(12, 6))
@@ -146,8 +168,6 @@ def display_dataframe(df):
         plt.grid(True)
         # Display the plot
         st.pyplot(plt)
-
-    st.session_state.df = df
 
 
 # If running in Streamlit, load and display the data from file
@@ -164,7 +184,9 @@ def process_data(df: pd.DataFrame) -> pd.DataFrame:
 if 'df' not in st.session_state:
     st.session_state.df = load_data()
     st.session_state.df = process_data(st.session_state.df)
+    st.session_state.df_graph = st.session_state.df.copy(deep= True)
     st.session_state.raw_df = st.session_state.df.copy(deep= True)
+
 
 st.set_page_config(
     page_title=None,

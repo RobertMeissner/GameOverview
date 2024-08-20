@@ -16,6 +16,7 @@ load_dotenv()
 rerun = False
 
 def save_data(df: pd.DataFrame, filename=games_folder + "/" + "data.parquet"):
+    print("saving raw")
     df.to_parquet(filename)
 
 def concat_if_new(df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame:
