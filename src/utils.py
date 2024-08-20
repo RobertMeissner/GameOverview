@@ -14,6 +14,8 @@ def add_columns(df) -> pd.DataFrame:
     df["app_id"] = 0
     df["rating"] = 0
     df["review_score_desc"] = ""
+    df["hide"] = False
+    df["hide"] = df["hide"].astype(bool)
     df[played_flag] = df[played_flag].astype(bool)
     return df
 
