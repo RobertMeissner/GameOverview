@@ -11,6 +11,7 @@ from src.constants import (
     game_name,
     played_flag, REVIEW_SCORE_FIELD, CUSTOM_RATING,
 )
+
 from src.utils import load_data
 
 # Define columns that should be deactivated by default
@@ -23,6 +24,13 @@ columns_off_by_default = [
     REVIEW_SCORE_FIELD,
     "total_reviews"
 ]
+
+editable_columns = [played_flag]
+
+
+def save_changes(edits: pd.DataFrame):
+    print("changes detected")
+    print(edits.head())
 
 
 # Create a function to display the DataFrame in Streamlit with filter and sorting options
@@ -37,7 +45,6 @@ def display_dataframe(df):
 
     # Display the dataframe in the first tab
     with tab1:
-
 
         st.sidebar.write("### Filter rows:")
         if st.sidebar.checkbox("Show Rows with Differences"):
@@ -57,7 +64,6 @@ def display_dataframe(df):
 
         if st.sidebar.checkbox("Hide 'bad' games?", value=True):
             df = df[df[RATING_FIELD] >= MINIMUM_RATING]
-
 
         df[CUSTOM_RATING] = df[RATING_FIELD] * df[REVIEW_SCORE_FIELD] / 9
         # sort columns
@@ -83,34 +89,37 @@ def display_dataframe(df):
         selected_stores = st.sidebar.multiselect('Select Stores:', store_list, default=store_list)
         df = df[df['store'].isin(selected_stores)]
 
-
-
-
-
         st.write(f"Number of games: {len(df)}.")
-        st.data_editor(
+
+        column_config = {
+            app_id: st.column_config.LinkColumn(
+                app_id,
+                max_chars=100,
+                display_text="https://store\.steampowered\.com/app/([0-9]*)",  # noqa: W605
+                disabled=True
+            ),
+        }
+
+        edited_df = st.data_editor(
             df[columns_to_show],
-            column_config={
-                app_id: st.column_config.LinkColumn(
-                    app_id,
-                    max_chars=100,
-                    display_text="https://store\.steampowered\.com/app/([0-9]*)",  # noqa: W605
-                    disabled=True
-                ),
-            },
+            column_config=column_config,
             hide_index=True,
+            disabled=[s for s in all_columns if s != played_flag],
         )
+
+        if edited_df is not None:
+            save_changes(edited_df)
 
     # Display the graph in the second tab
     with tab2:
         # Define the bins (excluding 0, as this will be a separate category)
         bins = np.linspace(0.01, 1, 11)  # Starts slightly above 0 to exclude 0
         # Create labels for the bins
-        labels = [f'{round(bins[i], 2)}-{round(bins[i+1], 2)}' for i in range(len(bins)-1)]
+        labels = [f'{round(bins[i], 2)}-{round(bins[i + 1], 2)}' for i in range(len(bins) - 1)]
         labels.insert(0, '0')  # Insert labels for 0 ratings
 
         # Bin data, with a specific category for zero
-        df_raw['binned'] = pd.cut(df_raw[RATING_FIELD], bins=[0]+list(bins), right=False, labels=labels)
+        df_raw['binned'] = pd.cut(df_raw[RATING_FIELD], bins=[0] + list(bins), right=False, labels=labels)
 
         # Count the ratings in each bin/category
         ratings_count = df_raw['binned'].value_counts().sort_index()
@@ -125,6 +134,8 @@ def display_dataframe(df):
         plt.grid(True)
         # Display the plot
         st.pyplot(plt)
+
+    st.session_state.df = df
 
 
 # If running in Streamlit, load and display the data from file
