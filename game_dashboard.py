@@ -1,5 +1,7 @@
+import numpy as np
 import pandas as pd
 import streamlit as st
+from matplotlib import pyplot as plt
 
 from src.constants import (
     MINIMUM_RATING,
@@ -28,69 +30,101 @@ def display_dataframe(df):
     # Setting 'name' column to type string
     df[game_name] = df[game_name].astype(str)
 
-    st.sidebar.write("### Filter rows:")
-    if st.sidebar.checkbox("Show Rows with Differences"):
-        # Display rows where selected columns have different values
-        mask = df[game_name] != df[found_game_name]
-        df = df[mask]
+    df_raw = df.copy(deep=True)
 
-    if st.sidebar.checkbox("Only not-played games?"):
-        # Display rows where selected columns have different values
-        mask = df[played_flag] == False  # noqa: E712
-        df = df[mask]
+    # Use tabs for multiple views
+    tab1, tab2 = st.tabs(['Dataframe', 'Rating Distribution'])
 
-    if st.sidebar.checkbox("Only rated games?"):
-        # Display rows where selected columns have different values
-        mask = df["total_reviews"] != -1
-        df = df[mask]
-
-    if st.sidebar.checkbox("Hide 'bad' games?", value=True):
-        df = df[df[RATING_FIELD] >= MINIMUM_RATING]
+    # Display the dataframe in the first tab
+    with tab1:
 
 
-    df[CUSTOM_RATING] = df[RATING_FIELD] * df[REVIEW_SCORE_FIELD] / 9
-    # sort columns
-    df.insert(0, game_name, df.pop(game_name))
-    df.insert(1, CUSTOM_RATING, df.pop(CUSTOM_RATING))
+        st.sidebar.write("### Filter rows:")
+        if st.sidebar.checkbox("Show Rows with Differences"):
+            # Display rows where selected columns have different values
+            mask = df[game_name] != df[found_game_name]
+            df = df[mask]
 
-    st.sidebar.write("### Select the columns to display:")
-    columns_to_show = []
-    all_columns = df.columns.tolist()
-    column_choices = {
-        col: st.sidebar.checkbox(col, col not in columns_off_by_default)
-        for col in all_columns
-    }
+        if st.sidebar.checkbox("Only not-played games?"):
+            # Display rows where selected columns have different values
+            mask = df[played_flag] == False  # noqa: E712
+            df = df[mask]
 
-    for col, show in column_choices.items():
-        if show:
-            columns_to_show.append(col)
+        if st.sidebar.checkbox("Only rated games?"):
+            # Display rows where selected columns have different values
+            mask = df["total_reviews"] != -1
+            df = df[mask]
 
-    # Fetch unique stores for selection
-    store_list = df["store"].unique()
-
-    # Multi-select sidebar option
-    selected_stores = st.sidebar.multiselect('Select Stores:', store_list, default=store_list)
-    df = df[df['store'].isin(selected_stores)]
+        if st.sidebar.checkbox("Hide 'bad' games?", value=True):
+            df = df[df[RATING_FIELD] >= MINIMUM_RATING]
 
 
+        df[CUSTOM_RATING] = df[RATING_FIELD] * df[REVIEW_SCORE_FIELD] / 9
+        # sort columns
+        df.insert(0, game_name, df.pop(game_name))
+        df.insert(1, CUSTOM_RATING, df.pop(CUSTOM_RATING))
+
+        st.sidebar.write("### Select the columns to display:")
+        columns_to_show = []
+        all_columns = df.columns.tolist()
+        column_choices = {
+            col: st.sidebar.checkbox(col, col not in columns_off_by_default)
+            for col in all_columns
+        }
+
+        for col, show in column_choices.items():
+            if show:
+                columns_to_show.append(col)
+
+        # Fetch unique stores for selection
+        store_list = df["store"].unique()
+
+        # Multi-select sidebar option
+        selected_stores = st.sidebar.multiselect('Select Stores:', store_list, default=store_list)
+        df = df[df['store'].isin(selected_stores)]
 
 
 
-    st.write(f"Number of games: {len(df)}.")
-    st.data_editor(
-        df[columns_to_show],
-        column_config={
-            app_id: st.column_config.LinkColumn(
-                app_id,
-                max_chars=100,
-                display_text="https://store\.steampowered\.com/app/([0-9]*)",  # noqa: W605
-                disabled=True
-            ),
-        },
-        hide_index=True,
-    )
 
-    # st.dataframe(df[columns_to_show])
+
+        st.write(f"Number of games: {len(df)}.")
+        st.data_editor(
+            df[columns_to_show],
+            column_config={
+                app_id: st.column_config.LinkColumn(
+                    app_id,
+                    max_chars=100,
+                    display_text="https://store\.steampowered\.com/app/([0-9]*)",  # noqa: W605
+                    disabled=True
+                ),
+            },
+            hide_index=True,
+        )
+
+    # Display the graph in the second tab
+    with tab2:
+        # Define the bins (excluding 0, as this will be a separate category)
+        bins = np.linspace(0.01, 1, 11)  # Starts slightly above 0 to exclude 0
+        # Create labels for the bins
+        labels = [f'{round(bins[i], 2)}-{round(bins[i+1], 2)}' for i in range(len(bins)-1)]
+        labels.insert(0, '0')  # Insert labels for 0 ratings
+
+        # Bin data, with a specific category for zero
+        df_raw['binned'] = pd.cut(df_raw[RATING_FIELD], bins=[0]+list(bins), right=False, labels=labels)
+
+        # Count the ratings in each bin/category
+        ratings_count = df_raw['binned'].value_counts().sort_index()
+
+        # Create a bar plot
+        plt.figure(figsize=(12, 6))
+        plt.bar(ratings_count.index, ratings_count.values, color='skyblue')
+        plt.xlabel('Rating Range')
+        plt.ylabel('Number of Ratings')
+        plt.title('Rating Distribution')
+        plt.xticks(rotation=45)
+        plt.grid(True)
+        # Display the plot
+        st.pyplot(plt)
 
 
 # If running in Streamlit, load and display the data from file
