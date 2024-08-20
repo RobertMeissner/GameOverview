@@ -12,6 +12,8 @@ from src.constants import RATING_FIELD, game_name
 
 load_dotenv()
 
+# To obtain ALGOLIA_API_KEY, go to https://steamdb.info/, search for a game and not the API key
+
 url = "https://94he6yatei-dsn.algolia.net/1/indexes/all_names/query?x-algolia-agent=SteamDB%20Autocompletion"
 headers = {
     "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0",

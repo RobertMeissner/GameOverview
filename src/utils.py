@@ -1,10 +1,9 @@
 import pandas as pd
 
-from src.constants import played_flag, total_reviews, game_name, store_name, DATA_FILEPATH
+from src.constants import played_flag, total_reviews, game_name, store_name, DATA_FILEPATH, HIDE_FIELD
 
 
 def add_columns(df) -> pd.DataFrame:
-
     df["num_reviews"] = 0
     df["review_score"] = 0
     df["total_positive"] = 0
@@ -29,4 +28,7 @@ def init_df():
 
 
 def load_data(filename=DATA_FILEPATH) -> pd.DataFrame:
-    return pd.read_parquet(filename)
+    df = pd.read_parquet(filename)
+    df[HIDE_FIELD].fillna(False, inplace=True)
+
+    return df

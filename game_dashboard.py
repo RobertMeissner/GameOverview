@@ -9,8 +9,9 @@ from src.constants import (
     app_id,
     found_game_name,
     game_name,
-    played_flag, REVIEW_SCORE_FIELD, CUSTOM_RATING,
+    played_flag, REVIEW_SCORE_FIELD, CUSTOM_RATING, HIDE_FIELD,
 )
+from src.main import save_data
 
 from src.utils import load_data
 
@@ -28,17 +29,20 @@ columns_off_by_default = [
 editable_columns = [played_flag]
 
 
-def save_changes(edits: pd.DataFrame):
-    print("changes detected")
-    print(edits.head())
+def save_changes(edits: pd.DataFrame, df_raw: pd.DataFrame):
+    st.session_state.df = edits
+    # df = pd.merge(df_raw, edits[[game_name, HIDE_FIELD]], on=game_name, suffixes=('', '_from_saved'))
+    # df[HIDE_FIELD] = df[f"{HIDE_FIELD}_from_saved"]  # Prioritize 'played' from saved_df
+    # print(df.head())
+    # df.drop(f"{HIDE_FIELD}_from_saved", axis=1, inplace=True)
+    # save_data(df)
 
 
 # Create a function to display the DataFrame in Streamlit with filter and sorting options
 def display_dataframe(df):
     # Setting 'name' column to type string
-    df[game_name] = df[game_name].astype(str)
-
-    df_raw = df.copy(deep=True)
+    hidden_count = df[HIDE_FIELD].sum()  # `True` in boolean context is treated as 1
+    st.write(f"Number of hidden elements: {hidden_count}")
 
     # Use tabs for multiple views
     tab1, tab2 = st.tabs(['Dataframe', 'Rating Distribution'])
@@ -57,13 +61,17 @@ def display_dataframe(df):
             mask = df[played_flag] == False  # noqa: E712
             df = df[mask]
 
-        if st.sidebar.checkbox("Only rated games?"):
+        if st.sidebar.checkbox("Only rated games?", value=True):
             # Display rows where selected columns have different values
             mask = df["total_reviews"] != -1
             df = df[mask]
 
         if st.sidebar.checkbox("Hide 'bad' games?", value=True):
             df = df[df[RATING_FIELD] >= MINIMUM_RATING]
+
+        if not st.sidebar.checkbox("Show hidden games?", value=False):
+            print("hiding")
+            df = df[~df[HIDE_FIELD]]
 
         df[CUSTOM_RATING] = df[RATING_FIELD] * df[REVIEW_SCORE_FIELD] / 9
         # sort columns
@@ -104,11 +112,15 @@ def display_dataframe(df):
             df[columns_to_show],
             column_config=column_config,
             hide_index=True,
-            disabled=[s for s in all_columns if s != played_flag],
+            disabled=[s for s in all_columns if s not in [played_flag, HIDE_FIELD]],
         )
 
+        hidden_count = df[HIDE_FIELD].sum()  # `True` in boolean context is treated as 1
+        st.write(f"Number of hidden elements: {hidden_count}")
+
         if edited_df is not None:
-            save_changes(edited_df)
+            save_changes(edited_df, df_raw=st.session_state.raw_df)
+
 
     # Display the graph in the second tab
     with tab2:
@@ -119,10 +131,10 @@ def display_dataframe(df):
         labels.insert(0, '0')  # Insert labels for 0 ratings
 
         # Bin data, with a specific category for zero
-        df_raw['binned'] = pd.cut(df_raw[RATING_FIELD], bins=[0] + list(bins), right=False, labels=labels)
+        st.session_state.raw_df['binned'] = pd.cut(st.session_state.raw_df[RATING_FIELD], bins=[0] + list(bins), right=False, labels=labels)
 
         # Count the ratings in each bin/category
-        ratings_count = df_raw['binned'].value_counts().sort_index()
+        ratings_count = st.session_state.raw_df['binned'].value_counts().sort_index()
 
         # Create a bar plot
         plt.figure(figsize=(12, 6))
@@ -139,18 +151,20 @@ def display_dataframe(df):
 
 
 # If running in Streamlit, load and display the data from file
-loaded_data = load_data()
+
 
 base_steam_url = "https://store.steampowered.com/app/"
-
 
 def process_data(df: pd.DataFrame) -> pd.DataFrame:
     # Adding a new column with URL
     df[app_id] = df[app_id].apply(lambda x: f"{base_steam_url}{x}")
-    return loaded_data
+    return df
 
 
-loaded_data = process_data(loaded_data)
+if 'df' not in st.session_state:
+    st.session_state.df = load_data()
+    st.session_state.df = process_data(st.session_state.df)
+    st.session_state.raw_df = st.session_state.df.copy(deep= True)
 
 st.set_page_config(
     page_title=None,
@@ -160,4 +174,4 @@ st.set_page_config(
     menu_items=None,
 )
 st.title("User Ratings Data")
-display_dataframe(loaded_data)
+display_dataframe(st.session_state.df)

@@ -6,6 +6,7 @@ played_flag = "played"
 
 RATING_FIELD = "rating"
 REVIEW_SCORE_FIELD = "review_score"
+HIDE_FIELD = "hide"
 CUSTOM_RATING = "custom_rating"
 found_game_name = "found_game_name"
 app_id = "app_id"
