@@ -15,6 +15,8 @@ from src.main import save_data
 
 from src.utils import load_data
 
+feature_editable = False
+
 # Define columns that should be deactivated by default
 columns_off_by_default = [
     "num_reviews",
@@ -29,26 +31,22 @@ columns_off_by_default = [
 editable_columns = [played_flag]
 
 
-def save_changes(edited_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFrame:
+def save_changes(df, edited_df):
     # FIXME: This is hardcore frustrating, toggling filters in the sidebar resets these values - I seemingly misunderstand state
     # Merge raw and edited DataFrames based on 'name'
-    merged_df = pd.merge(df, edited_df, on='name', suffixes=('_raw', '_edited'))
 
-    # Find rows where 'hide' status is different
-    mask = merged_df['hide_raw'] != merged_df['hide_edited']
-    print(len(mask), mask.sum())
+    for field_to_compare in [HIDE_FIELD, played_flag]:
+        merged_df = pd.merge(df, edited_df, on=game_name, suffixes=('_raw', '_edited'))
+        mask = merged_df[f'{field_to_compare}_raw'] != merged_df[f'{field_to_compare}_edited']
+        updates_dict = pd.Series(merged_df.loc[mask, f'{field_to_compare}_edited'].values,
+                                 index=merged_df.loc[mask, game_name]).to_dict()
+        for name, new_hide in updates_dict.items():
+            df.loc[df[game_name] == name, field_to_compare] = new_hide
 
-    # Update 'hide' in raw_df based on changes in edited_df
-    # Dictionary maps 'name' to new 'hide' values where they differ
-    updates_dict = pd.Series(merged_df.loc[mask, 'hide_edited'].values, index=merged_df.loc[mask, 'name']).to_dict()
-
-    # Apply updates
-    for name, new_hide in updates_dict.items():
-        df.loc[df['name'] == name, 'hide'] = new_hide
-
+    st.session_state.df = df
     #
     ## Assuming 'name' is unique and can serve as an identifier
-    #for _, edited_row in edited_df.iterrows():
+    # for _, edited_row in edited_df.iterrows():
     #    # Find index of matching name in raw dataframe
     #    mask = df[game_name] == edited_row[game_name]
     #    if df.loc[mask, HIDE_FIELD].item() != edited_row[HIDE_FIELD]:
@@ -58,12 +56,12 @@ def save_changes(edited_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFrame:
     #    if df.loc[mask, played_flag].item() != edited_row[played_flag]:
     #        df.loc[mask, played_flag] = edited_row[played_flag]
     #        print(f'Updated {edited_row[game_name]} played status to {edited_row[played_flag]}')
-    save_data(df.copy(deep=True))
-    return df.copy(deep=True)
+    save_data(st.session_state.df.copy(deep=True))
 
 
 # Create a function to display the DataFrame in Streamlit with filter and sorting options
-def display_dataframe(df: pd.DataFrame):
+def display_dataframe():
+    df = st.session_state.df.copy(deep=False)
     tab1, tab2 = st.tabs(['Dataframe', 'Rating Distribution'])
     with tab1:
 
@@ -90,6 +88,10 @@ def display_dataframe(df: pd.DataFrame):
             print("hiding")
             df = df[~df[HIDE_FIELD]]
 
+        # Button to save the DataFrame to disk
+        # if st.button('Save to Disk'):
+        #    save_changes()
+
         df[CUSTOM_RATING] = df[RATING_FIELD] * df[REVIEW_SCORE_FIELD] / 9
         # sort columns
         df.insert(0, game_name, df.pop(game_name))
@@ -114,7 +116,7 @@ def display_dataframe(df: pd.DataFrame):
         selected_stores = st.sidebar.multiselect('Select Stores:', store_list, default=store_list)
         df = df[df['store'].isin(selected_stores)]
 
-        st.write(f"Number of games: {len(df)}. Hidden: {df[HIDE_FIELD].sum()}")
+        st.write(f"Number of games: {len(df)}. Hidden: {st.session_state.df[HIDE_FIELD].sum()}")
 
         column_config = {
             app_id: st.column_config.LinkColumn(
@@ -132,17 +134,7 @@ def display_dataframe(df: pd.DataFrame):
             disabled=[s for s in all_columns if s not in [played_flag, HIDE_FIELD]],
         )
 
-
-        if edited_df is not None:
-            display_columns = [game_name, played_flag, HIDE_FIELD]
-            print(edited_df[display_columns].head())
-            print(st.session_state.df[display_columns].head())
-            print(st.session_state.raw_df[display_columns].head())
-            st.session_state.df = save_changes(edited_df, df=st.session_state.raw_df.copy(deep=True))
-            print(edited_df[display_columns].head())
-            print(st.session_state.df[display_columns].head())
-            print(st.session_state.raw_df[display_columns].head())
-
+        save_changes(st.session_state.raw_df, edited_df)
 
     # Display the graph in the second tab
     with tab2:
@@ -152,10 +144,9 @@ def display_dataframe(df: pd.DataFrame):
         labels = [f'{round(bins[i], 2)}-{round(bins[i + 1], 2)}' for i in range(len(bins) - 1)]
         labels.insert(0, '0')  # Insert labels for 0 ratings
 
-        # Bin data, with a specific category for zero
-        st.session_state.df_graph['binned'] = pd.cut(st.session_state.df_graph[RATING_FIELD], bins=[0] + list(bins), right=False, labels=labels)
+        st.session_state.df_graph['binned'] = pd.cut(st.session_state.df_graph[RATING_FIELD], bins=[0] + list(bins),
+                                                     right=False, labels=labels)
 
-        # Count the ratings in each bin/category
         ratings_count = st.session_state.df_graph['binned'].value_counts().sort_index()
 
         # Create a bar plot
@@ -166,7 +157,6 @@ def display_dataframe(df: pd.DataFrame):
         plt.title('Rating Distribution')
         plt.xticks(rotation=45)
         plt.grid(True)
-        # Display the plot
         st.pyplot(plt)
 
 
@@ -174,6 +164,7 @@ def display_dataframe(df: pd.DataFrame):
 
 
 base_steam_url = "https://store.steampowered.com/app/"
+
 
 def process_data(df: pd.DataFrame) -> pd.DataFrame:
     # Adding a new column with URL
@@ -184,9 +175,8 @@ def process_data(df: pd.DataFrame) -> pd.DataFrame:
 if 'df' not in st.session_state:
     st.session_state.df = load_data()
     st.session_state.df = process_data(st.session_state.df)
-    st.session_state.df_graph = st.session_state.df.copy(deep= True)
-    st.session_state.raw_df = st.session_state.df.copy(deep= True)
-
+    st.session_state.df_graph = st.session_state.df.copy(deep=True)
+    st.session_state.raw_df = st.session_state.df.copy(deep=True)
 
 st.set_page_config(
     page_title=None,
@@ -196,4 +186,4 @@ st.set_page_config(
     menu_items=None,
 )
 st.title("User Ratings Data")
-display_dataframe(st.session_state.df)
+display_dataframe()

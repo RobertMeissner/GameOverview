@@ -3,7 +3,7 @@ import os
 import pandas as pd
 from dotenv import load_dotenv
 
-from src.constants import games_folder, total_reviews, DATA_FILEPATH, game_name
+from src.constants import games_folder, total_reviews, DATA_FILEPATH, game_name, app_id
 from src.epic_parser import parse_epic_file_for_gamelist
 from src.gog_parser import parse_gog_file_for_gamelist
 from src.markdown_parser import read_and_filter_markdown
@@ -78,7 +78,7 @@ def main():
     df.drop('store_md', axis=1, inplace=True)
 
     # FIXME: Test this deduplication
-    df.sort_values(by='app_id', ascending=False, inplace=True)
+    df.sort_values(by=app_id, ascending=False, inplace=True)
     df = df.groupby('name').first().reset_index()
 
     print(f"Games to cycle: {len(df)}")

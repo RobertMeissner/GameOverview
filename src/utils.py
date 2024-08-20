@@ -1,6 +1,6 @@
 import pandas as pd
 
-from src.constants import played_flag, total_reviews, game_name, store_name, DATA_FILEPATH, HIDE_FIELD
+from src.constants import played_flag, total_reviews, game_name, store_name, DATA_FILEPATH, HIDE_FIELD, app_id
 
 
 def add_columns(df) -> pd.DataFrame:
@@ -24,6 +24,7 @@ def init_df():
     df[played_flag] = df[played_flag].astype(bool)
     df[store_name] = df[store_name].astype(str)
     df[game_name] = df[game_name].astype(str)
+    df[app_id] = df[app_id].astype(str)
     return df
 
 
