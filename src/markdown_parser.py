@@ -4,7 +4,7 @@ import pandas as pd
 from dotenv import load_dotenv
 
 from src.constants import game_name, played_flag, store_name
-from src.utils import add_columns, init_df
+from src.utils import init_df
 
 
 def read_and_filter_markdown(file_path: str, store="", played=False) -> pd.DataFrame:

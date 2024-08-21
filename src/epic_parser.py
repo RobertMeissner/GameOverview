@@ -11,9 +11,8 @@ def parse_epic_file_for_gamelist(file_path: str) -> pd.DataFrame:
     with open(file_path, "r") as file:
         data = file.read()
 
-    soup = BeautifulSoup(data, 'html.parser')
-    filtered_items = soup.find_all("a",
-                                   class_="am-1xcu1kd")
+    soup = BeautifulSoup(data, "html.parser")
+    filtered_items = soup.find_all("a", class_="am-1xcu1kd")
     for item in filtered_items:
         name = item.find("span").find("span").text.strip()
         # pattern = re.compile('[\W_]+', re.UNICODE)
@@ -36,7 +35,6 @@ def parse_epic_file_for_gamelist(file_path: str) -> pd.DataFrame:
     return add_columns(df)
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     df = parse_epic_file_for_gamelist("data/epic.html")
     print(df.head())

@@ -4,14 +4,17 @@ import streamlit as st
 from matplotlib import pyplot as plt
 
 from src.constants import (
+    CUSTOM_RATING,
+    HIDE_FIELD,
     MINIMUM_RATING,
     RATING_FIELD,
+    REVIEW_SCORE_FIELD,
+    URL,
     found_game_name,
     game_name,
-    played_flag, REVIEW_SCORE_FIELD, CUSTOM_RATING, HIDE_FIELD, URL,
+    played_flag,
 )
 from src.main import save_data
-
 from src.utils import load_data
 
 feature_editable = False
@@ -24,7 +27,7 @@ columns_off_by_default = [
     "total_negative",
     RATING_FIELD,
     REVIEW_SCORE_FIELD,
-    "total_reviews"
+    "total_reviews",
 ]
 
 editable_columns = [played_flag]
@@ -35,16 +38,21 @@ def save_changes(df, edited_df):
     # Merge raw and edited DataFrames based on 'name'
 
     for field_to_compare in [HIDE_FIELD, played_flag]:
-        merged_df = pd.merge(df, edited_df, on=game_name, suffixes=('_raw', '_edited'))
-        mask = merged_df[f'{field_to_compare}_raw'] != merged_df[f'{field_to_compare}_edited']
-        updates_dict = pd.Series(merged_df.loc[mask, f'{field_to_compare}_edited'].values,
-                                 index=merged_df.loc[mask, game_name]).to_dict()
+        merged_df = pd.merge(df, edited_df, on=game_name, suffixes=("_raw", "_edited"))
+        mask = (
+            merged_df[f"{field_to_compare}_raw"]
+            != merged_df[f"{field_to_compare}_edited"]
+        )
+        updates_dict = pd.Series(
+            merged_df.loc[mask, f"{field_to_compare}_edited"].values,
+            index=merged_df.loc[mask, game_name],
+        ).to_dict()
         for name, new_hide in updates_dict.items():
             df.loc[df[game_name] == name, field_to_compare] = new_hide
 
     st.session_state.df = df
     #
-    ## Assuming 'name' is unique and can serve as an identifier
+    # Assuming 'name' is unique and can serve as an identifier
     # for _, edited_row in edited_df.iterrows():
     #    # Find index of matching name in raw dataframe
     #    mask = df[game_name] == edited_row[game_name]
@@ -61,7 +69,7 @@ def save_changes(df, edited_df):
 # Create a function to display the DataFrame in Streamlit with filter and sorting options
 def display_dataframe():
     df = st.session_state.df.copy(deep=False)
-    tab1, tab2 = st.tabs(['Dataframe', 'Rating Distribution'])
+    tab1, tab2 = st.tabs(["Dataframe", "Rating Distribution"])
     with tab1:
 
         st.sidebar.write("### Filter rows:")
@@ -112,17 +120,21 @@ def display_dataframe():
         store_list = df["store"].unique()
 
         # Multi-select sidebar option
-        selected_stores = st.sidebar.multiselect('Select Stores:', store_list, default=store_list)
-        df = df[df['store'].isin(selected_stores)]
+        selected_stores = st.sidebar.multiselect(
+            "Select Stores:", store_list, default=store_list
+        )
+        df = df[df["store"].isin(selected_stores)]
 
-        st.write(f"Number of games: {len(df)}. Hidden: {st.session_state.df[HIDE_FIELD].sum()}")
+        st.write(
+            f"Number of games: {len(df)}. Hidden: {st.session_state.df[HIDE_FIELD].sum()}"
+        )
 
         column_config = {
             URL: st.column_config.LinkColumn(
                 URL,
                 max_chars=100,
                 display_text="https://store\.steampowered\.com/app/([0-9]*)",  # noqa: W605
-                disabled=True
+                disabled=True,
             ),
         }
 
@@ -142,26 +154,32 @@ def display_dataframe():
         # Define the bins (excluding 0, as this will be a separate category)
         bins = np.linspace(0.01, 1, 11)  # Starts slightly above 0 to exclude 0
         # Create labels for the bins
-        labels = [f'{round(bins[i], 2)}-{round(bins[i + 1], 2)}' for i in range(len(bins) - 1)]
-        labels.insert(0, '0')  # Insert labels for 0 ratings
+        labels = [
+            f"{round(bins[i], 2)}-{round(bins[i + 1], 2)}" for i in range(len(bins) - 1)
+        ]
+        labels.insert(0, "0")  # Insert labels for 0 ratings
 
-        st.session_state.df_graph['binned'] = pd.cut(st.session_state.df_graph[RATING_FIELD], bins=[0] + list(bins),
-                                                     right=False, labels=labels)
+        st.session_state.df_graph["binned"] = pd.cut(
+            st.session_state.df_graph[RATING_FIELD],
+            bins=[0] + list(bins),
+            right=False,
+            labels=labels,
+        )
 
-        ratings_count = st.session_state.df_graph['binned'].value_counts().sort_index()
+        ratings_count = st.session_state.df_graph["binned"].value_counts().sort_index()
 
         # Create a bar plot
         plt.figure(figsize=(12, 6))
-        plt.bar(ratings_count.index, ratings_count.values, color='skyblue')
-        plt.xlabel('Rating Range')
-        plt.ylabel('Number of Ratings')
-        plt.title('Rating Distribution')
+        plt.bar(ratings_count.index, ratings_count.values, color="skyblue")
+        plt.xlabel("Rating Range")
+        plt.ylabel("Number of Ratings")
+        plt.title("Rating Distribution")
         plt.xticks(rotation=45)
         plt.grid(True)
         st.pyplot(plt)
 
 
-if 'df' not in st.session_state:
+if "df" not in st.session_state:
     st.session_state.df = load_data()
     st.session_state.df_graph = st.session_state.df.copy(deep=True)
     st.session_state.raw_df = st.session_state.df.copy(deep=True)

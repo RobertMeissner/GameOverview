@@ -49,4 +49,3 @@ def parse_gog_file_for_gamelist(file_path: str) -> pd.DataFrame:
         print("No games found in provided data.")
 
     return add_columns(df)
-

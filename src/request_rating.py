@@ -8,7 +8,7 @@ import pandas as pd
 import requests
 from dotenv import load_dotenv
 
-from src.constants import RATING_FIELD, game_name, APP_ID
+from src.constants import APP_ID, RATING_FIELD, game_name
 
 load_dotenv()
 

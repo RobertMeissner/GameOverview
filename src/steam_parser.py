@@ -31,7 +31,6 @@ def parse_steam_file_for_gamelist(file_path: str) -> pd.DataFrame:
     return add_columns(df)
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     df = parse_steam_file_for_gamelist("data/steam")
     print(df.head())

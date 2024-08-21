@@ -1,6 +1,15 @@
 import pandas as pd
 
-from src.constants import played_flag, total_reviews, game_name, store_name, DATA_FILEPATH, HIDE_FIELD, APP_ID, URL
+from src.constants import (
+    APP_ID,
+    DATA_FILEPATH,
+    HIDE_FIELD,
+    URL,
+    game_name,
+    played_flag,
+    store_name,
+    total_reviews,
+)
 
 
 def add_columns(df) -> pd.DataFrame:
