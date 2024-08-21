@@ -50,19 +50,9 @@ def save_changes(df, edited_df):
         for name, new_hide in updates_dict.items():
             df.loc[df[game_name] == name, field_to_compare] = new_hide
 
+    # drop exact duplicates
+    df = df.drop_duplicates()
     st.session_state.df = df
-    #
-    # Assuming 'name' is unique and can serve as an identifier
-    # for _, edited_row in edited_df.iterrows():
-    #    # Find index of matching name in raw dataframe
-    #    mask = df[game_name] == edited_row[game_name]
-    #    if df.loc[mask, HIDE_FIELD].item() != edited_row[HIDE_FIELD]:
-    #        df.loc[mask, HIDE_FIELD] = edited_row[HIDE_FIELD]
-    #        print(f'Updated {edited_row[game_name]} hide status to {edited_row[HIDE_FIELD]}')
-    #
-    #    if df.loc[mask, played_flag].item() != edited_row[played_flag]:
-    #        df.loc[mask, played_flag] = edited_row[played_flag]
-    #        print(f'Updated {edited_row[game_name]} played status to {edited_row[played_flag]}')
     save_data(st.session_state.df.copy(deep=True))
 
 
@@ -136,6 +126,7 @@ def display_dataframe():
                 display_text="https://store\.steampowered\.com/app/([0-9]*)",  # noqa: W605
                 disabled=True,
             ),
+            game_name: st.column_config.TextColumn(game_name, width="large"),
         }
 
         df = df.sort_values(by=CUSTOM_RATING, ascending=False)
@@ -145,6 +136,7 @@ def display_dataframe():
             column_config=column_config,
             hide_index=True,
             disabled=[s for s in all_columns if s not in [played_flag, HIDE_FIELD]],
+            height=len(df) * 30,
         )
 
         save_changes(st.session_state.raw_df, edited_df)
