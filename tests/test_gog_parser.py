@@ -55,15 +55,15 @@ class TestParseGoGFile(unittest.TestCase):
             self.assertEqual(list(df.columns), ['name',
                                                 'store',
                                                 'played',
+                                                'app_id',
                                                 'num_reviews',
                                                 'review_score',
                                                 'total_positive',
                                                 'total_negative',
                                                 'total_reviews',
                                                 'found_game_name',
-                                                'app_id',
                                                 'rating',
-                                                'review_score_desc'])
+                                                'review_score_desc', "hide"])
 
     def test_invalid_data(self):
         with patch('builtins.open', mock_open(read_data=invalid_json_data)), \

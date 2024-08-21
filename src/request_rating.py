@@ -8,7 +8,7 @@ import pandas as pd
 import requests
 from dotenv import load_dotenv
 
-from src.constants import RATING_FIELD, game_name
+from src.constants import RATING_FIELD, game_name, APP_ID
 
 load_dotenv()
 
@@ -54,15 +54,15 @@ def request_rating(df: pd.Series) -> pd.Series:
         text = json.loads(response.text)
 
         if "hits" in text.keys() and len(text["hits"]):
-            app_id = text["hits"][0]["id"]
-            df["app_id"] = app_id
+            application_id = text["hits"][0]["id"]
+            df[APP_ID] = application_id
 
             found_game_name = re.sub(
                 r"<[^>]+>", "", text["hits"][0]["_highlightResult"][game_name]["value"]
             )
             df["found_game_name"] = found_game_name
 
-            steam_url = f"https://store.steampowered.com/appreviews/{app_id}?json=1&num_per_page=0"
+            steam_url = f"https://store.steampowered.com/appreviews/{application_id}?json=1&num_per_page=0"
 
             response = requests.request("GET", steam_url, headers={}, data={})
 
@@ -82,6 +82,6 @@ def request_rating(df: pd.Series) -> pd.Series:
         tb = traceback.format_exc()
         logging.error("Full traceback:\n" + tb)
 
-    print(f"{df[game_name]}\t{df['app_id']}\tdata: {df[RATING_FIELD]}")
+    print(f"{df[game_name]}\t{df[APP_ID]}\tdata: {df[RATING_FIELD]}")
 
     return df

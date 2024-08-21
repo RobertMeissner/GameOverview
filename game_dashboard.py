@@ -6,10 +6,9 @@ from matplotlib import pyplot as plt
 from src.constants import (
     MINIMUM_RATING,
     RATING_FIELD,
-    app_id,
     found_game_name,
     game_name,
-    played_flag, REVIEW_SCORE_FIELD, CUSTOM_RATING, HIDE_FIELD,
+    played_flag, REVIEW_SCORE_FIELD, CUSTOM_RATING, HIDE_FIELD, URL,
 )
 from src.main import save_data
 
@@ -119,13 +118,15 @@ def display_dataframe():
         st.write(f"Number of games: {len(df)}. Hidden: {st.session_state.df[HIDE_FIELD].sum()}")
 
         column_config = {
-            app_id: st.column_config.LinkColumn(
-                app_id,
+            URL: st.column_config.LinkColumn(
+                URL,
                 max_chars=100,
                 display_text="https://store\.steampowered\.com/app/([0-9]*)",  # noqa: W605
                 disabled=True
             ),
         }
+
+        df = df.sort_values(by=CUSTOM_RATING, ascending=False)
 
         edited_df = st.data_editor(
             df[columns_to_show],
@@ -160,21 +161,8 @@ def display_dataframe():
         st.pyplot(plt)
 
 
-# If running in Streamlit, load and display the data from file
-
-
-base_steam_url = "https://store.steampowered.com/app/"
-
-
-def process_data(df: pd.DataFrame) -> pd.DataFrame:
-    # Adding a new column with URL
-    df[app_id] = df[app_id].apply(lambda x: f"{base_steam_url}{x}")
-    return df
-
-
 if 'df' not in st.session_state:
     st.session_state.df = load_data()
-    st.session_state.df = process_data(st.session_state.df)
     st.session_state.df_graph = st.session_state.df.copy(deep=True)
     st.session_state.raw_df = st.session_state.df.copy(deep=True)
 

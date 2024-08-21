@@ -20,7 +20,7 @@ def parse_steam_file_for_gamelist(file_path: str) -> pd.DataFrame:
                         [
                             {
                                 game_name: line.strip(),
-                                store_name: "epic",
+                                store_name: "steam",
                                 played_flag: False,
                             }
                         ]
