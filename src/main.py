@@ -37,7 +37,13 @@ def main():
     print(f"Games to cycle: {len(df)}")
     for index, row in df.iterrows():
         if row[total_reviews] == -1:
-            df.iloc[index] = request_rating(row)
+            try:
+                # FIXME: Possible log: 848 708 (708, 14)
+                df.iloc[index] = request_rating(row)
+            except IndexError as e:
+                print(index, len(df), df.shape)
+                print(e.args)
+                print("Index error. Continuing")
             df = process_data(df)
             save_data(df)
 
