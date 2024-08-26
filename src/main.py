@@ -16,7 +16,7 @@ load_dotenv()
 rerun = False
 
 
-def save_data(df: pd.DataFrame, filename=games_folder + "/" + "data.parquet"):
+def save_data(df: pd.DataFrame, filename=DATA_FILEPATH):
     df.to_parquet(filename)
 
 
@@ -32,7 +32,7 @@ def main():
         df = load_data()
     else:
         df = init_df()
-        df = store_data(df)
+        df = games_from_accounts(df)
 
     print(f"Games to cycle: {len(df)}")
     for index, row in df.iterrows():
@@ -51,7 +51,7 @@ def main():
     save_data(df)
 
 
-def store_data(df):
+def games_from_accounts(df):
     file_path = games_folder + "/gog_1"
     df_gog = parse_gog_file_for_gamelist(file_path)
     df = concat_if_new(df, df_gog)

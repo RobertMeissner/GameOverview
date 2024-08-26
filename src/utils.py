@@ -2,6 +2,7 @@ import pandas as pd
 
 from src.constants import (
     APP_ID,
+    CORRECTED_APP_ID,
     DATA_FILEPATH,
     HIDE_FIELD,
     URL,
@@ -19,7 +20,8 @@ def add_columns(df) -> pd.DataFrame:
     df["total_negative"] = 0
     df[total_reviews] = -1
     df["found_game_name"] = ""
-    df["app_id"] = 0
+    df[APP_ID] = 0
+    df[APP_ID] = df[APP_ID].astype(int)
     df["rating"] = 0
     df["review_score_desc"] = ""
     df["hide"] = False
@@ -27,6 +29,8 @@ def add_columns(df) -> pd.DataFrame:
     df[played_flag] = df[played_flag].astype(bool)
     df[URL] = ""
     df[URL] = df[URL].astype(str)
+    df[CORRECTED_APP_ID] = 0
+    df[CORRECTED_APP_ID] = df[CORRECTED_APP_ID].astype(int)
     return df
 
 
