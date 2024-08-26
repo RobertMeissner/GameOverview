@@ -45,7 +45,7 @@ class TestRequestRating(unittest.TestCase):
         ]
 
         # Create a Pandas Series simulating the database row
-        df = pd.Series({"name": "Cyberpunk 2077"})
+        df = pd.Series({"name": "Cyberpunk 2077", "corrected_app_id": 0, "app_id": 0})
         result = request_rating(df)
         # Check the returned dataframe
         self.assertEqual(result["app_id"], "12345")
@@ -75,7 +75,14 @@ class TestRequestRating(unittest.TestCase):
         # Setup the side_effect to raise an exception on the request call
         mock_request.side_effect = Exception("Test Exception")
 
-        df = pd.Series({"name": "Faulty Game", "app_id": "12345", "rating": 0})
+        df = pd.Series(
+            {
+                "name": "Faulty Game",
+                "app_id": "12345",
+                "rating": 0,
+                "corrected_app_id": 0,
+            }
+        )
         with self.assertLogs(level="ERROR") as log:
             # No real assertions on result as we're focusing on exception logging
             request_rating(df)

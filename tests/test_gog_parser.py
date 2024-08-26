@@ -67,6 +67,7 @@ class TestParseGoGFile(unittest.TestCase):
                     "review_score_desc",
                     "hide",
                     "url",
+                    "corrected_app_id",
                 ],
             )
 

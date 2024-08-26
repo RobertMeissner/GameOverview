@@ -4,6 +4,8 @@ import streamlit as st
 from matplotlib import pyplot as plt
 
 from src.constants import (
+    APP_ID,
+    CORRECTED_APP_ID,
     CUSTOM_RATING,
     HIDE_FIELD,
     MINIMUM_RATING,
@@ -37,18 +39,25 @@ def save_changes(df, edited_df):
     # FIXME: This is hardcore frustrating, toggling filters in the sidebar resets these values - I seemingly misunderstand state
     # Merge raw and edited DataFrames based on 'name'
 
-    for field_to_compare in [HIDE_FIELD, played_flag]:
+    applied_changes = 0
+
+    for field_to_compare in [HIDE_FIELD, played_flag, CORRECTED_APP_ID]:
         merged_df = pd.merge(df, edited_df, on=game_name, suffixes=("_raw", "_edited"))
         mask = (
             merged_df[f"{field_to_compare}_raw"]
             != merged_df[f"{field_to_compare}_edited"]
         )
+        applied_changes += mask.sum()
         updates_dict = pd.Series(
             merged_df.loc[mask, f"{field_to_compare}_edited"].values,
             index=merged_df.loc[mask, game_name],
         ).to_dict()
         for name, new_hide in updates_dict.items():
             df.loc[df[game_name] == name, field_to_compare] = new_hide
+
+    print(f"Applied {applied_changes} changes.")
+    # merge corrected_app_id
+    df[CORRECTED_APP_ID] = df[CORRECTED_APP_ID].replace("", 0).fillna(0)
 
     # drop exact duplicates
     df = df.drop_duplicates()
@@ -59,8 +68,10 @@ def save_changes(df, edited_df):
 # Create a function to display the DataFrame in Streamlit with filter and sorting options
 def display_dataframe():
     df = st.session_state.df.copy(deep=False)
-    tab1, tab2 = st.tabs(["Dataframe", "Rating Distribution"])
-    with tab1:
+    tab_overview, tab_rating_distribution, tab_correcting_app_id = st.tabs(
+        ["Overview", "Rating Distribution", "Correcting App ID"]
+    )
+    with tab_overview:
 
         st.sidebar.write("### Filter rows:")
         if st.sidebar.checkbox("Show Rows with Differences"):
@@ -82,7 +93,6 @@ def display_dataframe():
             df = df[df[RATING_FIELD] >= MINIMUM_RATING]
 
         if not st.sidebar.checkbox("Show hidden games?", value=False):
-            print("hiding")
             df = df[~df[HIDE_FIELD]]
 
         # Button to save the DataFrame to disk
@@ -142,7 +152,7 @@ def display_dataframe():
         save_changes(st.session_state.raw_df, edited_df)
 
     # Display the graph in the second tab
-    with tab2:
+    with tab_rating_distribution:
         # Define the bins (excluding 0, as this will be a separate category)
         bins = np.linspace(0.01, 1, 11)  # Starts slightly above 0 to exclude 0
         # Create labels for the bins
@@ -169,6 +179,48 @@ def display_dataframe():
         plt.xticks(rotation=45)
         plt.grid(True)
         st.pyplot(plt)
+
+    with tab_correcting_app_id:
+        mask = (df[game_name] != df[found_game_name]) | (df[APP_ID] == 0)
+        df = df[mask]
+
+        columns_to_show = [
+            game_name,
+            found_game_name,
+            APP_ID,
+            CORRECTED_APP_ID,
+            URL,
+            played_flag,
+            HIDE_FIELD,
+        ]
+
+        st.write(f"Number of games: {len(df)}.")
+
+        column_config = {
+            URL: st.column_config.LinkColumn(
+                URL,
+                max_chars=100,
+                display_text="https://store\.steampowered\.com/app/([0-9]*)",  # noqa: W605
+                disabled=True,
+            ),
+            game_name: st.column_config.TextColumn(game_name, width="large"),
+        }
+
+        df = df.sort_values(by=game_name, ascending=False)
+
+        edited_df = st.data_editor(
+            df[columns_to_show],
+            column_config=column_config,
+            hide_index=True,
+            disabled=[
+                s
+                for s in all_columns
+                if s not in [played_flag, HIDE_FIELD, CORRECTED_APP_ID]
+            ],
+            height=len(df) * 30,
+        )
+
+        save_changes(st.session_state.raw_df, edited_df)
 
 
 if "df" not in st.session_state:

@@ -3,7 +3,14 @@ import os
 import pandas as pd
 from dotenv import load_dotenv
 
-from src.constants import DATA_FILEPATH, game_name, games_folder, total_reviews
+from src.constants import (
+    APP_ID,
+    CORRECTED_APP_ID,
+    DATA_FILEPATH,
+    game_name,
+    games_folder,
+    total_reviews,
+)
 from src.epic_parser import parse_epic_file_for_gamelist
 from src.gog_parser import parse_gog_file_for_gamelist
 from src.markdown_parser import read_and_filter_markdown
@@ -36,7 +43,8 @@ def main():
 
     print(f"Games to cycle: {len(df)}")
     for index, row in df.iterrows():
-        if row[total_reviews] == -1:
+        print(f"{row[game_name]}\t app_id: {row[APP_ID]}/{row[CORRECTED_APP_ID]}")
+        if row[total_reviews] == -1 or row[CORRECTED_APP_ID] != 0:
             try:
                 # FIXME: Possible log: 848 708 (708, 14)
                 df.iloc[index] = request_rating(row)
