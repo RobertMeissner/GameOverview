@@ -21,6 +21,7 @@ google-auth-oauthlib = "^1.1.0"
 google-auth-httplib2 = "^0.1.1"
 google-api-python-client = "^2.108.0"
 streamlit = "^1.37.1"
+tqdm = "^4.66.5"
 
 [tool.poetry.dev-dependencies]
 

@@ -1100,6 +1100,23 @@ optional = false
 python-versions = ">=3.8"
 
 [[package]]
+name = "tqdm"
+version = "4.66.5"
+description = "Fast, Extensible Progress Meter"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+colorama = {version = "*", markers = "platform_system == \"Windows\""}
+
+[package.extras]
+dev = ["pytest (>=6)", "pytest-cov", "pytest-timeout", "pytest-xdist"]
+notebook = ["ipywidgets (>=6)"]
+slack = ["slack-sdk"]
+telegram = ["requests"]
+
+[[package]]
 name = "typing-extensions"
 version = "4.4.0"
 description = "Backported and Experimental Type Hints for Python 3.7+"
@@ -1183,7 +1200,7 @@ watchmedo = ["PyYAML (>=3.10)"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "476e07714f6d6450b10b8b435dc5ecdc8cd362ce2d3f078e8b0a330010d66286"
+content-hash = "fb08aa5b3e449e2779da240c26c397858083a6e51a88b13caa560a23f63670f1"
 
 [metadata.files]
 altair = []
@@ -1276,6 +1293,7 @@ toml = []
 tomli = []
 toolz = []
 tornado = []
+tqdm = []
 typing-extensions = []
 tzdata = []
 tzlocal = []
