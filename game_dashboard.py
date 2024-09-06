@@ -27,8 +27,8 @@ columns_off_by_default = [
     "review_score_desc",
     "total_positive",
     "total_negative",
-    RATING_FIELD,
-    REVIEW_SCORE_FIELD,
+    APP_ID,  # RATING_FIELD,
+    CORRECTED_APP_ID,  # REVIEW_SCORE_FIELD,
     "total_reviews",
 ]
 
@@ -102,7 +102,9 @@ def display_dataframe():
         df[CUSTOM_RATING] = df[RATING_FIELD] * df[REVIEW_SCORE_FIELD] / 9
         # sort columns
         df.insert(0, game_name, df.pop(game_name))
-        df.insert(1, CUSTOM_RATING, df.pop(CUSTOM_RATING))
+        df.insert(1, RATING_FIELD, df.pop(RATING_FIELD))
+        df.insert(2, REVIEW_SCORE_FIELD, df.pop(REVIEW_SCORE_FIELD))
+        df.insert(3, CUSTOM_RATING, df.pop(CUSTOM_RATING))
 
         st.sidebar.write("### Select the columns to display:")
         columns_to_show = []

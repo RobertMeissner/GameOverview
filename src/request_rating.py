@@ -65,7 +65,9 @@ def request_rating(df: pd.Series) -> pd.Series:
             text = json.loads(response.text)
 
             if "hits" in text.keys() and len(text["hits"]):
-                application_id = text["hits"][0]["id"]
+                application_id = text["hits"][0][
+                    "objectID"
+                ]  # 20240905: Changed from id to objectID
                 df[APP_ID] = application_id
 
                 retrieved_game_name = re.sub(
