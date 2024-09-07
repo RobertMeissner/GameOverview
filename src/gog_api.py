@@ -7,8 +7,8 @@ import requests
 from dotenv import load_dotenv
 from tqdm import tqdm
 
-from src.constants import GOG_FILEPATH
-from src.utils import load_data
+from src.constants import GOG_FILEPATH, game_name, played_flag, store_name
+from src.utils import add_columns, load_data
 
 load_dotenv()
 CONFIG = {
@@ -31,6 +31,7 @@ def gog_games() -> pd.DataFrame:
         elif CONFIG["gogLoginCode"]:
             access_token, refresh_token = gog_access_token(CONFIG["gogLoginCode"], None)
         else:
+            # FIXME: Annoying return call
             return pd.DataFrame()
 
         print(
@@ -48,9 +49,13 @@ def gog_games() -> pd.DataFrame:
 
     df["downloads"] = df["downloads"].astype(str)
     df["dlcs"] = df["dlcs"].astype(str)
+    df = df.rename(columns={"title": game_name})
+    df = df.rename(columns={"appid": "gog_app_id"})
+    df[store_name] = "gog"
+    df[played_flag] = False
     save_gog(df)
 
-    return df
+    return add_columns(df)
 
 
 def gog_apps_ids(accessToken):

@@ -5,6 +5,9 @@ import pandas as pd
 import requests
 from dotenv import load_dotenv
 
+from src.constants import APP_ID, played_flag, store_name
+from src.utils import add_columns
+
 load_dotenv()
 
 steam_api_key = os.getenv("STEAM_API_KEY", "")
@@ -24,10 +27,16 @@ def steam_games() -> pd.DataFrame:
 
     games = json.loads(response.text)["response"]["games"]
     print(len(games), " Steam games")
-    return pd.DataFrame(games)
+    df = pd.DataFrame(games)
+    df[store_name] = "steam"
+    df[played_flag] = False
+    df = add_columns(df)
+    df[APP_ID] = df["appid"]
+    df = df.drop(columns=["appid"])
+    return df
 
 
 if __name__ == "__main__":
-    df = steam_games()
-    print(df.info())
-    print(df.head())
+    games = steam_games()
+    print(games.info())
+    print(games.head())

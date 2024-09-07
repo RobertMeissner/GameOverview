@@ -9,18 +9,19 @@ from src.constants import (
     DATA_FILEPATH,
     game_name,
     games_folder,
+    played_flag,
     total_reviews,
 )
 from src.epic_parser import parse_epic_file_for_gamelist
-from src.gog_parser import parse_gog_file_for_gamelist
+from src.gog_api import gog_games
 from src.markdown_parser import read_and_filter_markdown
 from src.request_rating import request_rating
-from src.steam_parser import parse_steam_file_for_gamelist
+from src.steam_api import steam_games
 from src.utils import init_df, load_data, process_data
 
 load_dotenv()
 
-rerun = False
+rerun = True
 
 
 def save_data(df: pd.DataFrame, filename=DATA_FILEPATH):
@@ -35,7 +36,7 @@ def concat_if_new(df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame:
 
 def main():
 
-    if os.path.exists(DATA_FILEPATH):
+    if not rerun and os.path.exists(DATA_FILEPATH):
         df = load_data()
     else:
         df = init_df()
@@ -60,23 +61,20 @@ def main():
 
 
 def games_from_accounts(df):
-    file_path = games_folder + "/gog_1"
-    df_gog = parse_gog_file_for_gamelist(file_path)
+    # file_path = games_folder + "/gog_1"
+    # df_gog = parse_gog_file_for_gamelist(file_path)
+    df_gog = gog_games()
     df = concat_if_new(df, df_gog)
+
+    df_steam = steam_games()
     df = pd.concat(
-        [df, df_gog],
+        [df, df_steam],
         ignore_index=True,
     )
     file_path = games_folder + "/epic.html"
     df_epic = parse_epic_file_for_gamelist(file_path)
     df = pd.concat(
         [df, df_epic],
-        ignore_index=True,
-    )
-    file_path = games_folder + "/steam"
-    df_steam = parse_steam_file_for_gamelist(file_path)
-    df = pd.concat(
-        [df, df_steam],
         ignore_index=True,
     )
     store_identifier = "unknown"
@@ -89,11 +87,15 @@ def games_from_accounts(df):
     )
     # Merging df1 and df2 on 'name' while updating 'played' from df2 where names match
     df = df.merge(df_played[0], on="name", how="left", suffixes=("", "_md"))
+    # FIXME: Dirty workaround - merging of games not in played games can be improved
+    df[played_flag] = df[played_flag].fillna(False)
+    df["played_md"] = df["played_md"].fillna(False)
     df.loc[df["played_md"], "played"] = True
     # Dropping the original 'played_x' column from df1
     df.drop("played_md", axis=1, inplace=True)
     df.drop("store_md", axis=1, inplace=True)
     df.drop("app_id_md", axis=1, inplace=True)
+    df[APP_ID] = df[APP_ID].fillna(False)
     return df
 
 

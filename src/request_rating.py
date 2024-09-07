@@ -61,38 +61,11 @@ def request_rating(df: pd.Series) -> pd.Series:
             df[found_game_name] = df[game_name]
 
         if df[APP_ID] == 0:
-            response = requests.request("POST", url, headers=headers, data=payload)
-            text = json.loads(response.text)
-
-            if "hits" in text.keys() and len(text["hits"]):
-                application_id = text["hits"][0][
-                    "objectID"
-                ]  # 20240905: Changed from id to objectID
-                df[APP_ID] = application_id
-
-                retrieved_game_name = re.sub(
-                    r"<[^>]+>",
-                    "",
-                    text["hits"][0]["_highlightResult"][game_name]["value"],
-                )
-                df[found_game_name] = retrieved_game_name
+            steam_app_id(df, payload)
 
         application_id = df[APP_ID]
 
-        steam_url = f"https://store.steampowered.com/appreviews/{application_id}?json=1&num_per_page=0"
-
-        response = requests.request("GET", steam_url, headers={}, data={})
-
-        text = json.loads(response.text)
-        if "success" in text.keys() and text["success"] == 1:
-            if text["query_summary"]["total_reviews"] > 0:
-                rating = (
-                    text["query_summary"]["total_positive"]
-                    / text["query_summary"]["total_reviews"]
-                )
-                df["rating"] = rating
-                for key, value in text["query_summary"].items():
-                    df[key] = value
+        steam_rating(application_id, df)
     except Exception as e:
         logging.error(f"An error occurred: {str(e)} for {df[game_name]} ")
         logging.error("Exception information:", exc_info=True)
@@ -102,3 +75,35 @@ def request_rating(df: pd.Series) -> pd.Series:
     print(f"{df[game_name]}\t{df[APP_ID]}\tdata: {df[RATING_FIELD]}")
 
     return df
+
+
+def steam_rating(application_id, df):
+    steam_url = f"https://store.steampowered.com/appreviews/{application_id}?json=1&num_per_page=0"
+    response = requests.request("GET", steam_url, headers={}, data={})
+    text = json.loads(response.text)
+    if "success" in text.keys() and text["success"] == 1:
+        if text["query_summary"]["total_reviews"] > 0:
+            rating = (
+                text["query_summary"]["total_positive"]
+                / text["query_summary"]["total_reviews"]
+            )
+            df["rating"] = rating
+            for key, value in text["query_summary"].items():
+                df[key] = value
+
+
+def steam_app_id(df, payload):
+    response = requests.request("POST", url, headers=headers, data=payload)
+    text = json.loads(response.text)
+    if "hits" in text.keys() and len(text["hits"]):
+        application_id = text["hits"][0][
+            "objectID"
+        ]  # 20240905: Changed from id to objectID
+        df[APP_ID] = application_id
+
+        retrieved_game_name = re.sub(
+            r"<[^>]+>",
+            "",
+            text["hits"][0]["_highlightResult"][game_name]["value"],
+        )
+        df[found_game_name] = retrieved_game_name

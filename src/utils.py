@@ -24,8 +24,8 @@ def add_columns(df) -> pd.DataFrame:
     df[APP_ID] = df[APP_ID].astype(int)
     df["rating"] = 0
     df["review_score_desc"] = ""
-    df["hide"] = False
-    df["hide"] = df["hide"].astype(bool)
+    df[HIDE_FIELD] = False
+    df[HIDE_FIELD] = df[HIDE_FIELD].astype(bool)
     df[played_flag] = df[played_flag].astype(bool)
     df[URL] = ""
     df[URL] = df[URL].astype(str)
@@ -44,9 +44,7 @@ def init_df():
 
 
 def load_data(filename=DATA_FILEPATH) -> pd.DataFrame:
-    df = pd.read_parquet(filename)
-    df[HIDE_FIELD].fillna(False, inplace=True)
-    return df
+    return pd.read_parquet(filename)
 
 
 base_steam_url = "https://store.steampowered.com/app/"
