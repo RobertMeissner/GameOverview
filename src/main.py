@@ -2,6 +2,7 @@ import os
 
 import pandas as pd
 from dotenv import load_dotenv
+from tqdm import tqdm
 
 from src.constants import (
     APP_ID,
@@ -43,8 +44,12 @@ def main():
         df = games_from_accounts(df)
 
     print(f"Games to cycle: {len(df)}")
-    for index, row in df.iterrows():
-        print(f"{row[game_name]}\t app_id: {row[APP_ID]}/{row[CORRECTED_APP_ID]}")
+    for index, row in tqdm(
+        df.iterrows(),
+        total=len(df),
+        bar_format="{l_bar}{bar}| {percentage:.0f}% | {elapsed}<{remaining} | {n_fmt}/{total_fmt} games processed",
+    ):
+        # print(f"{row[game_name]}\t app_id: {row[APP_ID]}/{row[CORRECTED_APP_ID]}")
         if row[total_reviews] == -1 or row[CORRECTED_APP_ID] != 0:
             try:
                 # FIXME: Possible log: 848 708 (708, 14)

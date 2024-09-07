@@ -60,7 +60,9 @@ def save_changes(df, edited_df):
     df[CORRECTED_APP_ID] = df[CORRECTED_APP_ID].replace("", 0).fillna(0)
 
     # drop exact duplicates
-    df = df.drop_duplicates()
+    for col in df.columns:
+        if not df[col].apply(lambda x: isinstance(x, np.ndarray)).any():
+            df[col] = df[col].drop_duplicates(keep="first")
     st.session_state.df = df
     save_data(st.session_state.df.copy(deep=True))
 
@@ -151,7 +153,7 @@ def display_dataframe():
             height=len(df) * 30,
         )
 
-        save_changes(st.session_state.raw_df, edited_df)
+        # save_changes(st.session_state.raw_df, edited_df)
 
     # Display the graph in the second tab
     with tab_rating_distribution:

@@ -1,11 +1,11 @@
 import json
 import logging
 import os
-import re
 import traceback
 
 import pandas as pd
 import requests
+from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 
 from src.constants import (
@@ -50,18 +50,13 @@ logging.basicConfig(
 
 def request_rating(df: pd.Series) -> pd.Series:
     # API: https://www.algolia.com/doc/rest-api/search/#search-multiple-indices
-    payload = (
-        '{"hitsPerPage":3,"attributesToSnippet":null,"attributesToHighlight":"name","query":"'
-        + df[game_name]
-        + '"}'
-    )
     try:
         if df[CORRECTED_APP_ID] != 0:
             df[APP_ID] = df[CORRECTED_APP_ID]
             df[found_game_name] = df[game_name]
 
         if df[APP_ID] == 0:
-            steam_app_id(df, payload)
+            steam_app_id(df, df[game_name])
 
         application_id = df[APP_ID]
 
@@ -92,18 +87,46 @@ def steam_rating(application_id, df):
                 df[key] = value
 
 
-def steam_app_id(df, payload):
-    response = requests.request("POST", url, headers=headers, data=payload)
-    text = json.loads(response.text)
-    if "hits" in text.keys() and len(text["hits"]):
-        application_id = text["hits"][0][
-            "objectID"
-        ]  # 20240905: Changed from id to objectID
-        df[APP_ID] = application_id
+def steam_app_id(df, game_name: str):
 
-        retrieved_game_name = re.sub(
-            r"<[^>]+>",
-            "",
-            text["hits"][0]["_highlightResult"][game_name]["value"],
-        )
-        df[found_game_name] = retrieved_game_name
+    url = (
+        f"https://store.steampowered.com/search/suggest?term={game_name}&f=games&cc=DE&realm=1&l=english&"
+        f"v=25120873&excluded_content_descriptors[]=3&excluded_content_descriptors[]=4&"
+        f"use_store_query=1&use_search_spellcheck=1&search_creators_and_tags=1"
+    )
+
+    payload = {}
+    headers = {"Cookie": "browserid=3512330266224273470"}
+
+    response = requests.request("GET", url, headers=headers, data=payload)
+    soup = BeautifulSoup(response.text, "html.parser")
+
+    matches = soup.find_all("a", class_="match")
+
+    # TODO: Right now, only take the first match
+    if matches:
+        df[found_game_name] = matches[0].find("div", class_="match_name").text.strip()
+        df[APP_ID] = int(matches[0]["data-ds-appid"])
+        # print(f"Match name: {df[found_game_name]}, App ID: {df[APP_ID]}")
+    # for match in matches:
+    #    match_name = match.find('div', class_='match_name').text.strip()
+    #    app_id = match['data-ds-appid']
+    #    print(f"Match name: {match_name}, App ID: {app_id}")
+    # print(response.text)
+
+    # response = requests.request("POST", url, headers=headers, data=payload)
+    # text = json.loads(response.text)
+    # if "hits" in text.keys() and len(text["hits"]):
+    #    application_id = text["hits"][0][
+    #        "objectID"
+    #    ]  # 20240905: Changed from id to objectID
+    #    df[APP_ID] = application_id
+
+
+#
+#    retrieved_game_name = re.sub(
+#        r"<[^>]+>",
+#        "",
+#        text["hits"][0]["_highlightResult"][game_name]["value"],
+#    )
+#    df[found_game_name] = retrieved_game_name
