@@ -15,11 +15,24 @@ from src.constants import (
     found_game_name,
     game_name,
     played_flag,
+    store_name,
 )
 from src.main import save_data
 from src.utils import load_data
 
 feature_editable = False
+
+overview_columns = [
+    game_name,
+    APP_ID,
+    URL,
+    RATING_FIELD,
+    REVIEW_SCORE_FIELD,
+    played_flag,
+    HIDE_FIELD,
+    "total_reviews",
+    store_name,
+]
 
 # Define columns that should be deactivated by default
 columns_off_by_default = [
@@ -75,62 +88,69 @@ def display_dataframe():
     )
     with tab_overview:
 
+        df_overview = df.copy(deep=True)[overview_columns]
+
         st.sidebar.write("### Filter rows:")
-        if st.sidebar.checkbox("Show Rows with Differences"):
-            # Display rows where selected columns have different values
-            mask = df[game_name] != df[found_game_name]
-            df = df[mask]
+        # if st.sidebar.checkbox("Show Rows with Differences"):
+        #     # Display rows where selected columns have different values
+        #     mask = df_overview[game_name] != df_overview[found_game_name]
+        #     df_overview = df[mask]
 
         if st.sidebar.checkbox("Only not-played games?"):
             # Display rows where selected columns have different values
-            mask = df[played_flag] == False  # noqa: E712
-            df = df[mask]
+            mask = df_overview[played_flag] == False  # noqa: E712
+            df_overview = df_overview[mask]
 
         if st.sidebar.checkbox("Only rated games?", value=True):
             # Display rows where selected columns have different values
-            mask = df["total_reviews"] != -1
-            df = df[mask]
+            mask = df_overview["total_reviews"] != -1
+            df_overview = df_overview[mask]
 
-        if st.sidebar.checkbox("Hide 'bad' games?", value=True):
-            df = df[df[RATING_FIELD] >= MINIMUM_RATING]
+        if st.sidebar.checkbox("Only 'good' games?", value=True):
+            df_overview = df_overview[df_overview[RATING_FIELD] >= MINIMUM_RATING]
 
         if not st.sidebar.checkbox("Show hidden games?", value=False):
-            df = df[~df[HIDE_FIELD]]
+            df_overview = df_overview[~df_overview[HIDE_FIELD]]
 
         # Button to save the DataFrame to disk
         # if st.button('Save to Disk'):
         #    save_changes()
 
-        df[CUSTOM_RATING] = df[RATING_FIELD] * df[REVIEW_SCORE_FIELD] / 9
+        df_overview[CUSTOM_RATING] = (
+            df_overview[RATING_FIELD] * df_overview[REVIEW_SCORE_FIELD] / 9
+        )
         # sort columns
-        df.insert(0, game_name, df.pop(game_name))
-        df.insert(1, RATING_FIELD, df.pop(RATING_FIELD))
-        df.insert(2, REVIEW_SCORE_FIELD, df.pop(REVIEW_SCORE_FIELD))
-        df.insert(3, CUSTOM_RATING, df.pop(CUSTOM_RATING))
+        df_overview.insert(0, game_name, df_overview.pop(game_name))
+        df_overview.insert(1, RATING_FIELD, df_overview.pop(RATING_FIELD))
+        df_overview.insert(2, REVIEW_SCORE_FIELD, df_overview.pop(REVIEW_SCORE_FIELD))
+        df_overview.insert(3, CUSTOM_RATING, df_overview.pop(CUSTOM_RATING))
 
-        st.sidebar.write("### Select the columns to display:")
-        columns_to_show = []
-        all_columns = df.columns.tolist()
-        column_choices = {
-            col: st.sidebar.checkbox(col, col not in columns_off_by_default)
-            for col in all_columns
-        }
+        all_columns = df_overview.columns.tolist()
+        if False:
+            st.sidebar.write("### Select the columns to display:")
+            columns_to_show = []
+            column_choices = {
+                col: st.sidebar.checkbox(col, col not in columns_off_by_default)
+                for col in all_columns
+            }
 
-        for col, show in column_choices.items():
-            if show:
-                columns_to_show.append(col)
+            for col, show in column_choices.items():
+                if show:
+                    columns_to_show.append(col)
+        else:
+            columns_to_show = overview_columns
 
         # Fetch unique stores for selection
-        store_list = df["store"].unique()
+        store_list = df_overview["store"].unique()
 
         # Multi-select sidebar option
         selected_stores = st.sidebar.multiselect(
             "Select Stores:", store_list, default=store_list
         )
-        df = df[df["store"].isin(selected_stores)]
+        df_overview = df_overview[df_overview["store"].isin(selected_stores)]
 
         st.write(
-            f"Number of games: {len(df)}. Hidden: {st.session_state.df[HIDE_FIELD].sum()}"
+            f"Number of games: {len(df_overview)}. Hidden: {st.session_state.df[HIDE_FIELD].sum()}"
         )
 
         column_config = {
@@ -143,14 +163,14 @@ def display_dataframe():
             game_name: st.column_config.TextColumn(game_name, width="large"),
         }
 
-        df = df.sort_values(by=CUSTOM_RATING, ascending=False)
+        df_overview = df_overview.sort_values(by=CUSTOM_RATING, ascending=False)
 
         edited_df = st.data_editor(
-            df[columns_to_show],
+            df_overview[columns_to_show],
             column_config=column_config,
             hide_index=True,
             disabled=[s for s in all_columns if s not in [played_flag, HIDE_FIELD]],
-            height=len(df) * 30,
+            height=min(max(df_overview.shape[0] * 30, 30), 3000),
         )
 
         # save_changes(st.session_state.raw_df, edited_df)
@@ -221,10 +241,10 @@ def display_dataframe():
                 for s in all_columns
                 if s not in [played_flag, HIDE_FIELD, CORRECTED_APP_ID]
             ],
-            height=len(df) * 30,
+            height=min(max(df.shape[0] * 30, 30), 3000),
         )
-
-        save_changes(st.session_state.raw_df, edited_df)
+        edited_df
+        # save_changes(st.session_state.raw_df, edited_df)
 
 
 if "df" not in st.session_state:
