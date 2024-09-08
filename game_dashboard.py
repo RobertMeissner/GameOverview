@@ -86,7 +86,7 @@ def save_changes(df, edited_df):
 
 def save_editable_data(df):  # df: pd.DataFrame
     save_data(df, filename=EDITABLE_DATA_FILEPATH)
-    st.session_state.df = merge_with_edited_data(
+    st.session_state.df = update_with_edited_data(
         st.session_state.df.copy(deep=True), df
     )
 
@@ -262,7 +262,7 @@ def display_dataframe():
         # save_changes(st.session_state.raw_df, edited_df)
 
 
-def merge_with_edited_data(
+def update_with_edited_data(
     df_original: pd.DataFrame, df_edited: pd.DataFrame
 ) -> pd.DataFrame:
     # FIXME sometimes hash is double, so far only for one epic game
@@ -281,8 +281,10 @@ def merge_with_edited_data(
 
 if "df" not in st.session_state:
     # st.session_state.df = load_data()
-    st.session_state.df = merge_with_edited_data(
-        load_data(), load_data(filename=EDITABLE_DATA_FILEPATH)
+    df = load_data()
+    st.session_state.df_editable = load_data(filename=EDITABLE_DATA_FILEPATH)
+    st.session_state.df = update_with_edited_data(
+        df, df_edited=st.session_state.df_editable
     )
 
 st.session_state.df_graph = st.session_state.df.copy(deep=True)

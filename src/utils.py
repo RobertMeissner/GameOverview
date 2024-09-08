@@ -56,7 +56,7 @@ base_steam_url = "https://store.steampowered.com/app/"
 def process_data(df: pd.DataFrame) -> pd.DataFrame:
     # Adding a new column with URL
     df[URL] = df[APP_ID].apply(lambda x: f"{base_steam_url}{x}")
-    return df
+    return game_hash(df)
 
 
 # Function to create a hash
