@@ -14,8 +14,10 @@ CORRECTED_APP_ID = "corrected_app_id"
 URL = "url"
 review_score = "review_score"
 total_reviews = "total_reviews"
+HASH = "game_hash"
 
 MINIMUM_RATING = 0.8
 
 DATA_FILEPATH = games_folder + "/" + "data.parquet"
 GOG_FILEPATH = games_folder + "/" + "gog.parquet"
+EDITABLE_DATA_FILEPATH = games_folder + "/" + "editable_data.parquet"

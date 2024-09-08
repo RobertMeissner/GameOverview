@@ -18,15 +18,11 @@ from src.gog_api import gog_games
 from src.markdown_parser import read_and_filter_markdown
 from src.request_rating import request_rating
 from src.steam_api import steam_games
-from src.utils import init_df, load_data, process_data
+from src.utils import init_df, load_data, process_data, save_data
 
 load_dotenv()
 
 rerun = True
-
-
-def save_data(df: pd.DataFrame, filename=DATA_FILEPATH):
-    df.to_parquet(filename)
 
 
 def concat_if_new(df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame:

@@ -7,6 +7,8 @@ from src.constants import (
     APP_ID,
     CORRECTED_APP_ID,
     CUSTOM_RATING,
+    EDITABLE_DATA_FILEPATH,
+    HASH,
     HIDE_FIELD,
     MINIMUM_RATING,
     RATING_FIELD,
@@ -17,8 +19,7 @@ from src.constants import (
     played_flag,
     store_name,
 )
-from src.main import save_data
-from src.utils import load_data
+from src.utils import load_data, save_data
 
 feature_editable = False
 
@@ -32,6 +33,8 @@ overview_columns = [
     HIDE_FIELD,
     "total_reviews",
     store_name,
+    CORRECTED_APP_ID,
+    HASH,
 ]
 
 # Define columns that should be deactivated by default
@@ -45,7 +48,8 @@ columns_off_by_default = [
     "total_reviews",
 ]
 
-editable_columns = [played_flag]
+editable_columns = [played_flag, HIDE_FIELD, CORRECTED_APP_ID]
+editable_columns_to_save = [*editable_columns, HASH, APP_ID, game_name]
 
 
 def save_changes(df, edited_df):
@@ -80,15 +84,21 @@ def save_changes(df, edited_df):
     save_data(st.session_state.df.copy(deep=True))
 
 
+def save_editable_data(df):  # df: pd.DataFrame
+    save_data(df, filename=EDITABLE_DATA_FILEPATH)
+    st.session_state.df = merge_with_edited_data(
+        st.session_state.df.copy(deep=True), df
+    )
+
+
 # Create a function to display the DataFrame in Streamlit with filter and sorting options
 def display_dataframe():
-    df = st.session_state.df.copy(deep=False)
     tab_overview, tab_rating_distribution, tab_correcting_app_id = st.tabs(
         ["Overview", "Rating Distribution", "Correcting App ID"]
     )
     with tab_overview:
 
-        df_overview = df.copy(deep=True)[overview_columns]
+        df_overview = st.session_state.df.copy(deep=True)[overview_columns]
 
         st.sidebar.write("### Filter rows:")
         # if st.sidebar.checkbox("Show Rows with Differences"):
@@ -171,8 +181,10 @@ def display_dataframe():
             hide_index=True,
             disabled=[s for s in all_columns if s not in [played_flag, HIDE_FIELD]],
             height=min(max(df_overview.shape[0] * 30, 30), 3000),
+            # on_change=save_editable_data # FIXME: How to hand over data?
         )
 
+        save_editable_data(edited_df[editable_columns_to_save])
         # save_changes(st.session_state.raw_df, edited_df)
 
     # Display the graph in the second tab
@@ -205,8 +217,11 @@ def display_dataframe():
         st.pyplot(plt)
 
     with tab_correcting_app_id:
-        mask = (df[game_name] != df[found_game_name]) | (df[APP_ID] == 0)
-        df = df[mask]
+        df_correction = st.session_state.df.copy(deep=True)
+        mask = (df_correction[game_name] != df_correction[found_game_name]) | (
+            df_correction[APP_ID] == 0
+        )
+        df_correction = df_correction[mask]
 
         columns_to_show = [
             game_name,
@@ -218,7 +233,7 @@ def display_dataframe():
             HIDE_FIELD,
         ]
 
-        st.write(f"Number of games: {len(df)}.")
+        st.write(f"Number of games: {len(df_correction)}.")
 
         column_config = {
             URL: st.column_config.LinkColumn(
@@ -230,10 +245,10 @@ def display_dataframe():
             game_name: st.column_config.TextColumn(game_name, width="large"),
         }
 
-        df = df.sort_values(by=game_name, ascending=False)
+        df_correction = df_correction.sort_values(by=game_name, ascending=False)
 
-        edited_df = st.data_editor(
-            df[columns_to_show],
+        st.data_editor(
+            df_correction[columns_to_show],
             column_config=column_config,
             hide_index=True,
             disabled=[
@@ -241,16 +256,37 @@ def display_dataframe():
                 for s in all_columns
                 if s not in [played_flag, HIDE_FIELD, CORRECTED_APP_ID]
             ],
-            height=min(max(df.shape[0] * 30, 30), 3000),
+            height=min(max(df_correction.shape[0] * 30, 30), 3000),
         )
-        edited_df
+        # edited_df
         # save_changes(st.session_state.raw_df, edited_df)
 
 
+def merge_with_edited_data(
+    df_original: pd.DataFrame, df_edited: pd.DataFrame
+) -> pd.DataFrame:
+    # FIXME sometimes hash is double, so far only for one epic game
+    df_original = df_original.drop_duplicates(subset=HASH)
+    df_edited = df_edited.drop_duplicates(subset=HASH)
+
+    df_original.set_index(HASH, inplace=True)
+    df_edited.set_index(HASH, inplace=True)
+
+    # Update the original data with the edited data
+    df_original.update(df_edited)
+
+    df_original[HIDE_FIELD] = df_original[HIDE_FIELD].astype(bool)
+    return df_original.reset_index()
+
+
 if "df" not in st.session_state:
-    st.session_state.df = load_data()
-    st.session_state.df_graph = st.session_state.df.copy(deep=True)
-    st.session_state.raw_df = st.session_state.df.copy(deep=True)
+    # st.session_state.df = load_data()
+    st.session_state.df = merge_with_edited_data(
+        load_data(), load_data(filename=EDITABLE_DATA_FILEPATH)
+    )
+
+st.session_state.df_graph = st.session_state.df.copy(deep=True)
+st.session_state.raw_df = st.session_state.df.copy(deep=True)
 
 st.set_page_config(
     page_title=None,

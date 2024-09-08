@@ -1,9 +1,12 @@
+import hashlib
+
 import pandas as pd
 
 from src.constants import (
     APP_ID,
     CORRECTED_APP_ID,
     DATA_FILEPATH,
+    HASH,
     HIDE_FIELD,
     URL,
     game_name,
@@ -54,3 +57,24 @@ def process_data(df: pd.DataFrame) -> pd.DataFrame:
     # Adding a new column with URL
     df[URL] = df[APP_ID].apply(lambda x: f"{base_steam_url}{x}")
     return df
+
+
+# Function to create a hash
+def create_hash(row: pd.Series) -> str:
+    combined = row[game_name] + row[store_name]
+    return hashlib.md5(combined.encode()).hexdigest()
+
+
+def game_hash(df: pd.DataFrame) -> pd.DataFrame:
+    df[HASH] = df.apply(create_hash, axis=1)
+    return df
+
+
+def save_data(df: pd.DataFrame, filename=DATA_FILEPATH):
+    df.to_parquet(filename)
+
+
+if __name__ == "__main__":
+    df = load_data()
+    df = game_hash(df)
+    save_data(df)
