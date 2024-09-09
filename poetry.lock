@@ -215,6 +215,17 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "exceptiongroup"
+version = "1.2.2"
+description = "Backport of PEP 654 (exception groups)"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.extras]
+test = ["pytest (>=6)"]
+
+[[package]]
 name = "ezodf"
 version = "0.3.2"
 description = "A Python package to create/manipulate OpenDocumentFormat files."
@@ -452,6 +463,14 @@ description = "Internationalized Domain Names in Applications (IDNA)"
 category = "main"
 optional = false
 python-versions = ">=3.5"
+
+[[package]]
+name = "iniconfig"
+version = "2.0.0"
+description = "brain-dead simple config-ini parsing"
+category = "main"
+optional = false
+python-versions = ">=3.7"
 
 [[package]]
 name = "jinja2"
@@ -708,6 +727,18 @@ docs = ["furo (>=2022.9.29)", "proselint (>=0.13)", "sphinx-autodoc-typehints (>
 test = ["appdirs (==1.4.4)", "pytest-cov (>=4)", "pytest-mock (>=3.10)", "pytest (>=7.2)"]
 
 [[package]]
+name = "pluggy"
+version = "1.5.0"
+description = "plugin and hook calling mechanisms for python"
+category = "main"
+optional = false
+python-versions = ">=3.8"
+
+[package.extras]
+dev = ["pre-commit", "tox"]
+testing = ["pytest", "pytest-benchmark"]
+
+[[package]]
 name = "pre-commit"
 version = "2.20.0"
 description = "A framework for managing and maintaining multi-language pre-commit hooks."
@@ -817,6 +848,25 @@ description = "Persistent/Functional/Immutable data structures"
 category = "main"
 optional = false
 python-versions = ">=3.8"
+
+[[package]]
+name = "pytest"
+version = "8.3.2"
+description = "pytest: simple powerful testing with Python"
+category = "main"
+optional = false
+python-versions = ">=3.8"
+
+[package.dependencies]
+colorama = {version = "*", markers = "sys_platform == \"win32\""}
+exceptiongroup = {version = ">=1.0.0rc8", markers = "python_version < \"3.11\""}
+iniconfig = "*"
+packaging = "*"
+pluggy = ">=1.5,<2"
+tomli = {version = ">=1", markers = "python_version < \"3.11\""}
+
+[package.extras]
+dev = ["argcomplete", "attrs (>=19.2)", "hypothesis (>=3.56)", "mock", "pygments (>=2.7.2)", "requests", "setuptools", "xmlschema"]
 
 [[package]]
 name = "python-dateutil"
@@ -1200,7 +1250,7 @@ watchmedo = ["PyYAML (>=3.10)"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "fb08aa5b3e449e2779da240c26c397858083a6e51a88b13caa560a23f63670f1"
+content-hash = "22e77a94d1503f6539a9fcd48854f07ad73e053fdc41f3a92938ae7003d90e51"
 
 [metadata.files]
 altair = []
@@ -1222,6 +1272,7 @@ cycler = []
 defusedxml = []
 dictdiffer = []
 distlib = []
+exceptiongroup = []
 ezodf = []
 filelock = []
 fonttools = []
@@ -1239,6 +1290,7 @@ httplib2 = []
 httpx = []
 identify = []
 idna = []
+iniconfig = []
 jinja2 = []
 jsonschema = []
 kiwisolver = []
@@ -1259,6 +1311,7 @@ pandas = []
 pandas-ods-reader = []
 pillow = []
 platformdirs = []
+pluggy = []
 pre-commit = []
 protobuf = []
 pyarrow = []
@@ -1269,6 +1322,7 @@ pygments = []
 pyparsing = []
 pyperclip = []
 pyrsistent = []
+pytest = []
 python-dateutil = []
 python-dotenv = []
 python-slugify = []

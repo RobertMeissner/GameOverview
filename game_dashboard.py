@@ -18,8 +18,6 @@ from src.constants import (
 )
 from src.utils import load_data, save_data
 
-feature_editable = False
-
 overview_columns = [
     game_name,
     APP_ID,
@@ -131,17 +129,18 @@ def update_with_edited_data(
     return df_original.reset_index()
 
 
-if "df" not in st.session_state:
-    st.session_state.df_editable = load_data(filename=EDITABLE_DATA_FILEPATH)
-    st.session_state.df = update_with_edited_data(
-        load_data(), df_edited=st.session_state.df_editable
-    )
+if __name__ == "__main__":
+    if "df" not in st.session_state:
+        st.session_state.df_editable = load_data(filename=EDITABLE_DATA_FILEPATH)
+        st.session_state.df = update_with_edited_data(
+            load_data(), df_edited=st.session_state.df_editable
+        )
 
-st.set_page_config(
-    page_title=None,
-    page_icon=None,
-    layout="wide",
-    initial_sidebar_state="auto",
-    menu_items=None,
-)
-display_dataframe()
+    st.set_page_config(
+        page_title=None,
+        page_icon=None,
+        layout="wide",
+        initial_sidebar_state="auto",
+        menu_items=None,
+    )
+    display_dataframe()
