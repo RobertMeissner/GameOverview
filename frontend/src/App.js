@@ -23,11 +23,12 @@ const App = () => {
     loadParquetFile();
   }, []);
   // Function to handle changes in the played_flag column
-  const handleCheckboxChange = async (index) => {
-    const updatedValue = !data[index]["played"];
+  const handleCheckboxChange = async (index, columnName) => {
+    console.log(index, columnName);
+    const updatedValue = !data[index][columnName];
     // Send update to the backend
     await axios.post(`http://localhost:8000/data/data.parquet/update`, {
-      column: "played",
+      column: columnName,
       index: index,
       value: updatedValue,
     });
@@ -36,7 +37,7 @@ const App = () => {
     setData((prevData) => {
       const newData = prevData.map((item, i) => {
         if (i === index) {
-          return { ...item, played: !item.played }; // Toggle the played_flag
+          return { ...item, [columnName]: updatedValue }; // Toggle the played_flag
         }
         return item; // Keep the rest of the items unchanged
       });

@@ -19,7 +19,18 @@ const DataTable = ({ data, onToggleFlag }) => {
           <input
             type="checkbox"
             checked={value}
-            onChange={() => onToggleFlag(row.index)} // Call the toggle function with row index
+            onChange={() => onToggleFlag(row.index, "played")} // Call the toggle function with row index
+          />
+        ),
+      },
+      {
+        Header: "Hide",
+        accessor: "hide",
+        Cell: ({ value, row }) => (
+          <input
+            type="checkbox"
+            checked={value}
+            onChange={() => onToggleFlag(row.index, "hide")} // Updated to pass column name
           />
         ),
       },

@@ -34,6 +34,7 @@ async def get_parquet_file(filename: str):
         df = table.to_pandas()  # ["game_name"]
         df_filtered = df[columns_to_transfer]
         df[played_flag] = df[played_flag].astype(bool)
+        df[HIDE_FIELD] = df[HIDE_FIELD].astype(bool)
         # Convert DataFrame to JSON
         json_data = df_filtered.to_dict(orient="records")
         print(len(json_data))
