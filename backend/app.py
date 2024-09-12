@@ -6,7 +6,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from src.constants import APP_ID, HIDE_FIELD, RATING_FIELD, game_name, played_flag
+from src.constants import (
+    APP_ID,
+    HIDE_FIELD,
+    RATING_FIELD,
+    REVIEW_SCORE_FIELD,
+    game_name,
+    played_flag,
+)
 
 app = FastAPI()
 
@@ -19,7 +26,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-columns_to_transfer = [game_name, APP_ID, RATING_FIELD, played_flag, HIDE_FIELD]
+columns_to_transfer = [
+    game_name,
+    APP_ID,
+    RATING_FIELD,
+    played_flag,
+    HIDE_FIELD,
+    REVIEW_SCORE_FIELD,
+]
 
 
 @app.get("/data/{filename}")

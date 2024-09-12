@@ -1,85 +1,68 @@
 import React from "react";
-import { useTable, useSortBy } from "react-table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TableSortLabel,
+  Checkbox,
+  Paper,
+} from "@mui/material";
 
 const DataTable = ({ data, onToggleFlag }) => {
-  const columns = React.useMemo(
-    () => [
-      {
-        Header: "Name",
-        accessor: "name",
-      },
-      {
-        Header: "Rating",
-        accessor: "rating",
-      },
-      {
-        Header: "Played",
-        accessor: "played",
-        Cell: ({ value, row }) => (
-          <input
-            type="checkbox"
-            checked={value}
-            onChange={() => onToggleFlag(row.index, "played")} // Call the toggle function with row index
-          />
-        ),
-      },
-      {
-        Header: "Hide",
-        accessor: "hide",
-        Cell: ({ value, row }) => (
-          <input
-            type="checkbox"
-            checked={value}
-            onChange={() => onToggleFlag(row.index, "hide")} // Updated to pass column name
-          />
-        ),
-      },
-    ],
-    [onToggleFlag] // Make sure to check this
-  );
-
-  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
-    useTable(
-      {
-        columns,
-        data,
-      },
-      useSortBy // Include sorting
-    );
+  const columns = [
+    { id: "name", label: "Name" },
+    { id: "rating", label: "Rating" },
+    { id: "review_score", label: "Steam Score" },
+    { id: "played", label: "Played" },
+    { id: "hide", label: "Hide" },
+  ];
 
   return (
-    <table {...getTableProps()} style={{ border: "solid 1px black" }}>
-      <thead>
-        {headerGroups.map((headerGroup) => (
-          <tr {...headerGroup.getHeaderGroupProps()}>
-            {headerGroup.headers.map((column) => (
-              <th {...column.getHeaderProps(column.getSortByToggleProps())}>
-                {column.render("Header")}
-                <span>
-                  {column.isSorted
-                    ? column.isSortedDesc
-                      ? " 🔽" // Descending
-                      : " 🔼" // Ascending
-                    : ""}
-                </span>
-              </th>
+    <TableContainer component={Paper}>
+      <Table>
+        <TableHead>
+          <TableRow>
+            {columns.map((column) => (
+              <TableCell key={column.id}>
+                <TableSortLabel>{column.label}</TableSortLabel>
+              </TableCell>
             ))}
-          </tr>
-        ))}
-      </thead>
-      <tbody {...getTableBodyProps()}>
-        {rows.map((row) => {
-          prepareRow(row);
-          return (
-            <tr {...row.getRowProps()}>
-              {row.cells.map((cell) => (
-                <td {...cell.getCellProps()}>{cell.render("Cell")}</td>
-              ))}
-            </tr>
-          );
-        })}
-      </tbody>
-    </table>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {data.length ? (
+            data.map((row, index) => (
+              <TableRow key={index}>
+                {columns.map((column) => (
+                  <TableCell key={column.id}>
+                    {column.id === "played" ? (
+                      <Checkbox
+                        checked={row[column.id]}
+                        onChange={() => onToggleFlag(index, "played")}
+                      />
+                    ) : column.id === "hide" ? (
+                      <Checkbox
+                        checked={row[column.id]}
+                        onChange={() => onToggleFlag(index, "hide")}
+                      />
+                    ) : (
+                      row[column.id]
+                    )}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={columns.length}>No data available</TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </TableContainer>
   );
 };
 
