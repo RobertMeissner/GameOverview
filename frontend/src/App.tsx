@@ -3,11 +3,12 @@ import axios from 'axios';
 import DataTable from './components/DataTable';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
-import {Drawer, IconButton, Checkbox, Slider} from "@mui/material";
+import {Drawer, IconButton, Checkbox, Slider, AppBar, Toolbar, Box} from "@mui/material";
 import MenuIcon from '@mui/icons-material/Menu';
 
 // Define the type of your data
 interface DataItem {
+    hash: string;
     name: string;
     rating: number;
     played: boolean;
@@ -41,8 +42,9 @@ const App: React.FC = () => {
     }, []);
 
     const handleCheckboxChange = useCallback(async (index: number, columnName: string) => {
-        const updatedValue = !data[index][columnName as keyof DataItem]; // Use keyof to ensure columnName is valid
+        const updatedValue = !data[index][columnName as keyof DataItem];
 
+        console.log(columnName, index)
         try {
             await axios.post(`http://localhost:8000/data/data.parquet/update`, {
                 column: columnName,
@@ -50,14 +52,9 @@ const App: React.FC = () => {
                 value: updatedValue,
             });
 
-            setData((prevData) => {
-                return prevData.map((item, i) => {
-                    if (i === index) {
-                        return {...item, [columnName]: updatedValue};
-                    }
-                    return item;
-                });
-            });
+            setData((prevData) =>
+                prevData.map((item, i) => (i === index ? {...item, [columnName]: updatedValue} : item))
+            );
         } catch (error) {
             console.error("Error updating column value:", error);
         }
@@ -79,36 +76,41 @@ const App: React.FC = () => {
     return (
         <Container>
 
-            <IconButton
-                edge="start"
-                color="inherit"
-                aria-label="menu"
-                onClick={toggleDrawer(true)}>
-                <MenuIcon />
-            </IconButton>
-            <Typography variant="h4" align="center" marginY={4}>
-                GoodPlays
-            </Typography>
-            <Drawer anchor="left" open={drawerOpen} onClose={toggleDrawer(false)}>
-                <div style={{ width: 250, padding: 20 }}>
-                    <Typography variant="h6">Filters</Typography>
+            <AppBar position="static">
+                <Toolbar>
+                    <IconButton edge="start" color="inherit" aria-label="menu" onClick={toggleDrawer(true)}>
+                        <MenuIcon/>
+                    </IconButton>
+                    <Typography variant="h6" style={{flexGrow: 1}}>
+                        Filtered Data
+                    </Typography>
+                </Toolbar>
+            </AppBar>
 
+            <Drawer
+                variant="persistent"  // Change to persistent
+                anchor="left"
+                open={drawerOpen}
+                onClose={toggleDrawer(false)
+                }>
+                <Box sx={{width: 250, padding: 2}}>
+                    <Typography variant="h6">Filters</Typography>
                     <Typography>Filter by Played (Show only not-played games)</Typography>
                     <Checkbox
                         checked={playedFilter}
-                        onChange={() => setPlayedFilter(prev => !prev)}
+                        onChange={() => setPlayedFilter((prev) => !prev)}
                     />
 
                     <Typography>Filter by Hide</Typography>
                     <Checkbox
                         checked={hideFilter}
-                        onChange={() => setHideFilter(prev => !prev)}
+                        onChange={() => setHideFilter((prev) => !prev)}
                     />
 
                     <Typography>Filter by Rating</Typography>
                     <Slider
                         value={ratingRange}
-                        onChange={(event, newValue) => setRatingRange(newValue as number[])} // Ensure newValue is typed correctly
+                        onChange={(event, newValue) => setRatingRange(newValue as number[])}
                         valueLabelDisplay="auto"
                         min={0}
                         max={1}
@@ -124,10 +126,10 @@ const App: React.FC = () => {
                         max={10}
                         step={0.5}
                     />
-                </div>
+                </Box>
             </Drawer>
 
-            <DataTable data={filteredData} onToggleFlag={handleCheckboxChange} />
+            <DataTable data={filteredData} onToggleFlag={handleCheckboxChange}/>
         </Container>
     );
 };
