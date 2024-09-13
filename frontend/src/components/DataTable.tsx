@@ -22,7 +22,8 @@ const DataTable: React.FC<DataTableProps> = ({ data, onToggleFlag }) => {
         { id: 'name', label: 'Name' },
         { id: 'rating', label: 'Rating' },
         { id: 'played', label: 'Played' },
-        { id: 'hide', label: 'Hide' }
+        { id: 'hide', label: 'Hide' },
+        { id: 'review_score', label: 'Review Score' }
     ];
 
     return (
