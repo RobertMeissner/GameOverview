@@ -46,7 +46,6 @@ const App: React.FC = () => {
 
 
     const handleCheckboxChange = useCallback(async (hash: string, columnName: string) => {
-        console.log(hash,columnName)
         setData(prevData =>
             prevData.map(item => {
                 if (item.game_hash === hash) {
@@ -57,7 +56,6 @@ const App: React.FC = () => {
         );
         try {
             const index = data.findIndex(item => item.game_hash === hash);
-            console.log(hash,columnName, index)
             await axios.post(`http://localhost:8000/data/data.parquet/update`, {
                 column: columnName,
                 index: index, // Use valid index
@@ -82,21 +80,33 @@ const App: React.FC = () => {
     };
 
     return (
-        <Container>
-
-            <AppBar position="static">
+        <Box sx={{ display: 'flex' }}>
+            <AppBar position="fixed">
                 <Toolbar>
                     <IconButton edge="start" color="inherit" aria-label="menu" onClick={toggleDrawer(true)}>
-                        <MenuIcon/>
+                        <MenuIcon />
                     </IconButton>
-                    <Typography variant="h6" style={{flexGrow: 1}}>
+                    <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
                         Filtered Data
                     </Typography>
                 </Toolbar>
             </AppBar>
 
-            <Drawer anchor="left" open={drawerOpen} onClose={toggleDrawer(false)}>
-                <div style={{ width: 250, padding: 20 }}>
+            {/* Persistent Drawer for Filters */}
+            <Drawer
+                variant="persistent" // Use persistent for a non-overlaying drawer.
+                anchor="left"
+                open={drawerOpen}
+                sx={{
+                    width: 250,
+                    flexShrink: 0,
+                    '& .MuiDrawer-paper': {
+                        width: 250,
+                        boxSizing: 'border-box',
+                    },
+                }}
+            >
+                <Box sx={{ width: 250, padding: 2 }}>
                     <Typography variant="h6">Filters</Typography>
 
                     <Typography>Filter by Played (Show only not played games)</Typography>
@@ -128,13 +138,15 @@ const App: React.FC = () => {
                         valueLabelDisplay="auto"
                         min={0}
                         max={10}
-                        step={1}
+                        step={0.5}
                     />
-                </div>
+                </Box>
             </Drawer>
 
-            <DataTable data={filteredData} onToggleFlag={handleCheckboxChange}/>
-        </Container>
+            <Container sx={{ flexGrow: 1, marginTop: 8 }}> {/* Adjusted marginTop for AppBar spacing */}
+                <DataTable data={filteredData} onToggleFlag={handleCheckboxChange} />
+            </Container>
+        </Box>
     );
 };
 

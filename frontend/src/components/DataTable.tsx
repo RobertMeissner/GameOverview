@@ -1,13 +1,13 @@
 import React from 'react';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Checkbox,
-  Paper
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Checkbox,
+    Paper, TableSortLabel
 } from '@mui/material';
 import {DataItem} from "../App";
 
@@ -29,30 +29,53 @@ const DataTable: React.FC<DataTableProps> = ({ data, onToggleFlag }) => {
         { id: 'game_hash', label: 'hash' }
     ];
 
+
+    const [order, setOrder] = React.useState<'asc' | 'desc'>('asc');
+    const [orderBy, setOrderBy] = React.useState<string>('name'); // Default sorting column
+
+    const handleRequestSort = (property: string) => {
+        const isAsc = orderBy === property && order === 'asc';
+        setOrder(isAsc ? 'desc' : 'asc');
+        setOrderBy(property);
+    };
+
+    const sortedData = [...data].sort((a, b) => {
+        if (a[orderBy] < b[orderBy]) {
+            return order === 'asc' ? -1 : 1;
+        }
+        if (a[orderBy] > b[orderBy]) {
+            return order === 'asc' ? 1 : -1;
+        }
+        return 0;
+    });
+
     return (
         <TableContainer component={Paper}>
             <Table>
                 <TableHead>
                     <TableRow>
                         {columns.map((column) => (
-                            <TableCell key={column.id}>{column.label}</TableCell>
+                            <TableCell key={column.id}>
+                                <TableSortLabel
+                                    active={orderBy === column.id}
+                                    direction={orderBy === column.id ? order : 'asc'}
+                                    onClick={() => handleRequestSort(column.id)}
+                                >
+                                    {column.label}
+                                </TableSortLabel>
+                            </TableCell>
                         ))}
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {data.map((row) => (
+                    {sortedData.map((row) => (
                         <TableRow key={row.game_hash}> {/* Use hash for key */}
                             {columns.map((column) => (
                                 <TableCell key={column.id}>
-                                    {column.id === 'played' ? (
+                                    {column.id === 'played' || column.id === 'hide' ? (
                                         <Checkbox
                                             checked={row[column.id]}
-                                            onChange={() => onToggleFlag(row.game_hash, 'played')}
-                                        />
-                                    ) : column.id === 'hide' ? (
-                                        <Checkbox
-                                            checked={row[column.id]}
-                                            onChange={() => onToggleFlag(row.game_hash, 'hide')}
+                                            onChange={() => onToggleFlag(row.game_hash, column.id)}
                                         />
                                     ) : (
                                         row[column.id]

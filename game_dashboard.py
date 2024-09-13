@@ -132,9 +132,10 @@ def update_with_edited_data(
 if __name__ == "__main__":
     if "df" not in st.session_state:
         st.session_state.df_editable = load_data(filename=EDITABLE_DATA_FILEPATH)
-        st.session_state.df = update_with_edited_data(
-            load_data(), df_edited=st.session_state.df_editable
-        )
+        # st.session_state.df = update_with_edited_data(
+        #    load_data(), df_edited=st.session_state.df_editable
+        # )
+        st.session_state.df = load_data()
 
     st.set_page_config(
         page_title=None,
