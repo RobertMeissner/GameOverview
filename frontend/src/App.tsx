@@ -1,34 +1,37 @@
-import React, {useEffect, useState, useCallback} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import axios from 'axios';
 import DataTable from './components/DataTable';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
-import {Drawer, IconButton, Checkbox, Slider, AppBar, Toolbar, Box} from "@mui/material";
+import {AppBar, Box, Checkbox, Drawer, IconButton, Slider, Toolbar} from "@mui/material";
 import MenuIcon from '@mui/icons-material/Menu';
 
 // Define the type of your data
-interface DataItem {
-    hash: string;
+export interface DataItem {
+    game_hash: string;
     name: string;
     rating: number;
     played: boolean;
     hide: boolean;
     review_score: number
+
+    [key: string]: string | number | boolean;
 }
 
 const App: React.FC = () => {
     const [data, setData] = useState<DataItem[]>([]); // Use the DataItem type for the state
     const [playedFilter, setPlayedFilter] = useState(false);
     const [hideFilter, setHideFilter] = useState(false);
-    const [ratingRange, setRatingRange] = useState([0.8, 1]);
-    const [reviewScoreRange, setReviewScoreRange] = useState([7, 9]);
-    const [drawerOpen, setDrawerOpen] = useState(true);
+    const [ratingRange, setRatingRange] = useState<number[]>([0.8, 1]);
+    const [reviewScoreRange, setReviewScoreRange] = useState<number[]>([7, 9]);
+    const [drawerOpen, setDrawerOpen] = useState(false);
 
     useEffect(() => {
         const loadData = async () => {
             try {
                 const response = await axios.get<DataItem[]>('http://localhost:8000/data/data.parquet'); // Specify the response type
                 if (Array.isArray(response.data)) {
+                    console.log([response.data[0]])
                     setData(response.data);
                 } else {
                     console.error("Expected response to be an array but received:", response.data);
@@ -41,20 +44,25 @@ const App: React.FC = () => {
         loadData();
     }, []);
 
-    const handleCheckboxChange = useCallback(async (index: number, columnName: string) => {
-        const updatedValue = !data[index][columnName as keyof DataItem];
 
-        console.log(columnName, index)
+    const handleCheckboxChange = useCallback(async (hash: string, columnName: string) => {
+        console.log(hash,columnName)
+        setData(prevData =>
+            prevData.map(item => {
+                if (item.game_hash === hash) {
+                    return {...item, [columnName]: !item[columnName]}; // Toggle the specific column
+                }
+                return item; // Return unchanged
+            })
+        );
         try {
+            const index = data.findIndex(item => item.game_hash === hash);
+            console.log(hash,columnName, index)
             await axios.post(`http://localhost:8000/data/data.parquet/update`, {
                 column: columnName,
-                index: index,
-                value: updatedValue,
+                index: index, // Use valid index
+                value: !data[index]?.[columnName], // Use optional chaining
             });
-
-            setData((prevData) =>
-                prevData.map((item, i) => (i === index ? {...item, [columnName]: updatedValue} : item))
-            );
         } catch (error) {
             console.error("Error updating column value:", error);
         }
@@ -63,16 +71,16 @@ const App: React.FC = () => {
     const filteredData = data.filter(item => {
         const ratingInRange = item.rating >= ratingRange[0] && item.rating <= ratingRange[1];
         const reviewScoreInRange = item.review_score >= reviewScoreRange[0] && item.review_score <= reviewScoreRange[1];
-        const playedCriteria = playedFilter ? !item.played : true; // Show all if not filtering
-        const hideCriteria = hideFilter ? !item.hide : true; // Inverse logic for hide
+        const playedCriteria = playedFilter ? !item.played : true;
+        const hideCriteria = hideFilter ? !item.hide : true;
 
         return ratingInRange && reviewScoreInRange && playedCriteria && hideCriteria;
     });
 
-
     const toggleDrawer = (open: boolean) => () => {
         setDrawerOpen(open);
     };
+
     return (
         <Container>
 
@@ -87,24 +95,20 @@ const App: React.FC = () => {
                 </Toolbar>
             </AppBar>
 
-            <Drawer
-                variant="persistent"  // Change to persistent
-                anchor="left"
-                open={drawerOpen}
-                onClose={toggleDrawer(false)
-                }>
-                <Box sx={{width: 250, padding: 2}}>
+            <Drawer anchor="left" open={drawerOpen} onClose={toggleDrawer(false)}>
+                <div style={{ width: 250, padding: 20 }}>
                     <Typography variant="h6">Filters</Typography>
-                    <Typography>Filter by Played (Show only not-played games)</Typography>
+
+                    <Typography>Filter by Played (Show only not played games)</Typography>
                     <Checkbox
                         checked={playedFilter}
-                        onChange={() => setPlayedFilter((prev) => !prev)}
+                        onChange={() => setPlayedFilter(prev => !prev)}
                     />
 
                     <Typography>Filter by Hide</Typography>
                     <Checkbox
                         checked={hideFilter}
-                        onChange={() => setHideFilter((prev) => !prev)}
+                        onChange={() => setHideFilter(prev => !prev)}
                     />
 
                     <Typography>Filter by Rating</Typography>
@@ -124,9 +128,9 @@ const App: React.FC = () => {
                         valueLabelDisplay="auto"
                         min={0}
                         max={10}
-                        step={0.5}
+                        step={1}
                     />
-                </Box>
+                </div>
             </Drawer>
 
             <DataTable data={filteredData} onToggleFlag={handleCheckboxChange}/>

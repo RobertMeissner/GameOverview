@@ -6,15 +6,17 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  TableSortLabel,
   Checkbox,
   Paper
 } from '@mui/material';
+import {DataItem} from "../App";
+
+
 
 // Define props type for DataTable
 interface DataTableProps {
-  data: any[]; // Update this to a structured type if further details available
-  onToggleFlag: (index: number, columnName: string) => void;
+    data: DataItem[]; // ensure to use the specific type
+    onToggleFlag: (hash: string, columnName: string) => void; // Update the prop type
 }
 
 const DataTable: React.FC<DataTableProps> = ({ data, onToggleFlag }) => {
@@ -23,7 +25,8 @@ const DataTable: React.FC<DataTableProps> = ({ data, onToggleFlag }) => {
         { id: 'rating', label: 'Rating' },
         { id: 'played', label: 'Played' },
         { id: 'hide', label: 'Hide' },
-        { id: 'review_score', label: 'Review Score' }
+        { id: 'review_score', label: 'Review Score' },
+        { id: 'game_hash', label: 'hash' }
     ];
 
     return (
@@ -32,26 +35,24 @@ const DataTable: React.FC<DataTableProps> = ({ data, onToggleFlag }) => {
                 <TableHead>
                     <TableRow>
                         {columns.map((column) => (
-                            <TableCell key={column.id}>
-                                <TableSortLabel>{column.label}</TableSortLabel>
-                            </TableCell>
+                            <TableCell key={column.id}>{column.label}</TableCell>
                         ))}
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {data.map((row, index) => (
-                        <TableRow key={index}>
+                    {data.map((row) => (
+                        <TableRow key={row.game_hash}> {/* Use hash for key */}
                             {columns.map((column) => (
                                 <TableCell key={column.id}>
                                     {column.id === 'played' ? (
                                         <Checkbox
                                             checked={row[column.id]}
-                                            onChange={() => onToggleFlag(index, 'played')}
+                                            onChange={() => onToggleFlag(row.game_hash, 'played')}
                                         />
                                     ) : column.id === 'hide' ? (
                                         <Checkbox
                                             checked={row[column.id]}
-                                            onChange={() => onToggleFlag(index, 'hide')}
+                                            onChange={() => onToggleFlag(row.game_hash, 'hide')}
                                         />
                                     ) : (
                                         row[column.id]
