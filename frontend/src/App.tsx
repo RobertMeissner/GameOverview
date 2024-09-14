@@ -111,10 +111,10 @@ const App: React.FC = () => {
                     }}
                 >
                     <List>
-                        <ListItemButton component={Link} to="/">
+                        <ListItemButton component={Link} to="/overview">
                             <ListItemText primary="Overview" />
                         </ListItemButton>
-                        <ListItemButton component={Link} to="/top-three">
+                        <ListItemButton component={Link} to="/">
                             <ListItemText primary="Top Three" />
                         </ListItemButton>
                     </List>
@@ -158,12 +158,12 @@ const App: React.FC = () => {
                 <Box component="main" sx={{ flexGrow: 1, padding: 3 }}>
                     <Toolbar /> {/* Empty toolbar to compensate for AppBar */}
                     <Routes>
-                        <Route path="/" element={
+                        <Route path="/overview" element={
                             <Container sx={{ flexGrow: 1 }}>
                                 <DataTable data={filteredData} onToggleFlag={handleCheckboxChange} />
                             </Container>
                         } />
-                        <Route path="/top-three" element={
+                        <Route path="/" element={
                             <Container sx={{ flexGrow: 1 }}>
                                 <Typography variant="h4">Top Three Rated Titles</Typography>
                                 <List>
