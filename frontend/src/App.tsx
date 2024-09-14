@@ -3,8 +3,7 @@ import axios from 'axios';
 import DataTable from './components/DataTable';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
-import { AppBar, Box, Checkbox, IconButton, Slider, Toolbar, List, ListItemButton,ListItem, ListItemText } from "@mui/material";
-import MenuIcon from '@mui/icons-material/Menu';
+import { AppBar, Box, Checkbox, Slider, Toolbar, List, ListItemButton, ListItemText } from '@mui/material';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 
 // Define the type of your data
@@ -91,7 +90,6 @@ const App: React.FC = () => {
                     </Toolbar>
                 </AppBar>
 
-            {/* Persistent Drawer for Filters */}
                 {/* Fixed Sidebar */}
                 <Box
                     sx={{
@@ -171,7 +169,6 @@ const App: React.FC = () => {
                 </Box>
             </Box>
         </Router>
-
     );
 };
 
