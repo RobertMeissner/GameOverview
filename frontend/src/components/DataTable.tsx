@@ -57,7 +57,9 @@ const DataTable: React.FC<DataTableProps> = ({ data, onToggleFlag }) => {
         { id: 'played', label: 'Played' },
         { id: 'hide', label: 'Hide' },
         { id: 'review_score', label: 'Review Score' },
-        { id: 'game_hash', label: 'Hash' }
+        { id: 'game_hash', label: 'Hash' },
+        { id: 'found_game_name', label: 'Found game name' },
+        { id: 'corrected_app_id', label: 'corrected_app_id' },
     ];
 
     const [order, setOrder] = React.useState<'asc' | 'desc'>('asc');

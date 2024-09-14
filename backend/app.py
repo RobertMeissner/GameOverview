@@ -8,10 +8,12 @@ from pydantic import BaseModel
 
 from src.constants import (
     APP_ID,
+    CORRECTED_APP_ID,
     HASH,
     HIDE_FIELD,
     RATING_FIELD,
     REVIEW_SCORE_FIELD,
+    found_game_name,
     game_name,
     played_flag,
 )
@@ -35,6 +37,8 @@ columns_to_transfer = [
     HIDE_FIELD,
     REVIEW_SCORE_FIELD,
     HASH,
+    found_game_name,
+    CORRECTED_APP_ID,
 ]
 
 

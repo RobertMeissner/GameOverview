@@ -3,7 +3,7 @@ import axios from 'axios';
 import DataTable from './components/DataTable';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
-import { AppBar, Box, Checkbox, Slider, Toolbar, List, ListItemButton, ListItemText } from '@mui/material';
+import {AppBar, Box, Checkbox, Slider, Toolbar, List, ListItemButton, ListItemText, Divider} from '@mui/material';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 
 // Define the type of your data
@@ -14,6 +14,8 @@ export interface DataItem {
     played: boolean;
     hide: boolean;
     review_score: number;
+    found_game_name: string;
+    corrected_app_id: number;
     [key: string]: string | number | boolean;
 }
 
@@ -71,11 +73,17 @@ const App: React.FC = () => {
         return ratingInRange && reviewScoreInRange && playedCriteria && hideCriteria;
     });
 
-    // Get Top Three rated titles
     const getTopThreeTitles = () => {
         return data
             .filter(item => !item.hide && !item.played)
-            .sort((a, b) => b.rating - a.rating)
+            .sort((a, b) => {
+                // First, compare by review_score
+                if (b.review_score !== a.review_score) {
+                    return b.review_score - a.review_score; // Descending order
+                }
+                // If review_score is equal, then compare by rating
+                return b.rating - a.rating; // Descending order
+            })
             .slice(0, 3);
     };
 
@@ -110,6 +118,7 @@ const App: React.FC = () => {
                         </ListItemButton>
                     </List>
 
+                    <Divider sx={{ marginY: 1 }} /> {/* Horizontal Line */}
                     <Typography variant="h6">Filters</Typography>
 
                     <Typography>Filter by Played (Show only not played games)</Typography>
@@ -159,7 +168,7 @@ const App: React.FC = () => {
                                 <List>
                                     {getTopThreeTitles().map(item => (
                                         <ListItemButton key={item.game_hash}>
-                                            <ListItemText primary={item.name} secondary={`Rating: ${item.rating}`} />
+                                            <ListItemText primary={item.name} secondary={`Rating: ${item.rating.toPrecision(2)}/Name:${item.found_game_name}`} />
                                         </ListItemButton>
                                     ))}
                                 </List>
