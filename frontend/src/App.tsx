@@ -16,6 +16,7 @@ export interface DataItem {
     review_score: number;
     found_game_name: string;
     corrected_app_id: number;
+    app_id: number;
     [key: string]: string | number | boolean;
 }
 
@@ -168,7 +169,30 @@ const App: React.FC = () => {
                                 <List>
                                     {getTopThreeTitles().map(item => (
                                         <ListItemButton key={item.game_hash}>
-                                            <ListItemText primary={item.name} secondary={`Rating: ${item.rating.toPrecision(2)}/Name:${item.found_game_name}`} />
+                                            <ListItemText primary={item.name} secondary={`Rating: ${item.rating.toPrecision(2)} / Name: ${item.found_game_name}`} />
+                                            <Checkbox
+                                                checked={item.played}
+                                                onChange={() => handleCheckboxChange(item.game_hash, 'played')}
+                                                color="primary"
+                                            />
+                                            <Typography variant="caption">Played</Typography>
+
+                                            <Checkbox
+                                                checked={item.hide}
+                                                onChange={() => handleCheckboxChange(item.game_hash, 'hide')}
+                                                color="primary"
+                                            />
+                                            <Typography variant="caption">Hide</Typography>
+
+                                            {/* Clickable link for app_id */}
+                                            <a
+                                                href={`https://store.steampowered.com/app/${item.app_id}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                style={{ marginLeft: 'auto' }}
+                                            >
+                                                <Typography variant="caption" color="primary">View in Store</Typography>
+                                            </a>
                                         </ListItemButton>
                                     ))}
                                 </List>
