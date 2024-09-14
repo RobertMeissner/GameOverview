@@ -1,10 +1,11 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import axios from 'axios';
 import DataTable from './components/DataTable';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
-import {AppBar, Box, Checkbox, Drawer, IconButton, Slider, Toolbar} from "@mui/material";
+import { AppBar, Box, Checkbox, IconButton, Slider, Toolbar, List, ListItemButton,ListItem, ListItemText } from "@mui/material";
 import MenuIcon from '@mui/icons-material/Menu';
+import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 
 // Define the type of your data
 export interface DataItem {
@@ -13,25 +14,22 @@ export interface DataItem {
     rating: number;
     played: boolean;
     hide: boolean;
-    review_score: number
-
+    review_score: number;
     [key: string]: string | number | boolean;
 }
 
 const App: React.FC = () => {
-    const [data, setData] = useState<DataItem[]>([]); // Use the DataItem type for the state
+    const [data, setData] = useState<DataItem[]>([]);
     const [playedFilter, setPlayedFilter] = useState(false);
     const [hideFilter, setHideFilter] = useState(false);
     const [ratingRange, setRatingRange] = useState<number[]>([0.8, 1]);
     const [reviewScoreRange, setReviewScoreRange] = useState<number[]>([7, 9]);
-    const [drawerOpen, setDrawerOpen] = useState(false);
 
     useEffect(() => {
         const loadData = async () => {
             try {
-                const response = await axios.get<DataItem[]>('http://localhost:8000/data/data.parquet'); // Specify the response type
+                const response = await axios.get<DataItem[]>('http://localhost:8000/data/data.parquet');
                 if (Array.isArray(response.data)) {
-                    console.log([response.data[0]])
                     setData(response.data);
                 } else {
                     console.error("Expected response to be an array but received:", response.data);
@@ -44,22 +42,21 @@ const App: React.FC = () => {
         loadData();
     }, []);
 
-
     const handleCheckboxChange = useCallback(async (hash: string, columnName: string) => {
         setData(prevData =>
             prevData.map(item => {
                 if (item.game_hash === hash) {
-                    return {...item, [columnName]: !item[columnName]}; // Toggle the specific column
+                    return { ...item, [columnName]: !item[columnName] };
                 }
-                return item; // Return unchanged
+                return item;
             })
         );
         try {
             const index = data.findIndex(item => item.game_hash === hash);
             await axios.post(`http://localhost:8000/data/data.parquet/update`, {
                 column: columnName,
-                index: index, // Use valid index
-                value: !data[index]?.[columnName], // Use optional chaining
+                index: index,
+                value: !data[index]?.[columnName],
             });
         } catch (error) {
             console.error("Error updating column value:", error);
@@ -75,38 +72,46 @@ const App: React.FC = () => {
         return ratingInRange && reviewScoreInRange && playedCriteria && hideCriteria;
     });
 
-    const toggleDrawer = (open: boolean) => () => {
-        setDrawerOpen(open);
+    // Get Top Three rated titles
+    const getTopThreeTitles = () => {
+        return data
+            .filter(item => !item.hide && !item.played)
+            .sort((a, b) => b.rating - a.rating)
+            .slice(0, 3);
     };
 
     return (
-        <Box sx={{ display: 'flex' }}>
-            <AppBar position="fixed">
-                <Toolbar>
-                    <IconButton edge="start" color="inherit" aria-label="menu" onClick={toggleDrawer(true)}>
-                        <MenuIcon />
-                    </IconButton>
-                    <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-                        Filtered Data
-                    </Typography>
-                </Toolbar>
-            </AppBar>
+        <Router>
+            <Box sx={{ display: 'flex' }}>
+                <AppBar position="fixed">
+                    <Toolbar>
+                        <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+                            My Application
+                        </Typography>
+                    </Toolbar>
+                </AppBar>
 
             {/* Persistent Drawer for Filters */}
-            <Drawer
-                variant="persistent" // Use persistent for a non-overlaying drawer.
-                anchor="left"
-                open={drawerOpen}
-                sx={{
-                    width: 250,
-                    flexShrink: 0,
-                    '& .MuiDrawer-paper': {
-                        width: 250,
-                        boxSizing: 'border-box',
-                    },
-                }}
-            >
-                <Box sx={{ width: 250, padding: 2 }}>
+                {/* Fixed Sidebar */}
+                <Box
+                    sx={{
+                        width: 240,
+                        flexShrink: 0,
+                        bgcolor: 'background.paper',
+                        height: '100vh',
+                        position: 'fixed',
+                        paddingTop: 8,
+                    }}
+                >
+                    <List>
+                        <ListItemButton component={Link} to="/">
+                            <ListItemText primary="Overview" />
+                        </ListItemButton>
+                        <ListItemButton component={Link} to="/top-three">
+                            <ListItemText primary="Top Three" />
+                        </ListItemButton>
+                    </List>
+
                     <Typography variant="h6">Filters</Typography>
 
                     <Typography>Filter by Played (Show only not played games)</Typography>
@@ -141,12 +146,32 @@ const App: React.FC = () => {
                         step={0.5}
                     />
                 </Box>
-            </Drawer>
 
-            <Container sx={{ flexGrow: 1, marginTop: 8 }}> {/* Adjusted marginTop for AppBar spacing */}
-                <DataTable data={filteredData} onToggleFlag={handleCheckboxChange} />
-            </Container>
-        </Box>
+                <Box component="main" sx={{ flexGrow: 1, padding: 3 }}>
+                    <Toolbar /> {/* Empty toolbar to compensate for AppBar */}
+                    <Routes>
+                        <Route path="/" element={
+                            <Container sx={{ flexGrow: 1 }}>
+                                <DataTable data={filteredData} onToggleFlag={handleCheckboxChange} />
+                            </Container>
+                        } />
+                        <Route path="/top-three" element={
+                            <Container sx={{ flexGrow: 1 }}>
+                                <Typography variant="h4">Top Three Rated Titles</Typography>
+                                <List>
+                                    {getTopThreeTitles().map(item => (
+                                        <ListItemButton key={item.game_hash}>
+                                            <ListItemText primary={item.name} secondary={`Rating: ${item.rating}`} />
+                                        </ListItemButton>
+                                    ))}
+                                </List>
+                            </Container>
+                        } />
+                    </Routes>
+                </Box>
+            </Box>
+        </Router>
+
     );
 };
 
