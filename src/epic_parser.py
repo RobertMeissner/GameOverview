@@ -8,7 +8,7 @@ from src.utils import add_columns, init_df
 def parse_epic_file_for_gamelist(file_path: str) -> pd.DataFrame:
     df = init_df()
 
-    with open(file_path, "r") as file:
+    with open(file_path) as file:
         data = file.read()
 
     soup = BeautifulSoup(data, "html.parser")

@@ -21,8 +21,7 @@ def load_input_game_names():
 
     try:
         with open(
-            f"{CONFIG['inputFile']['fileName']}.{CONFIG['inputFile']['fileType']}", "r"
-        ) as file:
+            f"{CONFIG['inputFile']['fileName']}.{CONFIG['inputFile']['fileType']}") as file:
             game_names = file.read()
     except Exception as e:
         print("Error: Could not read input file.")
@@ -122,7 +121,7 @@ def find_steam_app_ids_full_match(game_names, steam_apps):
     for game in game_names:
         # Get and de-duplicate matches. One game can be in the database multiple times with the same appid
         full_matches = list(
-            set([app["appid"] for app in steam_apps if app["name"] == game])
+            {app["appid"] for app in steam_apps if app["name"] == game}
         )
 
         if len(full_matches) == 1:

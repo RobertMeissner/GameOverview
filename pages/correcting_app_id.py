@@ -41,7 +41,7 @@ def display_dataframe():
         URL: st.column_config.LinkColumn(
             URL,
             max_chars=100,
-            display_text="https://store\.steampowered\.com/app/([0-9]*)",  # noqa: W605
+            display_text=r"https://store\.steampowered\.com/app/([0-9]*)",  # noqa: W605
             disabled=True,
         ),
         game_name: st.column_config.TextColumn(game_name, width="large"),

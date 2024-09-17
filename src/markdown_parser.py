@@ -13,7 +13,7 @@ def read_and_filter_markdown(file_path: str, store="", played=False) -> pd.DataF
     # Check if file exists
     if os.path.exists(file_path):
         # Open and read the file
-        with open(file_path, "r") as file:
+        with open(file_path) as file:
             lines = file.readlines()
 
         # Filter lines
