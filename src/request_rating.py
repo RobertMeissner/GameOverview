@@ -56,7 +56,7 @@ def request_rating(df: pd.Series) -> pd.Series:
             df[found_game_name] = df[game_name]
 
         if df[APP_ID] == 0:
-            steam_app_id(df, df[game_name])
+            df = steam_app_id(df, df[game_name])
 
         application_id = df[APP_ID]
 
@@ -87,7 +87,7 @@ def steam_rating(application_id, df):
                 df[key] = value
 
 
-def steam_app_id(df, game_name: str):
+def steam_app_id(df, game_name: str) -> pd.DataFrame:
 
     url = (
         f"https://store.steampowered.com/search/suggest?term={game_name}&f=games&cc=DE&realm=1&l=english&"

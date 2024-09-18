@@ -8,8 +8,6 @@ authors = ["Robert Meissner <robert@robertforpresent.de>"]
 python = "^3.10"
 pyperclip = "^1.9.0"
 odfpy = "^1.4.1"
-pandas = "^1.5.2"
-pandas-ods-reader = "^0.1.4"
 python-dotenv = "^0.21.0"
 httpx = "^0.27.2"
 matplotlib = "^3.6.2"
@@ -19,6 +17,9 @@ tqdm = "^4.66.5"
 pytest = "^8.3.2"
 fastapi = "^0.114.0"
 uvicorn = "^0.30.6"
+pandas = "^1.5.2"
+numpy = "1.26.3"
+bs4 = "^0.0.2"
 
 [tool.poetry.dev-dependencies]
 
