@@ -17,6 +17,7 @@ from src.constants import (
     game_name,
     played_flag,
 )
+from src.game_ratings import game_ratings
 
 app = FastAPI()
 
@@ -104,6 +105,11 @@ async def update_played_flag(filename: str, props: UpdateRequest):
 @app.get("/")
 async def root():
     return {"message": "FastAPI is running!"}
+
+@app.post("/data/rerun")
+async def merge_dataframes():
+    game_ratings()
+    return {"detail": "DataFrames merged successfully"}
 
 
 if __name__ == "__main__":

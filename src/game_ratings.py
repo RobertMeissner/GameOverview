@@ -31,7 +31,7 @@ def concat_if_new(df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame:
     return pd.concat([df1, df2[mask]], ignore_index=True)
 
 
-def main():
+def game_ratings():
 
     if not rerun and os.path.exists(DATA_FILEPATH):
         df = load_data()
@@ -39,45 +39,25 @@ def main():
         df = init_df()
         df = games_from_accounts(df)
 
-    print(f"Games to cycle: {len(df)}")
+    print(f"Games to cycle: {df.shape[0]}")
     for index, row in tqdm(
         df.iterrows(),
-        total=len(df),
+        total=df.shape[0],
         bar_format="{l_bar}{bar}| {percentage:.0f}% | {elapsed}<{remaining} | {n_fmt}/{total_fmt} games processed",
     ):
-        # print(f"{row[game_name]}\t app_id: {row[APP_ID]}/{row[CORRECTED_APP_ID]}")
         if row[total_reviews] == -1 or row[CORRECTED_APP_ID] != 0:
-            try:
-                # FIXME: Possible log: 848 708 (708, 14)
-                df.iloc[index] = request_rating(row)
-            except IndexError as e:
-                print(index, len(df), df.shape)
-                print(e.args)
-                print("Index error. Continuing")
+            df.iloc[index] = request_rating(row)
             df = process_data(df)
             save_data(df)
 
-    df = process_data(df)
-    save_data(df)
+    # df = process_data(df)
+    # save_data(df)
 
 
 def games_from_accounts(df):
-    # file_path = games_folder + "/gog_1"
-    # df_gog = parse_gog_file_for_gamelist(file_path)
-    df_gog = gog_games()
-    df = concat_if_new(df, df_gog)
 
-    df_steam = steam_games()
-    df = pd.concat(
-        [df, df_steam],
-        ignore_index=True,
-    )
-    file_path = games_folder + "/epic.html"
-    df_epic = parse_epic_file_for_gamelist(file_path)
-    df = pd.concat(
-        [df, df_epic],
-        ignore_index=True,
-    )
+    df = games_from_stores(df)
+
     store_identifier = "unknown"
     df_played = (
         read_and_filter_markdown(
@@ -97,8 +77,22 @@ def games_from_accounts(df):
     df.drop("store_md", axis=1, inplace=True)
     df.drop("app_id_md", axis=1, inplace=True)
     df[APP_ID] = df[APP_ID].fillna(False)
+
     return df
 
 
+def games_from_stores(df):
+    sources = [gog_games, steam_games, epic_games]
+    for source in sources:
+        df = concat_if_new(df, source())
+    return df
+
+
+def epic_games():
+    file_path = games_folder + "/epic.html"
+    df_epic = parse_epic_file_for_gamelist(file_path)
+    return df_epic
+
+
 if __name__ == "__main__":
-    main()
+    game_ratings()
