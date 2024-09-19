@@ -54,6 +54,15 @@ def game_ratings():
     # save_data(df)
 
 
+def update_played_status(df: pd.DataFrame, games_list: list) -> pd.DataFrame:
+    if 'played' not in df.columns:
+        df['played'] = False
+
+    # Use `isin` to find games in the list and update 'played' column
+    df.loc[df['name'].isin(games_list), 'played'] = True
+
+    return df
+
 def games_from_accounts(df):
 
     df = games_from_stores(df)
@@ -66,17 +75,7 @@ def games_from_accounts(df):
             True,
         ),
     )
-    # Merging df1 and df2 on 'name' while updating 'played' from df2 where names match
     df = df.merge(df_played[0], on="name", how="left", suffixes=("", "_md"))
-    # FIXME: Dirty workaround - merging of games not in played games can be improved
-    df[played_flag] = df[played_flag].fillna(False)
-    df["played_md"] = df["played_md"].fillna(False)
-    df.loc[df["played_md"], "played"] = True
-    # Dropping the original 'played_x' column from df1
-    df.drop("played_md", axis=1, inplace=True)
-    df.drop("store_md", axis=1, inplace=True)
-    df.drop("app_id_md", axis=1, inplace=True)
-    df[APP_ID] = df[APP_ID].fillna(False)
 
     return df
 

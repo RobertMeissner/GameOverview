@@ -16,6 +16,7 @@ def assert_dataframe_structure(df: pd.DataFrame, expected_structure: dict):
         assert pd.api.types.is_dtype_equal(actual_dtype, expected_dtype), \
             f"Expected dtype for column '{col}' is {expected_dtype}, but got {actual_dtype}"
 
+
 expected_structure = {'name': pd.StringDtype(),
                       'game_hash': pd.StringDtype(),
                       'store': pd.StringDtype(),
@@ -61,6 +62,7 @@ expected_structure = {'name': pd.StringDtype(),
                       'has_leaderboards': pd.StringDtype(),
                       'content_descriptorids': pd.StringDtype(),
                       'playtime_2weeks': pd.Int64Dtype()}
+
 
 class TestConcatIfNew(unittest.TestCase):
     def setUp(self):
@@ -141,7 +143,6 @@ class TestConcatIfNew(unittest.TestCase):
         df = init_df()
         assert_dataframe_structure(df, expected_structure)
 
-
     def test_games_from_stores(self):
         df = coerce_dataframe_types(games_from_stores(init_df()), expected_structure)
         assert_dataframe_structure(df, expected_structure)
@@ -149,6 +150,11 @@ class TestConcatIfNew(unittest.TestCase):
         assert df.duplicated().sum() == 1
         assert df["name"].duplicated().sum() == 1
 
+    def test_update_played_status(self):
+        df = coerce_dataframe_types(games_from_stores(init_df()), expected_structure)
+
+
 
 if __name__ == "__main__":
     unittest.main()
+
