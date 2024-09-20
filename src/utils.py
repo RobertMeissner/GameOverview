@@ -8,11 +8,13 @@ from src.constants import (
     DATA_FILEPATH,
     HASH,
     HIDE_FIELD,
+    RATING_FIELD,
     URL,
     game_name,
     played_flag,
+    review_score,
     store_name,
-    total_reviews, review_score, RATING_FIELD,
+    total_reviews,
 )
 
 
@@ -37,51 +39,53 @@ def add_columns(df) -> pd.DataFrame:
     return df
 
 
-expected_structure = {game_name: pd.StringDtype(),
-                      HASH: pd.StringDtype(),
-                      store_name: pd.StringDtype(),
-                      played_flag: pd.BooleanDtype(),
-                      APP_ID: pd.StringDtype(),
-                      'backgroundImage': pd.StringDtype(),
-                      'cdKey': pd.StringDtype(),
-                      'textInformation': pd.StringDtype(),
-                      'downloads': pd.StringDtype(),
-                      'galaxyDownloads': pd.StringDtype(),
-                      'extras': pd.StringDtype(),
-                      'dlcs': pd.StringDtype(),
-                      'tags': pd.StringDtype(),
-                      'isPreOrder': pd.StringDtype(),
-                      'releaseTimestamp': pd.Int64Dtype(),
-                      'messages': pd.StringDtype(),
-                      'changelog': pd.StringDtype(),
-                      'forumLink': pd.StringDtype(),
-                      'isBaseProductMissing': pd.StringDtype(),
-                      'missingBaseProduct': pd.StringDtype(),
-                      'features': pd.StringDtype(),
-                      'simpleGalaxyInstallers': pd.StringDtype(),
-                      'num_reviews': pd.Int64Dtype(),
-                      review_score: pd.Int64Dtype(),
-                      'total_positive': pd.Int64Dtype(),
-                      'total_negative': pd.Int64Dtype(),
-                      'total_reviews': pd.Int64Dtype(),
-                      'found_game_name': pd.StringDtype(),
-                      RATING_FIELD: pd.Int64Dtype(),
-                      'review_score_desc': pd.StringDtype(),
-                      HIDE_FIELD: pd.StringDtype(),
-                      URL: pd.StringDtype(),
-                      'corrected_app_id': pd.Int64Dtype(),
-                      'playtime_forever': pd.Int64Dtype(),
-                      'img_icon_url': pd.StringDtype(),
-                      'has_community_visible_stats': pd.StringDtype(),
-                      'playtime_windows_forever': pd.Int64Dtype(),
-                      'playtime_mac_forever': pd.Int64Dtype(),
-                      'playtime_linux_forever': pd.Int64Dtype(),
-                      'playtime_deck_forever': pd.Int64Dtype(),
-                      'rtime_last_played': pd.Int64Dtype(),
-                      'playtime_disconnected': pd.Int64Dtype(),
-                      'has_leaderboards': pd.StringDtype(),
-                      'content_descriptorids': pd.StringDtype(),
-                      'playtime_2weeks': pd.Int64Dtype()}
+expected_structure = {
+    game_name: pd.StringDtype(),
+    HASH: pd.StringDtype(),
+    store_name: pd.StringDtype(),
+    played_flag: pd.BooleanDtype(),
+    APP_ID: pd.StringDtype(),
+    "backgroundImage": pd.StringDtype(),
+    "cdKey": pd.StringDtype(),
+    "textInformation": pd.StringDtype(),
+    "downloads": pd.StringDtype(),
+    "galaxyDownloads": pd.StringDtype(),
+    "extras": pd.StringDtype(),
+    "dlcs": pd.StringDtype(),
+    "tags": pd.StringDtype(),
+    "isPreOrder": pd.StringDtype(),
+    "releaseTimestamp": pd.Int64Dtype(),
+    "messages": pd.StringDtype(),
+    "changelog": pd.StringDtype(),
+    "forumLink": pd.StringDtype(),
+    "isBaseProductMissing": pd.StringDtype(),
+    "missingBaseProduct": pd.StringDtype(),
+    "features": pd.StringDtype(),
+    "simpleGalaxyInstallers": pd.StringDtype(),
+    "num_reviews": pd.Int64Dtype(),
+    review_score: pd.Int64Dtype(),
+    "total_positive": pd.Int64Dtype(),
+    "total_negative": pd.Int64Dtype(),
+    "total_reviews": pd.Int64Dtype(),
+    "found_game_name": pd.StringDtype(),
+    RATING_FIELD: pd.Int64Dtype(),
+    "review_score_desc": pd.StringDtype(),
+    HIDE_FIELD: pd.StringDtype(),
+    URL: pd.StringDtype(),
+    "corrected_app_id": pd.Int64Dtype(),
+    "playtime_forever": pd.Int64Dtype(),
+    "img_icon_url": pd.StringDtype(),
+    "has_community_visible_stats": pd.StringDtype(),
+    "playtime_windows_forever": pd.Int64Dtype(),
+    "playtime_mac_forever": pd.Int64Dtype(),
+    "playtime_linux_forever": pd.Int64Dtype(),
+    "playtime_deck_forever": pd.Int64Dtype(),
+    "rtime_last_played": pd.Int64Dtype(),
+    "playtime_disconnected": pd.Int64Dtype(),
+    "has_leaderboards": pd.StringDtype(),
+    "content_descriptorids": pd.StringDtype(),
+    "playtime_2weeks": pd.Int64Dtype(),
+}
 
 
 def coerce_dataframe_types(df: pd.DataFrame, expected_structure: dict) -> pd.DataFrame:
@@ -91,7 +95,15 @@ def coerce_dataframe_types(df: pd.DataFrame, expected_structure: dict) -> pd.Dat
 
 
 def init_df():
-    return coerce_dataframe_types(pd.DataFrame( {col: pd.Series([], dtype=dtype) for col, dtype in expected_structure.items()}), expected_structure)
+    return coerce_dataframe_types(
+        pd.DataFrame(
+            {
+                col: pd.Series([], dtype=dtype)
+                for col, dtype in expected_structure.items()
+            }
+        ),
+        expected_structure,
+    )
 
 
 def load_data(filename=DATA_FILEPATH) -> pd.DataFrame:

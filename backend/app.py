@@ -106,6 +106,7 @@ async def update_played_flag(filename: str, props: UpdateRequest):
 async def root():
     return {"message": "FastAPI is running!"}
 
+
 @app.post("/data/rerun")
 async def merge_dataframes():
     game_ratings()

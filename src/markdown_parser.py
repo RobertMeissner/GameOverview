@@ -1,47 +1,27 @@
 import os
 
-import pandas as pd
 from dotenv import load_dotenv
 
-from src.constants import game_name, played_flag, store_name
-from src.utils import init_df
 
+def played_games() -> list:
+    file_path = os.path.join(
+        os.getenv("MARKDOWN_PATH", ""), "gespielte Computerspiele.md"
+    )
+    cleaned_lines = []
+    with open(file_path, encoding="utf-8") as file:
+        for line in file:
+            stripped_line = line.strip()
+            if (
+                stripped_line
+                and not stripped_line.startswith("#")
+                and not stripped_line.startswith("-")
+            ):
+                cleaned_lines.append(stripped_line.replace("[", "").replace("]", ""))
 
-def read_and_filter_markdown(file_path: str, store="", played=False) -> pd.DataFrame:
-    df = init_df()
-
-    # Check if file exists
-    if os.path.exists(file_path):
-        # Open and read the file
-        with open(file_path) as file:
-            lines = file.readlines()
-
-        # Filter lines
-        for line in lines:
-            line = line.replace("\n", "")
-            # Check if line is not empty and does not start with a symbol
-            if line and line.strip()[0].isalnum():
-                game_row = {
-                    game_name: line.strip(),
-                    store_name: store,
-                    played_flag: played,
-                }
-                df = pd.concat([df, pd.DataFrame([game_row])], ignore_index=True)
-
-        df = df.sort_values(by="name", ascending=True)
-        df = df.drop_duplicates(subset="name")
-
-    return df
+    return cleaned_lines
 
 
 if __name__ == "__main__":
     load_dotenv()
-    # Construct full path to the file
-    file_path = os.path.join(
-        os.getenv("MARKDOWN_PATH", ""), "gespielte Computerspiele.md"
-    )
-
-    # Call the function and print the result
-    filtered_content = read_and_filter_markdown(file_path, pd.NA, True)
-    print(filtered_content.info())
-    print(filtered_content.shape)
+    lines = played_games()
+    print(lines)

@@ -1,7 +1,7 @@
 import pandas as pd
 from bs4 import BeautifulSoup
 
-from src.constants import game_name, played_flag, store_name
+from src.constants import game_name, games_folder, played_flag, store_name
 from src.utils import add_columns, init_df
 
 
@@ -35,6 +35,12 @@ def parse_epic_file_for_gamelist(file_path: str) -> pd.DataFrame:
     return add_columns(df)
 
 
+def epic_games():
+    file_path = games_folder + "/epic.html"
+    df_epic = parse_epic_file_for_gamelist(file_path)
+    return df_epic
+
+
 if __name__ == "__main__":
-    df = parse_epic_file_for_gamelist("data/epic.html")
+    df = epic_games()
     print(df.head())

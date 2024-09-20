@@ -5,17 +5,15 @@ from dotenv import load_dotenv
 from tqdm import tqdm
 
 from src.constants import (
-    APP_ID,
     CORRECTED_APP_ID,
     DATA_FILEPATH,
     game_name,
-    games_folder,
     played_flag,
     total_reviews,
 )
-from src.epic_parser import parse_epic_file_for_gamelist
+from src.epic_parser import epic_games
 from src.gog_api import gog_games
-from src.markdown_parser import read_and_filter_markdown
+from src.markdown_parser import played_games
 from src.request_rating import request_rating
 from src.steam_api import steam_games
 from src.utils import init_df, load_data, process_data, save_data
@@ -32,7 +30,6 @@ def concat_if_new(df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame:
 
 
 def game_ratings():
-
     if not rerun and os.path.exists(DATA_FILEPATH):
         df = load_data()
     else:
@@ -55,29 +52,18 @@ def game_ratings():
 
 
 def update_played_status(df: pd.DataFrame, games_list: list) -> pd.DataFrame:
-    if 'played' not in df.columns:
-        df['played'] = False
+    if played_flag not in df.columns:
+        df[played_flag] = False
 
     # Use `isin` to find games in the list and update 'played' column
-    df.loc[df['name'].isin(games_list), 'played'] = True
+    df.loc[df[played_flag].isin(games_list), played_flag] = True
 
     return df
+
 
 def games_from_accounts(df):
-
     df = games_from_stores(df)
-
-    store_identifier = "unknown"
-    df_played = (
-        read_and_filter_markdown(
-            os.path.join(os.getenv("MARKDOWN_PATH", ""), "gespielte Computerspiele.md"),
-            store_identifier,
-            True,
-        ),
-    )
-    df = df.merge(df_played[0], on="name", how="left", suffixes=("", "_md"))
-
-    return df
+    return update_played_status(df, played_games())
 
 
 def games_from_stores(df):
@@ -85,12 +71,6 @@ def games_from_stores(df):
     for source in sources:
         df = concat_if_new(df, source())
     return df
-
-
-def epic_games():
-    file_path = games_folder + "/epic.html"
-    df_epic = parse_epic_file_for_gamelist(file_path)
-    return df_epic
 
 
 if __name__ == "__main__":
