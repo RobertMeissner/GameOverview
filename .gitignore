@@ -5947,3 +5947,6 @@ data
 /node_modules/yaml/util.d.ts
 /node_modules/yaml/util.js
 /node_modules/yaml/util.mjs
+
+# thumbnails
+thumbnails/*
