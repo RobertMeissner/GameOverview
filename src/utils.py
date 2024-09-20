@@ -46,7 +46,7 @@ EXPECTED_DF_COLUMNS = {
     "total_negative": pd.Int64Dtype(),
     "total_reviews": pd.Int64Dtype(),
     "found_game_name": pd.StringDtype(),
-    RATING_FIELD: pd.Int64Dtype(),
+    RATING_FIELD: pd.Float32Dtype(),
     "review_score_desc": pd.StringDtype(),
     HIDE_FIELD: pd.BooleanDtype(),
     URL: pd.StringDtype(),

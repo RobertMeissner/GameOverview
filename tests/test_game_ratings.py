@@ -2,7 +2,12 @@ import unittest
 
 import pandas as pd
 
-from src.game_ratings import concat_if_new, games_from_accounts, games_from_stores
+from src.game_ratings import (
+    concat_if_new,
+    games_from_accounts,
+    games_from_stores,
+    merged_data_sources,
+)
 from src.utils import coerce_dataframe_types, init_df
 
 
@@ -49,7 +54,7 @@ expected_structure = {
     "total_negative": pd.Int64Dtype(),
     "total_reviews": pd.Int64Dtype(),
     "found_game_name": pd.StringDtype(),
-    "rating": pd.Int64Dtype(),
+    "rating": pd.Float32Dtype(),
     "review_score_desc": pd.StringDtype(),
     "hide": pd.BooleanDtype(),
     "url": pd.StringDtype(),
@@ -155,6 +160,59 @@ class TestConcatIfNew(unittest.TestCase):
         assert df.shape == (1176, 45)
         assert df.duplicated().sum() == 0
         assert df["name"].duplicated().sum() == 0
+
+    def test_new_rows_added(self):
+        df_loaded = pd.DataFrame(
+            {
+                "game_hash": ["hash1", "hash2", "hash3"],
+                "data": ["data_loaded_1", "data_loaded_2", "data_loaded_3"],
+            }
+        )
+        df = pd.DataFrame({"game_hash": ["hash4"], "data": ["data_new_4"]})
+        result = merged_data_sources(df, df_loaded)
+        self.assertEqual(len(result), 4)
+        self.assertTrue(result[result["game_hash"] == "hash4"].shape[0] == 1)
+
+    def test_old_rows_retained(self):
+        df_loaded = pd.DataFrame(
+            {
+                "game_hash": ["hash1", "hash2"],
+                "data": ["data_loaded_1", "data_loaded_2"],
+            }
+        )
+        df = pd.DataFrame({"game_hash": ["hash2"], "data": ["data_new_2"]})
+        result = merged_data_sources(df, df_loaded)
+        self.assertEqual(len(result), 2)
+        self.assertTrue(
+            result[result["game_hash"] == "hash2"]["data"].values[0] == "data_loaded_2"
+        )
+
+    def test_no_unique_rows_lost(self):
+        df_loaded = pd.DataFrame(
+            {
+                "game_hash": ["hash1", "hash2"],
+                "data": ["data_loaded_1", "data_loaded_2"],
+            }
+        )
+        df = pd.DataFrame({"game_hash": ["hash3"], "data": ["data_new_3"]})
+        result = merged_data_sources(df, df_loaded)
+        self.assertEqual(len(result), 3)
+        self.assertTrue(result[result["game_hash"] == "hash1"].shape[0] == 1)
+        self.assertTrue(result[result["game_hash"] == "hash2"].shape[0] == 1)
+        self.assertTrue(result[result["game_hash"] == "hash3"].shape[0] == 1)
+
+    def test_correct_number_of_rows(self):
+        df_loaded = pd.DataFrame(
+            {
+                "game_hash": ["hash1", "hash3"],
+                "data": ["data_loaded_1", "data_loaded_3"],
+            }
+        )
+        df = pd.DataFrame(
+            {"game_hash": ["hash2", "hash3"], "data": ["data_new_2", "data_new_3"]}
+        )
+        result = merged_data_sources(df, df_loaded)
+        self.assertEqual(len(result), 3)
 
 
 if __name__ == "__main__":
