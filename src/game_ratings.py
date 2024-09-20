@@ -5,10 +5,12 @@ from dotenv import load_dotenv
 from tqdm import tqdm
 
 from src.constants import (
+    APP_ID,
     CORRECTED_APP_ID,
     DATA_FILEPATH,
     game_name,
     played_flag,
+    store_name,
     total_reviews,
 )
 from src.epic_parser import epic_games
@@ -16,7 +18,7 @@ from src.gog_api import gog_games
 from src.markdown_parser import played_games
 from src.request_rating import request_rating
 from src.steam_api import steam_games
-from src.utils import init_df, load_data, process_data, save_data
+from src.utils import coerce_dataframe_types, init_df, load_data, process_data
 
 load_dotenv()
 
@@ -45,7 +47,7 @@ def game_ratings():
         if row[total_reviews] == -1 or row[CORRECTED_APP_ID] != 0:
             df.iloc[index] = request_rating(row)
             df = process_data(df)
-            save_data(df)
+            # save_data(df)
 
     # df = process_data(df)
     # save_data(df)
@@ -55,15 +57,38 @@ def update_played_status(df: pd.DataFrame, games_list: list) -> pd.DataFrame:
     if played_flag not in df.columns:
         df[played_flag] = False
 
-    # Use `isin` to find games in the list and update 'played' column
-    df.loc[df[played_flag].isin(games_list), played_flag] = True
+    df.loc[df[game_name].isin(games_list), played_flag] = True
+
+    # Find games in games_list that are not in the DataFrame
+    existing_games = set(df["name"])
+    new_games = [game for game in games_list if game not in existing_games]
+
+    # Create DataFrame for new games
+    if new_games:
+        new_rows = pd.DataFrame(
+            {
+                game_name: new_games,
+                store_name: [""] * len(new_games),
+                played_flag: [True] * len(new_games),
+                APP_ID: [0]
+                * len(new_games),  # Assuming app_id should be None for new entries
+            }
+        )
+        df = pd.concat([df, new_rows], ignore_index=True)
 
     return df
 
 
 def games_from_accounts(df):
     df = games_from_stores(df)
-    return update_played_status(df, played_games())
+    df = coerce_dataframe_types(update_played_status(df, played_games()))
+    df = merge_duplicates(df)
+    return df
+
+
+def merge_duplicates(df):
+    duplicated_mask = df.duplicated(subset=[game_name, store_name], keep="first")
+    return df[~duplicated_mask]
 
 
 def games_from_stores(df):

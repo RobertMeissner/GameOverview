@@ -39,7 +39,7 @@ def add_columns(df) -> pd.DataFrame:
     return df
 
 
-expected_structure = {
+EXPECTED_DF_COLUMNS = {
     game_name: pd.StringDtype(),
     HASH: pd.StringDtype(),
     store_name: pd.StringDtype(),
@@ -88,8 +88,13 @@ expected_structure = {
 }
 
 
-def coerce_dataframe_types(df: pd.DataFrame, expected_structure: dict) -> pd.DataFrame:
-    for col, expected_dtype in expected_structure.items():
+def coerce_dataframe_types(
+    df: pd.DataFrame, expected_columns: dict = None
+) -> pd.DataFrame:
+    if expected_columns is None:
+        expected_columns = EXPECTED_DF_COLUMNS
+
+    for col, expected_dtype in expected_columns.items():
         df[col] = df[col].astype(expected_dtype)
     return df
 
@@ -99,10 +104,9 @@ def init_df():
         pd.DataFrame(
             {
                 col: pd.Series([], dtype=dtype)
-                for col, dtype in expected_structure.items()
+                for col, dtype in EXPECTED_DF_COLUMNS.items()
             }
-        ),
-        expected_structure,
+        )
     )
 
 

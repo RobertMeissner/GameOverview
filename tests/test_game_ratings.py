@@ -2,7 +2,7 @@ import unittest
 
 import pandas as pd
 
-from src.game_ratings import concat_if_new, games_from_stores
+from src.game_ratings import concat_if_new, games_from_accounts, games_from_stores
 from src.utils import coerce_dataframe_types, init_df
 
 
@@ -143,11 +143,18 @@ class TestConcatIfNew(unittest.TestCase):
         assert_dataframe_structure(df, expected_structure)
 
     def test_games_from_stores(self):
-        df = coerce_dataframe_types(games_from_stores(init_df()), expected_structure)
+        df = coerce_dataframe_types(games_from_stores(init_df()))
         assert_dataframe_structure(df, expected_structure)
         assert df.shape == (951, 45)
         assert df.duplicated().sum() == 1
         assert df["name"].duplicated().sum() == 1
+
+    def test_games_from_accounts(self):
+        df = games_from_accounts(init_df())
+        assert_dataframe_structure(df, expected_structure)
+        assert df.shape == (1176, 45)
+        assert df.duplicated().sum() == 0
+        assert df["name"].duplicated().sum() == 0
 
 
 if __name__ == "__main__":
