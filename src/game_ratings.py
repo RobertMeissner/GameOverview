@@ -14,7 +14,7 @@ from src.constants import (
 from src.epic_parser import epic_games
 from src.gog_api import gog_games
 from src.markdown_parser import played_games
-from src.request_rating import request_rating
+from src.request_rating import request_rating, steam_app_ids_matched
 from src.steam_api import steam_games
 from src.utils import (
     coerce_dataframe_types,
@@ -37,6 +37,9 @@ def concat_if_new(df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame:
 def game_ratings():
     df = init_df()
     df = games_from_accounts(df)
+
+    df = steam_app_ids_matched(df)
+    save_data(df)
 
     print(f"Games to cycle: {df.shape[0]}")
     for index, row in tqdm(

@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import traceback
+from functools import partial
 
 import pandas as pd
 import requests
@@ -18,7 +19,6 @@ from src.constants import (
 
 load_dotenv()
 
-
 # Configure logging
 logging.basicConfig(
     filename="exception_log.log",
@@ -32,14 +32,10 @@ steam_catalog_url = "https://api.steampowered.com/ISteamApps/GetAppList/v2/"
 
 
 def request_rating(df: pd.Series) -> pd.Series:
-    if df[CORRECTED_APP_ID] != 0:
-        df[APP_ID] = df[CORRECTED_APP_ID]
-        df[found_game_name] = df[game_name]
-
-    if df[APP_ID] == 0:
-        df[APP_ID], df[found_game_name] = steam_app_id(df[game_name])
-
     try:
+        if df[APP_ID] == 0:
+            df[APP_ID], df[found_game_name] = app_id_matched_by_search(df[game_name])
+
         if df[APP_ID] != 0:
             steam_rating(df[APP_ID], df)
     except Exception as e:
@@ -48,7 +44,7 @@ def request_rating(df: pd.Series) -> pd.Series:
         tb = traceback.format_exc()
         logging.error("Full traceback:\n" + tb)
 
-    print(f"{df[game_name]}\t{df[APP_ID]}\tdata: {round(df[RATING_FIELD],3)*100}")
+    print(f"{df[game_name]}\t{df[APP_ID]}\tdata: {round(df[RATING_FIELD], 3) * 100}")
 
     return df
 
@@ -68,16 +64,28 @@ def steam_rating(application_id, df):
                 df[key] = value
 
 
-def steam_app_id(name: str) -> tuple[int, str]:
-    app_id = app_id_matched_by_catalog(name)
-    matched_name = name
-    if app_id == 0:
-        app_id, matched_name = app_id_matched_by_search(name)
-    return app_id, matched_name
+# Update rows where APP_ID == 0 by applying steam_app_id
+def update_app_id_and_name(row: pd.Series, catalog: dict) -> pd.Series:
+    print(f"Working {row[game_name]}: {row[APP_ID]}", end="\t")
+    row[APP_ID] = app_id_matched_by_catalog(row[game_name], catalog=catalog)
+    row[found_game_name] = row[game_name]
+    print(f"Found: {row[APP_ID]}")
+    return row
 
 
-def app_id_matched_by_catalog(name: str) -> int:
+def steam_app_ids_matched(df: pd.DataFrame) -> pd.DataFrame:
+    df.loc[df[CORRECTED_APP_ID] != 0, [APP_ID, found_game_name]] = df.loc[
+        df[CORRECTED_APP_ID] != 0, [CORRECTED_APP_ID, game_name]
+    ].values
+
     catalog = load_catalog()
+    update_func = partial(update_app_id_and_name, catalog=catalog)
+    df.loc[df[APP_ID] == 0] = df.loc[df[APP_ID] == 0].apply(update_func, axis=1)
+
+    return df
+
+
+def app_id_matched_by_catalog(name: str, catalog: dict) -> int:
     if name in catalog.keys():
         return catalog[name]
     return 0
@@ -107,7 +115,6 @@ def load_catalog() -> dict:
 
 
 def app_id_matched_by_search(name: str) -> tuple[int, str]:
-
     url = (
         f"https://store.steampowered.com/search/suggest?term={name}&f=games&cc=DE&realm=1&l=english&"
         f"v=25120873&excluded_content_descriptors[]=3&excluded_content_descriptors[]=4&"
