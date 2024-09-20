@@ -1,5 +1,3 @@
-import os
-
 import pandas as pd
 from dotenv import load_dotenv
 from tqdm import tqdm
@@ -7,7 +5,6 @@ from tqdm import tqdm
 from src.constants import (
     APP_ID,
     CORRECTED_APP_ID,
-    DATA_FILEPATH,
     HASH,
     game_name,
     played_flag,
@@ -33,17 +30,13 @@ rerun = True
 
 
 def concat_if_new(df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame:
-    # Filter df2 to include only names not in df1
     mask = ~df2[game_name].isin(df1[game_name])
     return pd.concat([df1, df2[mask]], ignore_index=True)
 
 
 def game_ratings():
-    if not rerun and os.path.exists(DATA_FILEPATH):
-        df = load_data()
-    else:
-        df = init_df()
-        df = games_from_accounts(df)
+    df = init_df()
+    df = games_from_accounts(df)
 
     print(f"Games to cycle: {df.shape[0]}")
     for index, row in tqdm(
@@ -66,7 +59,7 @@ def update_played_status(df: pd.DataFrame, games_list: list) -> pd.DataFrame:
 
     df.loc[df[game_name].isin(games_list), played_flag] = True
 
-    existing_games = set(df["name"])
+    existing_games = set(df[game_name])
     new_games = [game for game in games_list if game not in existing_games]
     if new_games:
         new_rows = pd.DataFrame(
@@ -79,7 +72,7 @@ def update_played_status(df: pd.DataFrame, games_list: list) -> pd.DataFrame:
         )
         df = pd.concat([df, new_rows], ignore_index=True)
 
-    return df
+    return coerce_dataframe_types(df)
 
 
 def merged_data_sources(df: pd.DataFrame, df_loaded: pd.DataFrame) -> pd.DataFrame:
@@ -91,12 +84,11 @@ def merged_data_sources(df: pd.DataFrame, df_loaded: pd.DataFrame) -> pd.DataFra
 
 def games_from_accounts(df):
     df = games_from_stores(df)
-    df = coerce_dataframe_types(update_played_status(df, played_games()))
+    df = update_played_status(df, played_games())
     df = merge_duplicates(df)
-    df = coerce_dataframe_types(process_data(df))
-    df_loaded = coerce_dataframe_types(load_data())
-    df = merged_data_sources(df=df, df_loaded=df_loaded)
-    return df
+    df = process_data(df)
+    df = merged_data_sources(df=df, df_loaded=load_data())
+    return coerce_dataframe_types(df)
 
 
 def merge_duplicates(df):

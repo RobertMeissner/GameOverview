@@ -78,13 +78,8 @@ def coerce_dataframe_types(
 
 
 def init_df():
-    return coerce_dataframe_types(
-        pd.DataFrame(
-            {
-                col: pd.Series([], dtype=dtype)
-                for col, dtype in EXPECTED_DF_COLUMNS.items()
-            }
-        )
+    return pd.DataFrame(
+        {col: pd.Series([], dtype=dtype) for col, dtype in EXPECTED_DF_COLUMNS.items()}
     )
 
 
@@ -117,7 +112,7 @@ def process_data(df: pd.DataFrame) -> pd.DataFrame:
 
     columns_to_fill_with_false = [HIDE_FIELD]
     df[columns_to_fill_with_false] = df[columns_to_fill_with_false].fillna(False)
-    return game_hash(df)
+    return coerce_dataframe_types(game_hash(df))
 
 
 # Function to create a hash
@@ -132,7 +127,7 @@ def game_hash(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def save_data(df: pd.DataFrame, filename=DATA_FILEPATH):
-    df.to_parquet(filename)
+    coerce_dataframe_types(df).to_parquet(filename)
 
 
 if __name__ == "__main__":
