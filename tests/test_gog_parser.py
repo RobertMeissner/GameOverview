@@ -10,11 +10,6 @@ def init_df():
     return pd.DataFrame(columns=["game_name", "store_name", "played_flag"])
 
 
-def add_columns(df):
-    df["added_column"] = "default_value"
-    return df
-
-
 valid_json_data = """
     var gogData = {
         "accountProducts": [

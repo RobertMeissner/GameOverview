@@ -17,34 +17,12 @@ from src.constants import (
     total_reviews,
 )
 
-
-def add_columns(df) -> pd.DataFrame:
-    df["num_reviews"] = 0
-    df["review_score"] = 0
-    df["total_positive"] = 0
-    df["total_negative"] = 0
-    df[total_reviews] = -1
-    df["found_game_name"] = ""
-    df[APP_ID] = 0
-    df[APP_ID] = df[APP_ID].astype(int)
-    df["rating"] = 0
-    df["review_score_desc"] = ""
-    df[HIDE_FIELD] = False
-    df[HIDE_FIELD] = df[HIDE_FIELD].astype(bool)
-    df[played_flag] = df[played_flag].astype(bool)
-    df[URL] = ""
-    df[URL] = df[URL].astype(str)
-    df[CORRECTED_APP_ID] = 0
-    df[CORRECTED_APP_ID] = df[CORRECTED_APP_ID].astype(int)
-    return df
-
-
 EXPECTED_DF_COLUMNS = {
     game_name: pd.StringDtype(),
     HASH: pd.StringDtype(),
     store_name: pd.StringDtype(),
     played_flag: pd.BooleanDtype(),
-    APP_ID: pd.StringDtype(),
+    APP_ID: pd.Int64Dtype(),
     "backgroundImage": pd.StringDtype(),
     "cdKey": pd.StringDtype(),
     "textInformation": pd.StringDtype(),
@@ -70,7 +48,7 @@ EXPECTED_DF_COLUMNS = {
     "found_game_name": pd.StringDtype(),
     RATING_FIELD: pd.Int64Dtype(),
     "review_score_desc": pd.StringDtype(),
-    HIDE_FIELD: pd.StringDtype(),
+    HIDE_FIELD: pd.BooleanDtype(),
     URL: pd.StringDtype(),
     "corrected_app_id": pd.Int64Dtype(),
     "playtime_forever": pd.Int64Dtype(),
@@ -118,8 +96,27 @@ base_steam_url = "https://store.steampowered.com/app/"
 
 
 def process_data(df: pd.DataFrame) -> pd.DataFrame:
-    # Adding a new column with URL
     df[URL] = df[APP_ID].apply(lambda x: f"{base_steam_url}{x}")
+
+    columns_to_fill_with_zero = [
+        APP_ID,
+        review_score,
+        RATING_FIELD,
+        "num_reviews",
+        CORRECTED_APP_ID,
+        "total_positive",
+        "total_negative",
+    ]
+    df[columns_to_fill_with_zero] = df[columns_to_fill_with_zero].fillna(0)
+
+    columns_to_fill_with_minus_1 = [total_reviews]
+    df[columns_to_fill_with_minus_1] = df[columns_to_fill_with_minus_1].fillna(1)
+
+    columns_to_fill_with_empty = ["found_game_name", "review_score_desc"]
+    df[columns_to_fill_with_empty] = df[columns_to_fill_with_empty].fillna("")
+
+    columns_to_fill_with_false = [HIDE_FIELD]
+    df[columns_to_fill_with_false] = df[columns_to_fill_with_false].fillna(False)
     return game_hash(df)
 
 

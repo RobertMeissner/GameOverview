@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from tqdm import tqdm
 
 from src.constants import GOG_FILEPATH, game_name, played_flag, store_name
-from src.utils import add_columns, load_data
+from src.utils import load_data
 
 load_dotenv()
 CONFIG = {
@@ -55,7 +55,7 @@ def gog_games() -> pd.DataFrame:
     df[played_flag] = False
     save_gog(df)
 
-    return add_columns(df)
+    return df
 
 
 def gog_apps_ids(accessToken):

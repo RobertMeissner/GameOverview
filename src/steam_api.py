@@ -6,7 +6,6 @@ import requests
 from dotenv import load_dotenv
 
 from src.constants import APP_ID, played_flag, store_name
-from src.utils import add_columns
 
 load_dotenv()
 
@@ -30,7 +29,6 @@ def steam_games() -> pd.DataFrame:
     df = pd.DataFrame(games)
     df[store_name] = "steam"
     df[played_flag] = False
-    df = add_columns(df)
     df[APP_ID] = df["appid"]
     df = df.drop(columns=["appid"])
     return df

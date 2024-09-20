@@ -83,6 +83,7 @@ def games_from_accounts(df):
     df = games_from_stores(df)
     df = coerce_dataframe_types(update_played_status(df, played_games()))
     df = merge_duplicates(df)
+    df = coerce_dataframe_types(process_data(df))
     return df
 
 

@@ -3,7 +3,7 @@ import json
 import pandas as pd
 
 from src.constants import game_name, played_flag, store_name
-from src.utils import add_columns, init_df
+from src.utils import init_df
 
 
 def parse_gog_file_for_gamelist(file_path: str) -> pd.DataFrame:
@@ -48,4 +48,4 @@ def parse_gog_file_for_gamelist(file_path: str) -> pd.DataFrame:
     else:
         print("No games found in provided data.")
 
-    return add_columns(df)
+    return df
