@@ -110,7 +110,7 @@ def process_data(df: pd.DataFrame) -> pd.DataFrame:
     df[columns_to_fill_with_zero] = df[columns_to_fill_with_zero].fillna(0)
 
     columns_to_fill_with_minus_1 = [total_reviews]
-    df[columns_to_fill_with_minus_1] = df[columns_to_fill_with_minus_1].fillna(1)
+    df[columns_to_fill_with_minus_1] = df[columns_to_fill_with_minus_1].fillna(-1)
 
     columns_to_fill_with_empty = ["found_game_name", "review_score_desc"]
     df[columns_to_fill_with_empty] = df[columns_to_fill_with_empty].fillna("")
