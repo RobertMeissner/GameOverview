@@ -1,0 +1,27 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: backend
+    volumes:
+      - ./backend:/app
+      - ./backend/src:/app/src
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env  # optional, if you have environment variables
+    depends_on:
+      - frontend
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: frontend
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "3000:3000"
+
+networks:
+  default:
+    driver: bridge

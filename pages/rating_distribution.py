@@ -3,8 +3,8 @@ import pandas as pd
 import streamlit as st
 from matplotlib import pyplot as plt
 
-from src.constants import RATING_FIELD
-from src.utils import load_data
+from backend.src.constants import RATING_FIELD
+from backend.src.utils import load_data
 
 
 # Create a function to display the DataFrame in Streamlit with filter and sorting options

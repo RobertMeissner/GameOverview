@@ -1,4 +1,4 @@
-games_folder = "data"
+DATA_FOLDER = "../data"
 
 game_name = "name"
 store_name = "store"
@@ -18,6 +18,7 @@ HASH = "game_hash"
 
 MINIMUM_RATING = 0.8
 
-DATA_FILEPATH = games_folder + "/" + "data.parquet"
-GOG_FILEPATH = games_folder + "/" + "gog.parquet"
-EDITABLE_DATA_FILEPATH = games_folder + "/" + "editable_data.parquet"
+DATA_FILEPATH = DATA_FOLDER + "/" + "data.parquet"
+GOG_FILEPATH = DATA_FOLDER + "/" + "gog.parquet"
+EDITABLE_DATA_FILEPATH = DATA_FOLDER + "/" + "editable_data.parquet"
+THUMBNAILS_FILEPATH = DATA_FOLDER + "/" + "thumbnails"

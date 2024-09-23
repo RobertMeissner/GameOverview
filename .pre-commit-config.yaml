@@ -36,7 +36,7 @@ repos:
     rev: 'v2.3'  # or any later Vulture version
     hooks:
       - id: vulture
-        args: [ "src", "--min-confidence", "61" ]
+        args: [ "backend/src", "--min-confidence", "61" ]
   -   repo: https://github.com/asottile/pyupgrade
       rev: v3.17.0
       hooks:

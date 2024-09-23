@@ -1,7 +1,7 @@
 import pandas as pd
 
-from src.constants import game_name, played_flag, store_name
-from src.utils import init_df
+from backend.src.constants import game_name, played_flag, store_name
+from backend.src.utils import init_df
 
 
 def parse_steam_file_for_gamelist(file_path: str) -> pd.DataFrame:

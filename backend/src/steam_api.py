@@ -5,7 +5,7 @@ import pandas as pd
 import requests
 from dotenv import load_dotenv
 
-from src.constants import APP_ID, played_flag, store_name
+from backend.src.constants import APP_ID, played_flag, store_name
 
 load_dotenv()
 

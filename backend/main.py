@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from src.constants import (
+from backend.src.constants import (
     APP_ID,
     CORRECTED_APP_ID,
     HASH,
@@ -17,7 +17,7 @@ from src.constants import (
     game_name,
     played_flag,
 )
-from src.game_ratings import game_ratings
+from backend.src.game_ratings import game_ratings
 
 app = FastAPI()
 

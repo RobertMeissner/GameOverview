@@ -4,7 +4,7 @@ from unittest.mock import mock_open, patch
 
 from dotenv import load_dotenv
 
-from src.markdown_parser import played_games
+from backend.src.markdown_parser import played_games
 
 
 class TestParseMarkdownFile(unittest.TestCase):

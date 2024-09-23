@@ -2,13 +2,13 @@ import unittest
 
 import pandas as pd
 
-from src.game_ratings import (
+from backend.src.game_ratings import (
     concat_if_new,
     games_from_accounts,
     games_from_stores,
     merged_data_sources,
 )
-from src.utils import coerce_dataframe_types, init_df
+from backend.src.utils import coerce_dataframe_types, init_df
 
 
 def assert_dataframe_structure(df: pd.DataFrame, expected_structure: dict):

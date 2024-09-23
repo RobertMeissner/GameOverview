@@ -3,7 +3,7 @@ from unittest.mock import mock_open, patch
 
 import pandas as pd
 
-from src.gog_parser import parse_gog_file_for_gamelist
+from backend.src.gog_parser import parse_gog_file_for_gamelist
 
 
 def init_df():

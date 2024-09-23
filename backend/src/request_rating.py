@@ -9,9 +9,10 @@ import requests
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 
-from src.constants import (
+from backend.src.constants import (
     APP_ID,
     CORRECTED_APP_ID,
+    DATA_FOLDER,
     RATING_FIELD,
     found_game_name,
     game_name,
@@ -27,7 +28,7 @@ logging.basicConfig(
     level=logging.ERROR,
 )
 
-steam_catalog_file = "steam_game_app_ids.json"
+steam_catalog_file = DATA_FOLDER + "/" + "steam_game_app_ids.json"
 steam_catalog_url = "https://api.steampowered.com/ISteamApps/GetAppList/v2/"
 
 

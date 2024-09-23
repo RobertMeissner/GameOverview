@@ -20,6 +20,7 @@ uvicorn = "^0.30.6"
 pandas = "^1.5.2"
 numpy = "1.26.3"
 bs4 = "^0.0.2"
+pyarrow = "^17.0.0"
 
 [tool.poetry.dev-dependencies]
 

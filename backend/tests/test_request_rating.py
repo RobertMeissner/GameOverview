@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 import pandas as pd
 import requests
 
-from src.request_rating import request_rating
+from backend.src.request_rating import request_rating
 
 
 class TestRequestRating(unittest.TestCase):

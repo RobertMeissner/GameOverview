@@ -2,9 +2,9 @@ import os
 
 import requests
 
-from src.constants import APP_ID
-from src.game_ratings import games_from_accounts
-from src.utils import init_df
+from backend.src.constants import APP_ID, THUMBNAILS_FILEPATH
+from backend.src.game_ratings import games_from_accounts
+from backend.src.utils import init_df
 
 
 def create_directory(dir_name):
@@ -14,7 +14,7 @@ def create_directory(dir_name):
 
 def download_thumbnail(app_id):
     url = f"https://steamcdn-a.akamaihd.net/steam/apps/{app_id}/header.jpg"
-    path = f"thumbnails/{app_id}.png"
+    path = f"{THUMBNAILS_FILEPATH}/{app_id}.png"
 
     if not os.path.exists(path):
 
@@ -32,7 +32,7 @@ def download_thumbnail(app_id):
 
 
 def download_thumbnails(app_ids):
-    create_directory("thumbnails")
+    create_directory(THUMBNAILS_FILEPATH)
 
     for app_id in app_ids:
         if app_id != 0:

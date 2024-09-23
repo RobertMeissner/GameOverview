@@ -1,6 +1,6 @@
 import streamlit as st
 
-from src.constants import (
+from backend.src.constants import (
     APP_ID,
     CORRECTED_APP_ID,
     HIDE_FIELD,
@@ -9,7 +9,7 @@ from src.constants import (
     game_name,
     played_flag,
 )
-from src.utils import load_data
+from backend.src.utils import load_data
 
 
 # Create a function to display the DataFrame in Streamlit with filter and sorting options
