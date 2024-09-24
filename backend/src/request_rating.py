@@ -8,8 +8,7 @@ import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
-
-from backend.src.constants import (
+from src.constants import (
     APP_ID,
     CORRECTED_APP_ID,
     DATA_FOLDER,
@@ -38,6 +37,7 @@ def request_rating(df: pd.Series) -> pd.Series:
             df[APP_ID], df[found_game_name] = app_id_matched_by_search(df[game_name])
 
         if df[APP_ID] != 0:
+            # FIXME: Inline change of df
             steam_rating(df[APP_ID], df)
     except Exception as e:
         logging.error(f"An error occurred: {str(e)} for {df[game_name]} ")

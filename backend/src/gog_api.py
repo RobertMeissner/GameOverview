@@ -5,10 +5,9 @@ import os
 import pandas as pd
 import requests
 from dotenv import load_dotenv
+from src.constants import DATA_FOLDER, GOG_FILEPATH, game_name, played_flag, store_name
+from src.utils import load_data
 from tqdm import tqdm
-
-from backend.src.constants import GOG_FILEPATH, game_name, played_flag, store_name
-from backend.src.utils import load_data
 
 load_dotenv()
 CONFIG = {
@@ -38,7 +37,7 @@ def gog_games() -> pd.DataFrame:
             'Writing refresh token to "data/gogRefreshToken.txt". Use this token in the config file to avoid having to '
             "log in next time you run the script.\n"
         )
-        with open("../data/gogRefreshToken.txt", "w") as f:
+        with open(f"{DATA_FOLDER}/gogRefreshToken.txt", "w") as f:
             f.write(refresh_token)
 
         # Get the list of apps owned on GOG

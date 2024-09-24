@@ -1,10 +1,9 @@
 import os
 
 import requests
-
-from backend.src.constants import APP_ID, THUMBNAILS_FILEPATH
-from backend.src.game_ratings import games_from_accounts
-from backend.src.utils import init_df
+from src.constants import APP_ID, THUMBNAILS_FILEPATH
+from src.game_ratings import games_from_accounts
+from src.utils import init_df
 
 
 def create_directory(dir_name):

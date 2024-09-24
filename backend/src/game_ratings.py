@@ -1,8 +1,6 @@
 import pandas as pd
 from dotenv import load_dotenv
-from tqdm import tqdm
-
-from backend.src.constants import (
+from src.constants import (
     APP_ID,
     CORRECTED_APP_ID,
     HASH,
@@ -11,18 +9,19 @@ from backend.src.constants import (
     store_name,
     total_reviews,
 )
-from backend.src.epic_parser import epic_games
-from backend.src.gog_api import gog_games
-from backend.src.markdown_parser import played_games
-from backend.src.request_rating import request_rating, steam_app_ids_matched
-from backend.src.steam_api import steam_games
-from backend.src.utils import (
+from src.epic_parser import epic_games
+from src.gog_api import gog_games
+from src.markdown_parser import played_games
+from src.request_rating import request_rating, steam_app_ids_matched
+from src.steam_api import steam_games
+from src.utils import (
     coerce_dataframe_types,
     init_df,
     load_data,
     process_data,
     save_data,
 )
+from tqdm import tqdm
 
 load_dotenv()
 

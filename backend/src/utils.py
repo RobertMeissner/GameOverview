@@ -1,8 +1,7 @@
 import hashlib
 
 import pandas as pd
-
-from backend.src.constants import (
+from src.constants import (
     APP_ID,
     CORRECTED_APP_ID,
     DATA_FILEPATH,

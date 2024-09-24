@@ -5,8 +5,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-
-from backend.src.constants import (
+from src.constants import (
     APP_ID,
     CORRECTED_APP_ID,
     HASH,
@@ -17,7 +16,7 @@ from backend.src.constants import (
     game_name,
     played_flag,
 )
-from backend.src.game_ratings import game_ratings
+from src.game_ratings import game_ratings
 
 app = FastAPI()
 
@@ -116,4 +115,4 @@ async def merge_dataframes():
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000)

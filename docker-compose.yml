@@ -6,6 +6,7 @@ services:
     volumes:
       - ./backend:/app
       - ./backend/src:/app/src
+      - ./data:/data
     ports:
       - "8000:8000"
     env_file:

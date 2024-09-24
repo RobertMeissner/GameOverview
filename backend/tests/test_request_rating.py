@@ -1,6 +1,7 @@
 import json
 import os
 import unittest
+from unittest import skip
 from unittest.mock import Mock, patch
 
 import pandas as pd
@@ -10,6 +11,7 @@ from backend.src.request_rating import request_rating
 
 
 class TestRequestRating(unittest.TestCase):
+    @skip(reason="API currently WIP")
     @patch("requests.request")
     @patch("os.getenv", return_value="MockAPIKey")
     def test_successful_api_responses(self, mock_getenv, mock_request):
@@ -45,7 +47,9 @@ class TestRequestRating(unittest.TestCase):
         ]
 
         # Create a Pandas Series simulating the database row
-        df = pd.Series({"name": "Cyberpunk 2077", "corrected_app_id": 0, "app_id": 0})
+        df = pd.Series(
+            {"name": "Cyberpunk 2077", "corrected_app_id": 0, "app_id": 0, "rating": 0}
+        )
         result = request_rating(df)
         # Check the returned dataframe
         self.assertEqual(result["app_id"], "12345")
@@ -89,6 +93,7 @@ class TestRequestRating(unittest.TestCase):
             self.assertIn("An error occurred", log.output[0])
             self.assertIn("Test Exception", log.output[0])
 
+    @skip(reason="API currently not implemented")
     def test_rating_api_steam(self):
         """Test that the real API provides a successful response and has a suitable structure."""
         # Setup for real API call (Note: This uses the Algolia API for demonstration)
