@@ -1,10 +1,12 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import axios from 'axios';
 import DataTable from './components/DataTable';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import {AppBar, Box, Checkbox, Slider, Toolbar, List, ListItemButton, ListItemText, Divider} from '@mui/material';
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import {BrowserRouter as Router, Route, Routes, Link} from 'react-router-dom';
+import * as fs from "node:fs";
+import * as path from "node:path";
 
 // Define the type of your data
 export interface DataItem {
@@ -17,6 +19,7 @@ export interface DataItem {
     found_game_name: string;
     corrected_app_id: number;
     app_id: number;
+
     [key: string]: string | number | boolean;
 }
 
@@ -48,7 +51,7 @@ const App: React.FC = () => {
         setData(prevData =>
             prevData.map(item => {
                 if (item.game_hash === hash) {
-                    return { ...item, [columnName]: !item[columnName] };
+                    return {...item, [columnName]: !item[columnName]};
                 }
                 return item;
             })
@@ -88,12 +91,28 @@ const App: React.FC = () => {
             .slice(0, 3);
     };
 
+    function logDirectories(dir: string, depth: number = 0): void {
+        const files = fs.readdirSync(dir);
+
+        files.forEach(file => {
+            const fullPath = path.join(dir, file);
+
+            if (fs.lstatSync(fullPath).isDirectory()) {
+                console.log(`${' '.repeat(depth * 2)}- ${file}`);
+                logDirectories(fullPath, depth + 1);
+            }
+        });
+    }
+
+    const currentDir = process.cwd();
+    console.log(`Current Directory: ${currentDir}`);
+    logDirectories(currentDir);
     return (
         <Router>
-            <Box sx={{ display: 'flex' }}>
+            <Box sx={{display: 'flex'}}>
                 <AppBar position="fixed">
                     <Toolbar>
-                        <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+                        <Typography variant="h6" noWrap component="div" sx={{flexGrow: 1}}>
                             My Application
                         </Typography>
                     </Toolbar>
@@ -112,14 +131,14 @@ const App: React.FC = () => {
                 >
                     <List>
                         <ListItemButton component={Link} to="/overview">
-                            <ListItemText primary="Overview" />
+                            <ListItemText primary="Overview"/>
                         </ListItemButton>
                         <ListItemButton component={Link} to="/">
-                            <ListItemText primary="Top Three" />
+                            <ListItemText primary="Top Three"/>
                         </ListItemButton>
                     </List>
 
-                    <Divider sx={{ marginY: 1 }} /> {/* Horizontal Line */}
+                    <Divider sx={{marginY: 1}}/> {/* Horizontal Line */}
                     <Typography variant="h6">Filters</Typography>
 
                     <Typography>Filter by Played (Show only not played games)</Typography>
@@ -155,49 +174,66 @@ const App: React.FC = () => {
                     />
                 </Box>
 
-                <Box component="main" sx={{ flexGrow: 1, padding: 3 }}>
-                    <Toolbar /> {/* Empty toolbar to compensate for AppBar */}
+                <Box component="main" sx={{flexGrow: 1, padding: 3}}>
+                    <Toolbar/> {/* Empty toolbar to compensate for AppBar */}
                     <Routes>
                         <Route path="/overview" element={
-                            <Container sx={{ flexGrow: 1 }}>
-                                <DataTable data={filteredData} onToggleFlag={handleCheckboxChange} />
+                            <Container sx={{flexGrow: 1}}>
+                                <DataTable data={filteredData} onToggleFlag={handleCheckboxChange}/>
                             </Container>
-                        } />
+                        }/>
                         <Route path="/" element={
-                            <Container sx={{ flexGrow: 1 }}>
+                            <Container sx={{flexGrow: 1}}>
                                 <Typography variant="h4">Top Three Rated Titles</Typography>
                                 <List>
                                     {getTopThreeTitles().map(item => (
                                         <ListItemButton key={item.game_hash}>
-                                            <ListItemText primary={item.name} secondary={`Rating: ${item.rating.toPrecision(2)} / Name: ${item.found_game_name}`} />
-                                            <Checkbox
-                                                checked={item.played}
-                                                onChange={() => handleCheckboxChange(item.game_hash, 'played')}
-                                                color="primary"
-                                            />
-                                            <Typography variant="caption">Played</Typography>
-
-                                            <Checkbox
-                                                checked={item.hide}
-                                                onChange={() => handleCheckboxChange(item.game_hash, 'hide')}
-                                                color="primary"
-                                            />
-                                            <Typography variant="caption">Hide</Typography>
-
-                                            {/* Clickable link for app_id */}
-                                            <a
-                                                href={`https://store.steampowered.com/app/${item.app_id}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                style={{ marginLeft: 'auto' }}
-                                            >
-                                                <Typography variant="caption" color="primary">View in Store</Typography>
-                                            </a>
+                                            <Box sx={{display: 'flex', alignItems: 'center', width: '100%'}}>
+                                                <Box sx={{flexGrow: 1, display: 'flex', flexDirection: 'column'}}>
+                                                    <ListItemText
+                                                        primary={item.name}
+                                                        secondary={`Rating: ${item.rating.toPrecision(2)} / Name: ${item.found_game_name}`}
+                                                    />
+                                                    <Box sx={{display: 'flex', alignItems: 'center'}}>
+                                                        <Checkbox
+                                                            checked={item.played}
+                                                            onChange={() => handleCheckboxChange(item.game_hash, 'played')}
+                                                            color="primary"
+                                                        />
+                                                        <Typography variant="caption">Played</Typography>
+                                                        <Checkbox
+                                                            checked={item.hide}
+                                                            onChange={() => handleCheckboxChange(item.game_hash, 'hide')}
+                                                            color="primary"
+                                                        />
+                                                        <Typography variant="caption">Hide</Typography>
+                                                    </Box>
+                                                </Box>
+                                                {/* Image display */}
+                                                <Box sx={{width: '16%', marginLeft: 2}}>
+                                                    <img
+                                                        src={`/data/thumbnails/${item.app_id}.png`}
+                                                        alt={`${item.name} cover`}
+                                                        style={{width: '100%', height: 'auto', aspectRatio: '16/9'}}
+                                                    />
+                                                </Box>
+                                                {/* Clickable link for app_id */}
+                                                <Box sx={{marginLeft: 'auto', alignSelf: 'center'}}>
+                                                    <a
+                                                        href={`https://store.steampowered.com/app/${item.app_id}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                    >
+                                                        <Typography variant="caption" color="primary">View in
+                                                            Store</Typography>
+                                                    </a>
+                                                </Box>
+                                            </Box>
                                         </ListItemButton>
                                     ))}
                                 </List>
                             </Container>
-                        } />
+                        }/>
                     </Routes>
                 </Box>
             </Box>
