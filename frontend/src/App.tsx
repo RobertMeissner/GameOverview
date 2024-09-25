@@ -33,6 +33,8 @@ const App: React.FC = () => {
     const [ratingRange, setRatingRange] = useState<number[]>([0.8, 1]);
     const [reviewScoreRange, setReviewScoreRange] = useState<number[]>([7, 9]);
 
+    const SIDEBAR_WIDTH = 240;
+
     const updateTopThreeGames = useCallback(() => {
         const topThree = data
             .filter(item => !item.hide && !item.played)
@@ -86,8 +88,8 @@ const App: React.FC = () => {
 
     return (
         <Router>
-            <Box sx={{ display: 'flex' }}>
-                <AppBar position="fixed">
+            <Box sx={{ display: 'flex', flexDirection: 'row' }}>
+                <AppBar position="fixed" sx={{ zIndex: 'drawer' }}>
                     <Toolbar>
                         <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
                             My Application
@@ -97,12 +99,13 @@ const App: React.FC = () => {
 
                 <Box
                     sx={{
-                        width: 240,
+                        width: SIDEBAR_WIDTH,
                         flexShrink: 0,
                         bgcolor: 'background.paper',
                         height: '100vh',
                         position: 'fixed',
-                        paddingTop: 8,
+                        top: 64, // Height of AppBar
+                        paddingTop: 2,
                     }}
                 >
                     <List>
@@ -127,8 +130,7 @@ const App: React.FC = () => {
                     />
                 </Box>
 
-                <Box component="main" sx={{ flexGrow: 1, padding: 3 }}>
-                    <Toolbar />
+                <Box component="main" sx={{ flexGrow: 1, padding: 3}}>
                     <Routes>
                         <Route path="/overview" element={
                             <Container sx={{ flexGrow: 1 }}>

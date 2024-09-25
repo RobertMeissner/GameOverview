@@ -10,32 +10,30 @@ interface TopThreeListItemProps {
 }
 
 const TopThreeListItem: React.FC<TopThreeListItemProps> = ({item, onToggleFlag, thumbnailUrl}) => {
-    console.log("Top3", item, thumbnailUrl);
     return (
-        <ListItemButton key={item.game_hash}>
-            <Box sx={{display: 'flex', alignItems: 'center', width: '100%'}}>
-                <Box sx={{flexGrow: 1, display: 'flex', flexDirection: 'column'}}>
-                    <ListItemText
-                        primary={item.name}
-                        secondary={`Rating: ${item.rating.toPrecision(2)} / Name: ${item.found_game_name}`}
+        <ListItemButton key={item.game_hash} sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+            <Thumbnail url={thumbnailUrl} altText={`${item.name} cover`} />
+
+            <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', marginLeft: 2 }}>
+                <ListItemText
+                    primary={item.name}
+                    secondary={`Rating: ${item.rating.toPrecision(2)} / Name: ${item.found_game_name}`}
+                />
+                <Box sx={{ display: 'flex', alignItems: 'center', marginTop: 1 }}>
+                    <Checkbox
+                        checked={item.played}
+                        onChange={() => onToggleFlag(item.game_hash, 'played')}
+                        color="primary"
                     />
-                    <Box sx={{display: 'flex', alignItems: 'center'}}>
-                        <Checkbox
-                            checked={item.played}
-                            onChange={() => onToggleFlag(item.game_hash, 'played')}
-                            color="primary"
-                        />
-                        <Typography variant="caption">Played</Typography>
-                        <Checkbox
-                            checked={item.hide}
-                            onChange={() => onToggleFlag(item.game_hash, 'hide')}
-                            color="primary"
-                        />
-                        <Typography variant="caption">Hide</Typography>
-                    </Box>
+                    <Typography variant="caption">Played</Typography>
+                    <Checkbox
+                        checked={item.hide}
+                        onChange={() => onToggleFlag(item.game_hash, 'hide')}
+                        color="primary"
+                    />
+                    <Typography variant="caption">Hide</Typography>
                 </Box>
-                <Thumbnail url={thumbnailUrl} altText={`${item.name} cover`}/>
-                <Box sx={{marginLeft: 'auto', alignSelf: 'center'}}>
+                <Box sx={{ marginRight: 'auto', alignSelf: 'center' }}>
                     <a
                         href={`https://store.steampowered.com/app/${item.app_id}`}
                         target="_blank"
@@ -45,6 +43,8 @@ const TopThreeListItem: React.FC<TopThreeListItemProps> = ({item, onToggleFlag, 
                     </a>
                 </Box>
             </Box>
+
+
         </ListItemButton>
     );
 };
