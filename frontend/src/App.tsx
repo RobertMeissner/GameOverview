@@ -31,6 +31,7 @@ const App: React.FC = () => {
     const [reviewScoreRange, setReviewScoreRange] = useState<number[]>([7, 9]);
 
     const SIDEBAR_WIDTH = 240;
+    const APPBAR_HEIGHT = 64; // Height of AppBar
 
     const updateTopThreeGames = useCallback(() => {
         const topThree = data
@@ -86,73 +87,84 @@ const App: React.FC = () => {
     return (
         <Router>
             <ThumbnailProvider>
-                <Box sx={{ display: 'flex', flexDirection: 'row' }}>
-                    <AppBar position="fixed" sx={{ zIndex: 'drawer' }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+                    <AppBar position="fixed" sx={{ zIndex: 'drawer', height: APPBAR_HEIGHT }}>
                         <Toolbar>
                             <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
                                 My Application
                             </Typography>
                         </Toolbar>
                     </AppBar>
-
-                <Box
-                    sx={{
-                        width: SIDEBAR_WIDTH,
-                        flexShrink: 0,
-                        bgcolor: 'background.paper',
-                        height: '100vh',
-                        position: 'fixed',
-                        top: 64, // Height of AppBar
-                        paddingTop: 2,
-                    }}
-                >
-                    <List>
-                        <ListItemButton component={Link} to="/overview">
-                            <ListItemText primary="Overview"/>
-                        </ListItemButton>
-                        <ListItemButton component={Link} to="/">
-                            <ListItemText primary="Top Three"/>
-                        </ListItemButton>
-                    </List>
-
-                    <Divider sx={{ marginY: 1 }} />
-                    <FilterControls
-                        playedFilter={playedFilter}
-                        setPlayedFilter={setPlayedFilter}
-                        hideFilter={hideFilter}
-                        setHideFilter={setHideFilter}
-                        ratingRange={ratingRange}
-                        setRatingRange={setRatingRange}
-                        reviewScoreRange={reviewScoreRange}
-                        setReviewScoreRange={setReviewScoreRange}
-                    />
-                </Box>
-
-                    <Box component="main" sx={{ flexGrow: 1, padding: 3 }}>
-                        <Routes>
-                            <Route path="/overview" element={
-                                <Container sx={{ flexGrow: 1 }}>
-                                    <DataTable
-                                        data={filteredData}
-                                        onToggleFlag={handleCheckboxChange}
-                                    />
-                                </Container>
-                            } />
-                            <Route path="/" element={
-                                <Container sx={{ flexGrow: 1 }}>
-                                    <Typography variant="h4">Top Three Rated Titles</Typography>
-                                    <List>
-                                        {topThreeGames.map(item => (
-                                            <TopThreeListItem
-                                                key={item.game_hash}
-                                                item={item}
-                                                onToggleFlag={handleCheckboxChange}
-                                            />
-                                        ))}
-                                    </List>
-                                </Container>
-                            } />
-                        </Routes>
+                    <Toolbar /> {/* Add this for AppBar space compensation */}
+                    <Box sx={{ display: 'flex', flexDirection: 'row', flexGrow: 1 }}>
+                        <Box
+                            sx={{
+                                width: SIDEBAR_WIDTH,
+                                flexShrink: 0,
+                                bgcolor: 'background.paper',
+                                position: 'fixed',
+                                top: APPBAR_HEIGHT,
+                                bottom: 0, // Ensure it stretches full height
+                                overflowY: 'auto', // Enable scrolling
+                                paddingTop: 2,
+                            }}
+                        >
+                            <List>
+                                <ListItemButton component={Link} to="/overview">
+                                    <ListItemText primary="Overview" />
+                                </ListItemButton>
+                                <ListItemButton component={Link} to="/">
+                                    <ListItemText primary="Top Three" />
+                                </ListItemButton>
+                            </List>
+                            <Divider sx={{ marginY: 1 }} />
+                            <FilterControls
+                                playedFilter={playedFilter}
+                                setPlayedFilter={setPlayedFilter}
+                                hideFilter={hideFilter}
+                                setHideFilter={setHideFilter}
+                                ratingRange={ratingRange}
+                                setRatingRange={setRatingRange}
+                                reviewScoreRange={reviewScoreRange}
+                                setReviewScoreRange={setReviewScoreRange}
+                            />
+                        </Box>
+                        <Box
+                            sx={{
+                                flexGrow: 1,
+                                marginLeft: `${SIDEBAR_WIDTH}px`,
+                                padding: 3,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                overflowY: 'auto', // Enable scrolling for main content
+                            }}
+                        >
+                            <Routes>
+                                <Route path="/overview" element={
+                                    <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                                        <Typography variant="h4">Overview</Typography>
+                                        <DataTable
+                                            data={filteredData}
+                                            onToggleFlag={handleCheckboxChange}
+                                        />
+                                    </Box>
+                                } />
+                                <Route path="/" element={
+                                    <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                                        <Typography variant="h4">Top Three Rated Titles</Typography>
+                                        <List sx={{ flexGrow: 1 }}>
+                                            {topThreeGames.map(item => (
+                                                <TopThreeListItem
+                                                    key={item.game_hash}
+                                                    item={item}
+                                                    onToggleFlag={handleCheckboxChange}
+                                                />
+                                            ))}
+                                        </List>
+                                    </Box>
+                                } />
+                            </Routes>
+                        </Box>
                     </Box>
                 </Box>
             </ThumbnailProvider>

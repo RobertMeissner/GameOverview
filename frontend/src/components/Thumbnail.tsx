@@ -8,9 +8,11 @@ interface ThumbnailProps {
 }
 
 const Thumbnail: React.FC<ThumbnailProps> = ({ url, altText, sizeMultiplier = 1 }) => {
-    const size = 50 * sizeMultiplier; // Default size of 50px, multiplied by sizeMultiplier
+    const width = 50 * sizeMultiplier; // Default width of 50px, multiplied by sizeMultiplier
+    const height = (width / 16) * 9; // Calculate height based on 16:9 aspect ratio
+
     return (
-        <Box sx={{ width: size, height: size, marginRight: 2 }}>
+        <Box sx={{ width: width, height: height, marginRight: 2 }}>
             {url ? (
                 <img
                     src={url}

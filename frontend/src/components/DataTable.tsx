@@ -16,19 +16,16 @@ import Thumbnail from './Thumbnail';
 import { DataItem } from '../App';
 import { useThumbnailsContext } from '../context/ThumbnailContext';
 
-// Define props type for DataTable
 interface DataTableProps {
     data: DataItem[];
     onToggleFlag: (hash: string, columnName: 'played' | 'hide') => void;
 }
 
-// Header column type
 interface Column {
     id: keyof DataItem | 'thumbnail';
     label: string;
 }
 
-// TableHeader component for sorting
 const TableHeader: React.FC<{
     columns: Column[];
     order: 'asc' | 'desc';
@@ -115,11 +112,11 @@ const DataTable: React.FC<DataTableProps> = ({ data, onToggleFlag }) => {
         paginatedData.forEach(row => {
             fetchThumbnail(row.app_id);
         });
-    }, [paginatedData, fetchThumbnail]); // Load thumbnails for paginated data
+    }, [paginatedData, fetchThumbnail]);
 
     return (
-        <Paper sx={{ position: 'relative', padding: 2 }}>
-            <Box sx={{ position: 'sticky', top: 0, zIndex: 2, backgroundColor: 'background.paper', marginBottom: 2 }}>
+        <Paper sx={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', flexGrow: 1 }}>
+            <Box sx={{ position: 'sticky', top: 0, zIndex: 2, backgroundColor: 'background.paper' }}>
                 <TablePagination
                     rowsPerPageOptions={[5, 10, 25]}
                     component="div"
@@ -130,7 +127,7 @@ const DataTable: React.FC<DataTableProps> = ({ data, onToggleFlag }) => {
                     onRowsPerPageChange={handleChangeRowsPerPage}
                 />
             </Box>
-            <TableContainer sx={{ maxHeight: 1000 }}>
+            <TableContainer sx={{ flexGrow: 1, maxHeight:1000 }}>
                 <Table stickyHeader>
                     <TableHeader
                         columns={columns}
@@ -147,17 +144,16 @@ const DataTable: React.FC<DataTableProps> = ({ data, onToggleFlag }) => {
                                             <Thumbnail
                                                 url={thumbnails[row.app_id] || ''}
                                                 altText={`${row.name} cover`}
-                                                sizeMultiplier={1.5}
+                                                sizeMultiplier={4}
                                             />
                                         ) : column.id === 'played' || column.id === 'hide' ? (
                                             <Checkbox
-                                                checked={!!row[column.id as keyof DataItem]} // Ensure to cast to boolean
+                                                checked={!!row[column.id as keyof DataItem]}
                                                 onChange={() => onToggleFlag(row.game_hash, column.id as 'played' | 'hide')}
                                             />
                                         ) : (
-                                            row[column.id as keyof DataItem] !== undefined ? (
-                                                String(row[column.id as keyof DataItem]) // Convert to string to handle boolean and number
-                                            ) : '-'
+                                            row[column.id as keyof DataItem] !== undefined ?
+                                                String(row[column.id as keyof DataItem]) : '-'
                                         )}
                                     </TableCell>
                                 ))}
