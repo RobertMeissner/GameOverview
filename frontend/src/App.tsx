@@ -52,28 +52,32 @@ const App: React.FC = () => {
         }
     }, [loading, data, updateTopThreeGames]);
 
-    const handleCheckboxChange = useCallback(async (hash: string, columnName: string) => {
+    const handleCheckboxChange = useCallback((hash: string, columnName: 'played' | 'hide') => {
         setData(prevData =>
-            prevData.map((item: DataItem) => {
+            prevData.map(item => {
                 if (item.game_hash === hash) {
-                    return { ...item, [columnName]: !item[columnName] };
+                    const updatedValue = !item[columnName];
+                    const updatedItem = { ...item, [columnName]: updatedValue };
+
+                    // Make an asynchronous call to update the backend
+                    axios.post(`http://localhost:8000/data/data.parquet/update`, {
+                        column: columnName,
+                        index: prevData.findIndex(i => i.game_hash === hash),
+                        value: updatedValue,
+                    }).catch(error => {
+                        console.error("Error updating column value:", error);
+                        // If there's an error, revert the change in the state
+                        setData(currentData =>
+                            currentData.map(d => d.game_hash === hash ? item : d)
+                        );
+                    });
+
+                    return updatedItem;
                 }
                 return item;
             })
         );
-
-        try {
-            const index = data.findIndex(item => item.game_hash === hash);
-            await axios.post(`http://localhost:8000/data/data.parquet/update`, {
-                column: columnName,
-                index: index,
-                value: !data[index]?.[columnName],
-            });
-            updateTopThreeGames();
-        } catch (error) {
-            console.error("Error updating column value:", error);
-        }
-    }, [data, setData, updateTopThreeGames]);
+    }, [setData]);
 
     const filteredData = data.filter(item => {
         const ratingInRange = item.rating >= ratingRange[0] && item.rating <= ratingRange[1];

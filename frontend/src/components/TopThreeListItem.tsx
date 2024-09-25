@@ -6,7 +6,7 @@ import { useThumbnailsContext } from '../context/ThumbnailContext';
 
 interface TopThreeListItemProps {
     item: DataItem;
-    onToggleFlag: (hash: string, columnName: string) => void;
+    onToggleFlag: (hash: string, columnName: 'played' | 'hide') => void;
 }
 
 const TopThreeListItem: React.FC<TopThreeListItemProps> = ({ item, onToggleFlag }) => {
@@ -39,15 +39,15 @@ const TopThreeListItem: React.FC<TopThreeListItemProps> = ({ item, onToggleFlag 
                     />
                     <Typography variant="caption">Hide</Typography>
                 </Box>
-                <Box sx={{ marginRight: 'auto', alignSelf: 'center' }}>
-                    <a
-                        href={`https://store.steampowered.com/app/${item.app_id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        <Typography variant="caption" color="primary">View in Store</Typography>
-                    </a>
-                </Box>
+            </Box>
+            <Box sx={{ marginLeft: 'auto', alignSelf: 'center' }}>
+                <a
+                    href={`https://store.steampowered.com/app/${item.app_id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <Typography variant="caption" color="primary">View in Store</Typography>
+                </a>
             </Box>
 
 
