@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
     Table,
     TableBody,
@@ -12,7 +12,9 @@ import {
     TablePagination,
     Box
 } from '@mui/material';
-import { DataItem } from "../App";
+import Thumbnail from './Thumbnail';
+import { DataItem } from '../App';
+import { useThumbnailsContext } from '../context/ThumbnailContext';
 
 // Define props type for DataTable
 interface DataTableProps {
@@ -22,7 +24,7 @@ interface DataTableProps {
 
 // Header column type
 interface Column {
-    id: keyof DataItem; // Using keyof to ensure type safety
+    id: keyof DataItem | 'thumbnail';
     label: string;
 }
 
@@ -30,7 +32,7 @@ interface Column {
 const TableHeader: React.FC<{
     columns: Column[];
     order: 'asc' | 'desc';
-    orderBy: keyof DataItem;
+    orderBy: keyof DataItem | 'thumbnail';
     onRequestSort: (property: keyof DataItem) => void;
 }> = ({ columns, order, orderBy, onRequestSort }) => {
     return (
@@ -38,13 +40,17 @@ const TableHeader: React.FC<{
             <TableRow>
                 {columns.map((column) => (
                     <TableCell key={column.id} sx={{ position: 'sticky', top: 0, backgroundColor: 'background.paper', zIndex: 1 }}>
-                        <TableSortLabel
-                            active={orderBy === column.id}
-                            direction={orderBy === column.id ? order : 'asc'}
-                            onClick={() => onRequestSort(column.id)}
-                        >
-                            {column.label}
-                        </TableSortLabel>
+                        {column.id === 'thumbnail' ? (
+                            column.label
+                        ) : (
+                            <TableSortLabel
+                                active={orderBy === column.id}
+                                direction={orderBy === column.id ? order : 'asc'}
+                                onClick={() => onRequestSort(column.id as keyof DataItem)}
+                            >
+                                {column.label}
+                            </TableSortLabel>
+                        )}
                     </TableCell>
                 ))}
             </TableRow>
@@ -53,12 +59,14 @@ const TableHeader: React.FC<{
 };
 
 const DataTable: React.FC<DataTableProps> = ({ data, onToggleFlag }) => {
+    const { thumbnails, fetchThumbnail } = useThumbnailsContext();
     const [order, setOrder] = useState<'asc' | 'desc'>('asc');
     const [orderBy, setOrderBy] = useState<keyof DataItem>('name'); // Default sorting column
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
     const columns: Column[] = [
+        { id: 'thumbnail', label: 'Thumbnail' },
         { id: 'name', label: 'Name' },
         { id: 'rating', label: 'Rating' },
         { id: 'played', label: 'Played' },
@@ -103,6 +111,12 @@ const DataTable: React.FC<DataTableProps> = ({ data, onToggleFlag }) => {
         return sortedData.slice(start, end);
     }, [sortedData, page, rowsPerPage]);
 
+    useEffect(() => {
+        paginatedData.forEach(row => {
+            fetchThumbnail(row.app_id);
+        });
+    }, [paginatedData, fetchThumbnail]); // Load thumbnails for paginated data
+
     return (
         <Paper sx={{ position: 'relative', padding: 2 }}>
             <Box sx={{ position: 'sticky', top: 0, zIndex: 2, backgroundColor: 'background.paper', marginBottom: 2 }}>
@@ -116,7 +130,7 @@ const DataTable: React.FC<DataTableProps> = ({ data, onToggleFlag }) => {
                     onRowsPerPageChange={handleChangeRowsPerPage}
                 />
             </Box>
-            <TableContainer sx={{ maxHeight: 900 }}>
+            <TableContainer sx={{ maxHeight: 1000 }}>
                 <Table stickyHeader>
                     <TableHeader
                         columns={columns}
@@ -129,7 +143,12 @@ const DataTable: React.FC<DataTableProps> = ({ data, onToggleFlag }) => {
                             <TableRow key={row.game_hash}>
                                 {columns.map((column) => (
                                     <TableCell key={column.id}>
-                                        {column.id === 'played' || column.id === 'hide' ? (
+                                        {column.id === 'thumbnail' ? (
+                                            <Thumbnail
+                                                url={thumbnails[row.app_id] || ''}
+                                                altText={`${row.name} cover`}
+                                            />
+                                        ) : column.id === 'played' || column.id === 'hide' ? (
                                             <Checkbox
                                                 checked={!!row[column.id as keyof DataItem]} // Ensure to cast to boolean
                                                 onChange={() => onToggleFlag(row.game_hash, column.id as 'played' | 'hide')}

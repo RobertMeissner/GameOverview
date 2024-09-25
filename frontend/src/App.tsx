@@ -1,14 +1,12 @@
-// App.tsx
-
-import React, {useCallback, useEffect, useState} from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
-import { Box, AppBar, Container, Divider, ListItemButton, ListItemText, Toolbar, Typography, List } from '@mui/material';
+import { Box, AppBar, Container, Divider, List, ListItemButton, ListItemText, Toolbar, Typography } from '@mui/material';
+import axios from 'axios';
 import useData from './hooks/useData';
-import useThumbnails from './hooks/useThumbnails';
 import FilterControls from './components/FilterControls';
 import DataTable from './components/DataTable';
 import TopThreeListItem from './components/TopThreeListItem';
-import axios from "axios";
+import { ThumbnailProvider } from './context/ThumbnailContext';
 
 export interface DataItem {
     game_hash: string;
@@ -26,7 +24,6 @@ export interface DataItem {
 const App: React.FC = () => {
     const [data, loading, setData] = useData();
     const [topThreeGames, setTopThreeGames] = useState<DataItem[]>([]);
-    const thumbnails = useThumbnails(topThreeGames, loading);
 
     const [playedFilter, setPlayedFilter] = useState(false);
     const [hideFilter, setHideFilter] = useState(false);
@@ -88,14 +85,15 @@ const App: React.FC = () => {
 
     return (
         <Router>
-            <Box sx={{ display: 'flex', flexDirection: 'row' }}>
-                <AppBar position="fixed" sx={{ zIndex: 'drawer' }}>
-                    <Toolbar>
-                        <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-                            My Application
-                        </Typography>
-                    </Toolbar>
-                </AppBar>
+            <ThumbnailProvider>
+                <Box sx={{ display: 'flex', flexDirection: 'row' }}>
+                    <AppBar position="fixed" sx={{ zIndex: 'drawer' }}>
+                        <Toolbar>
+                            <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+                                My Application
+                            </Typography>
+                        </Toolbar>
+                    </AppBar>
 
                 <Box
                     sx={{
@@ -130,31 +128,34 @@ const App: React.FC = () => {
                     />
                 </Box>
 
-                <Box component="main" sx={{ flexGrow: 1, padding: 3}}>
-                    <Routes>
-                        <Route path="/overview" element={
-                            <Container sx={{ flexGrow: 1 }}>
-                                <DataTable data={filteredData} onToggleFlag={handleCheckboxChange} />
-                            </Container>
-                        } />
-                        <Route path="/" element={
-                            <Container sx={{ flexGrow: 1 }}>
-                                <Typography variant="h4">Top Three Rated Titles</Typography>
-                                <List>
-                                    {topThreeGames.map(item => (
-                                        <TopThreeListItem
-                                            key={item.game_hash}
-                                            item={item}
-                                            onToggleFlag={handleCheckboxChange}
-                                            thumbnailUrl={thumbnails[item.app_id]}
-                                        />
-                                    ))}
-                                </List>
-                            </Container>
-                        } />
-                    </Routes>
+                    <Box component="main" sx={{ flexGrow: 1, padding: 3 }}>
+                        <Routes>
+                            <Route path="/overview" element={
+                                <Container sx={{ flexGrow: 1 }}>
+                                    <DataTable
+                                        data={filteredData}
+                                        onToggleFlag={handleCheckboxChange}
+                                    />
+                                </Container>
+                            } />
+                            <Route path="/" element={
+                                <Container sx={{ flexGrow: 1 }}>
+                                    <Typography variant="h4">Top Three Rated Titles</Typography>
+                                    <List>
+                                        {topThreeGames.map(item => (
+                                            <TopThreeListItem
+                                                key={item.game_hash}
+                                                item={item}
+                                                onToggleFlag={handleCheckboxChange}
+                                            />
+                                        ))}
+                                    </List>
+                                </Container>
+                            } />
+                        </Routes>
+                    </Box>
                 </Box>
-            </Box>
+            </ThumbnailProvider>
         </Router>
     );
 };

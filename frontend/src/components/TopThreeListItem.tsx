@@ -1,18 +1,24 @@
-import React from 'react';
-import {ListItemButton, Box, ListItemText, Checkbox, Typography} from '@mui/material';
+import React, { useEffect } from 'react';
+import { ListItemButton, Box, ListItemText, Checkbox, Typography } from '@mui/material';
 import Thumbnail from './Thumbnail';
-import {DataItem} from '../App';
+import { DataItem } from '../App';
+import { useThumbnailsContext } from '../context/ThumbnailContext';
 
 interface TopThreeListItemProps {
     item: DataItem;
     onToggleFlag: (hash: string, columnName: string) => void;
-    thumbnailUrl: string;
 }
 
-const TopThreeListItem: React.FC<TopThreeListItemProps> = ({item, onToggleFlag, thumbnailUrl}) => {
+const TopThreeListItem: React.FC<TopThreeListItemProps> = ({ item, onToggleFlag }) => {
+    const { thumbnails, fetchThumbnail } = useThumbnailsContext();
+
+    useEffect(() => {
+        fetchThumbnail(item.app_id); // Ensure thumbnail is loaded for the item
+    }, [item.app_id, fetchThumbnail]);
+
     return (
         <ListItemButton key={item.game_hash} sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-            <Thumbnail url={thumbnailUrl} altText={`${item.name} cover`} />
+            <Thumbnail url={thumbnails[item.app_id] || ''} altText={`${item.name} cover`} />
 
             <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', marginLeft: 2 }}>
                 <ListItemText

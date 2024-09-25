@@ -9,7 +9,7 @@ const useThumbnails = (data: DataItem[], loading: boolean): { [key: number]: str
     useEffect(() => {
         if (!loading) {
             const fetchThumbnails = async () => {
-                const items = data.filter(item => !item.hide && !item.played).slice(0, 3);
+                const items = data.filter(item => !item.hide && !item.played);
                 try {
                     const results = await Promise.all(
                         items.map(async item => {
