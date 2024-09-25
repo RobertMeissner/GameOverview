@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import {
     Table,
     TableBody,
@@ -15,7 +15,7 @@ import { DataItem } from "../App";
 // Define props type for DataTable
 interface DataTableProps {
     data: DataItem[];
-    onToggleFlag: (hash: string, columnName: 'played' | 'hide') => void; // Use specific column types
+    onToggleFlag: (hash: string, columnName: 'played' | 'hide') => void;
 }
 
 // Header column type
@@ -51,19 +51,20 @@ const TableHeader: React.FC<{
 };
 
 const DataTable: React.FC<DataTableProps> = ({ data, onToggleFlag }) => {
+    const [order, setOrder] = useState<'asc' | 'desc'>('asc');
+    const [orderBy, setOrderBy] = useState<keyof DataItem>('name'); // Default sorting column
+
     const columns: Column[] = [
         { id: 'name', label: 'Name' },
         { id: 'rating', label: 'Rating' },
         { id: 'played', label: 'Played' },
         { id: 'hide', label: 'Hide' },
         { id: 'review_score', label: 'Review Score' },
+        { id: 'app_id', label: 'App ID' },
         { id: 'game_hash', label: 'Hash' },
-        { id: 'found_game_name', label: 'Found game name' },
-        { id: 'corrected_app_id', label: 'corrected_app_id' },
+        { id: 'found_game_name', label: 'Found Game Name' },
+        { id: 'corrected_app_id', label: 'Corrected App ID' },
     ];
-
-    const [order, setOrder] = React.useState<'asc' | 'desc'>('asc');
-    const [orderBy, setOrderBy] = React.useState<keyof DataItem>('name'); // Default sorting column
 
     const handleRequestSort = (property: keyof DataItem) => {
         const isAsc = orderBy === property && order === 'asc';
@@ -71,15 +72,17 @@ const DataTable: React.FC<DataTableProps> = ({ data, onToggleFlag }) => {
         setOrderBy(property);
     };
 
-    const sortedData = [...data].sort((a, b) => {
-        if (a[orderBy] < b[orderBy]) {
-            return order === 'asc' ? -1 : 1;
-        }
-        if (a[orderBy] > b[orderBy]) {
-            return order === 'asc' ? 1 : -1;
-        }
-        return 0;
-    });
+    const sortedData = useMemo(() => {
+        return [...data].sort((a, b) => {
+            if (a[orderBy] < b[orderBy]) {
+                return order === 'asc' ? -1 : 1;
+            }
+            if (a[orderBy] > b[orderBy]) {
+                return order === 'asc' ? 1 : -1;
+            }
+            return 0;
+        });
+    }, [data, order, orderBy]);
 
     return (
         <TableContainer component={Paper}>
@@ -101,7 +104,9 @@ const DataTable: React.FC<DataTableProps> = ({ data, onToggleFlag }) => {
                                             onChange={() => onToggleFlag(row.game_hash, column.id as 'played' | 'hide')}
                                         />
                                     ) : (
-                                        row[column.id as keyof DataItem] // Cast to keyof DataItem
+                                        row[column.id as keyof DataItem] !== undefined ? (
+                                            String(row[column.id as keyof DataItem]) // Convert to string to handle boolean and number
+                                        ) : '-'
                                     )}
                                 </TableCell>
                             ))}
