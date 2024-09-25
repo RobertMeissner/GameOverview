@@ -9,6 +9,8 @@ import {
     Checkbox,
     Paper,
     TableSortLabel,
+    TablePagination,
+    Box
 } from '@mui/material';
 import { DataItem } from "../App";
 
@@ -28,14 +30,14 @@ interface Column {
 const TableHeader: React.FC<{
     columns: Column[];
     order: 'asc' | 'desc';
-    orderBy: keyof DataItem; // Make sure this matches keyof DataItem
+    orderBy: keyof DataItem;
     onRequestSort: (property: keyof DataItem) => void;
 }> = ({ columns, order, orderBy, onRequestSort }) => {
     return (
         <TableHead>
             <TableRow>
                 {columns.map((column) => (
-                    <TableCell key={column.id}>
+                    <TableCell key={column.id} sx={{ position: 'sticky', top: 0, backgroundColor: 'background.paper', zIndex: 1 }}>
                         <TableSortLabel
                             active={orderBy === column.id}
                             direction={orderBy === column.id ? order : 'asc'}
@@ -53,6 +55,8 @@ const TableHeader: React.FC<{
 const DataTable: React.FC<DataTableProps> = ({ data, onToggleFlag }) => {
     const [order, setOrder] = useState<'asc' | 'desc'>('asc');
     const [orderBy, setOrderBy] = useState<keyof DataItem>('name'); // Default sorting column
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
 
     const columns: Column[] = [
         { id: 'name', label: 'Name' },
@@ -84,37 +88,65 @@ const DataTable: React.FC<DataTableProps> = ({ data, onToggleFlag }) => {
         });
     }, [data, order, orderBy]);
 
+    const handleChangePage = (event: unknown, newPage: number) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
+
+    const paginatedData = useMemo(() => {
+        const start = page * rowsPerPage;
+        const end = start + rowsPerPage;
+        return sortedData.slice(start, end);
+    }, [sortedData, page, rowsPerPage]);
+
     return (
-        <TableContainer component={Paper}>
-            <Table>
-                <TableHeader
-                    columns={columns}
-                    order={order}
-                    orderBy={orderBy}
-                    onRequestSort={handleRequestSort}
+        <Paper sx={{ position: 'relative', padding: 2 }}>
+            <Box sx={{ position: 'sticky', top: 0, zIndex: 2, backgroundColor: 'background.paper', marginBottom: 2 }}>
+                <TablePagination
+                    rowsPerPageOptions={[5, 10, 25]}
+                    component="div"
+                    count={data.length}
+                    rowsPerPage={rowsPerPage}
+                    page={page}
+                    onPageChange={handleChangePage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
                 />
-                <TableBody>
-                    {sortedData.map((row) => (
-                        <TableRow key={row.game_hash}>
-                            {columns.map((column) => (
-                                <TableCell key={column.id}>
-                                    {column.id === 'played' || column.id === 'hide' ? (
-                                        <Checkbox
-                                            checked={!!row[column.id as keyof DataItem]} // Ensure to cast to boolean
-                                            onChange={() => onToggleFlag(row.game_hash, column.id as 'played' | 'hide')}
-                                        />
-                                    ) : (
-                                        row[column.id as keyof DataItem] !== undefined ? (
-                                            String(row[column.id as keyof DataItem]) // Convert to string to handle boolean and number
-                                        ) : '-'
-                                    )}
-                                </TableCell>
-                            ))}
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
-        </TableContainer>
+            </Box>
+            <TableContainer sx={{ maxHeight: 900 }}>
+                <Table stickyHeader>
+                    <TableHeader
+                        columns={columns}
+                        order={order}
+                        orderBy={orderBy}
+                        onRequestSort={handleRequestSort}
+                    />
+                    <TableBody>
+                        {paginatedData.map((row) => (
+                            <TableRow key={row.game_hash}>
+                                {columns.map((column) => (
+                                    <TableCell key={column.id}>
+                                        {column.id === 'played' || column.id === 'hide' ? (
+                                            <Checkbox
+                                                checked={!!row[column.id as keyof DataItem]} // Ensure to cast to boolean
+                                                onChange={() => onToggleFlag(row.game_hash, column.id as 'played' | 'hide')}
+                                            />
+                                        ) : (
+                                            row[column.id as keyof DataItem] !== undefined ? (
+                                                String(row[column.id as keyof DataItem]) // Convert to string to handle boolean and number
+                                            ) : '-'
+                                        )}
+                                    </TableCell>
+                                ))}
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+        </Paper>
     );
 };
 
