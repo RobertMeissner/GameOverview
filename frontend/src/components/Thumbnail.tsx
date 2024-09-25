@@ -4,11 +4,13 @@ import { Box } from '@mui/material';
 interface ThumbnailProps {
     url: string;
     altText: string;
+    sizeMultiplier?: number; // Optional prop
 }
 
-const Thumbnail: React.FC<ThumbnailProps> = ({ url, altText }) => {
+const Thumbnail: React.FC<ThumbnailProps> = ({ url, altText, sizeMultiplier = 1 }) => {
+    const size = 50 * sizeMultiplier; // Default size of 50px, multiplied by sizeMultiplier
     return (
-        <Box sx={{ width: 50, height: 50, marginRight: 2 }}>
+        <Box sx={{ width: size, height: size, marginRight: 2 }}>
             {url ? (
                 <img
                     src={url}

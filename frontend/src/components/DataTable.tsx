@@ -147,6 +147,7 @@ const DataTable: React.FC<DataTableProps> = ({ data, onToggleFlag }) => {
                                             <Thumbnail
                                                 url={thumbnails[row.app_id] || ''}
                                                 altText={`${row.name} cover`}
+                                                sizeMultiplier={1.5}
                                             />
                                         ) : column.id === 'played' || column.id === 'hide' ? (
                                             <Checkbox

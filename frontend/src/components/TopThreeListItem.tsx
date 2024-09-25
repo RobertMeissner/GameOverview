@@ -18,7 +18,7 @@ const TopThreeListItem: React.FC<TopThreeListItemProps> = ({ item, onToggleFlag 
 
     return (
         <ListItemButton key={item.game_hash} sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-            <Thumbnail url={thumbnails[item.app_id] || ''} altText={`${item.name} cover`} />
+            <Thumbnail url={thumbnails[item.app_id] || ''} altText={`${item.name} cover`} sizeMultiplier={3} />
 
             <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', marginLeft: 2 }}>
                 <ListItemText
