@@ -1,11 +1,14 @@
-import React, {useCallback, useEffect, useState} from 'react';
-import axios from 'axios';
+// App.tsx
+
+import React, { useCallback, useState } from 'react';
+import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import { Box, AppBar, Container, Divider, ListItemButton, ListItemText, Toolbar, Typography, List } from '@mui/material';
+import useData from './hooks/useData';
+import useThumbnails from './hooks/useThumbnails';
+import FilterControls from './components/FilterControls';
 import DataTable from './components/DataTable';
 import TopThreeListItem from './components/TopThreeListItem';
-import Container from '@mui/material/Container';
-import Typography from '@mui/material/Typography';
-import {AppBar, Box, Checkbox, Slider, Toolbar, List, ListItemButton, ListItemText, Divider} from '@mui/material';
-import {BrowserRouter as Router, Route, Routes, Link} from 'react-router-dom';
+import axios from "axios";
 
 export interface DataItem {
     game_hash: string;
@@ -21,69 +24,24 @@ export interface DataItem {
 }
 
 const App: React.FC = () => {
-    const [data, setData] = useState<DataItem[]>([]);
+    const [data, loading, setData] = useData();
+    const thumbnails = useThumbnails(data, loading);
+
     const [playedFilter, setPlayedFilter] = useState(false);
     const [hideFilter, setHideFilter] = useState(false);
     const [ratingRange, setRatingRange] = useState<number[]>([0.8, 1]);
     const [reviewScoreRange, setReviewScoreRange] = useState<number[]>([7, 9]);
-    const [thumbnails, setThumbnails] = useState<{ [key: number]: string }>({});
-    const [loading, setLoading] = useState<boolean>(true);
-
-    useEffect(() => {
-        const loadData = async () => {
-            try {
-                const response = await axios.get<DataItem[]>('http://localhost:8000/data/data.parquet');
-                if (Array.isArray(response.data)) {
-                    setData(response.data);
-                    setLoading(false);
-                } else {
-                    console.error("Expected response to be an array but received:", response.data);
-                }
-            } catch (error) {
-                console.error("Error loading data:", error);
-            }
-        };
-
-        loadData();
-
-    }, []);
-
-    useEffect(() => {
-        if (!loading) {
-            const fetchThumbnails = async () => {
-                const items = getTopThreeTitles();
-                try {
-                    const thumbnailPromises = items.map(item =>
-                        axios.get<Blob>(`http://localhost:8000/thumbnail/${item.app_id}`, { responseType: 'blob' })
-                            .then(response => {
-                                const url = URL.createObjectURL(response.data);
-                                return { app_id: item.app_id, url };
-                            })
-                    );
-                    const results = await Promise.all(thumbnailPromises);
-                    const newThumbnails: { [key: number]: string } = {};
-                    results.forEach(result => {
-                        newThumbnails[result.app_id] = result.url;
-                    });
-                    setThumbnails(newThumbnails);
-                } catch (error) {
-                    console.error("Failed to fetch thumbnails:", error);
-                }
-            };
-
-            fetchThumbnails();
-        }
-    }, [loading, data]);
 
     const handleCheckboxChange = useCallback(async (hash: string, columnName: string) => {
         setData(prevData =>
-            prevData.map(item => {
+            prevData.map((item: DataItem) => {
                 if (item.game_hash === hash) {
                     return { ...item, [columnName]: !item[columnName] };
                 }
                 return item;
             })
         );
+
         try {
             const index = data.findIndex(item => item.game_hash === hash);
             await axios.post(`http://localhost:8000/data/data.parquet/update`, {
@@ -94,7 +52,7 @@ const App: React.FC = () => {
         } catch (error) {
             console.error("Error updating column value:", error);
         }
-    }, [data]);
+    }, [data, setData]);
 
     const filteredData = data.filter(item => {
         const ratingInRange = item.rating >= ratingRange[0] && item.rating <= ratingRange[1];
@@ -148,38 +106,15 @@ const App: React.FC = () => {
                     </List>
 
                     <Divider sx={{ marginY: 1 }} />
-                    <Typography variant="h6">Filters</Typography>
-
-                    <Typography>Filter by Played (Show only not played games)</Typography>
-                    <Checkbox
-                        checked={playedFilter}
-                        onChange={() => setPlayedFilter(prev => !prev)}
-                    />
-
-                    <Typography>Filter by Hide</Typography>
-                    <Checkbox
-                        checked={hideFilter}
-                        onChange={() => setHideFilter(prev => !prev)}
-                    />
-
-                    <Typography>Filter by Rating</Typography>
-                    <Slider
-                        value={ratingRange}
-                        onChange={(event, newValue) => setRatingRange(newValue as number[])}
-                        valueLabelDisplay="auto"
-                        min={0}
-                        max={1}
-                        step={0.01}
-                    />
-
-                    <Typography>Filter by Review Score</Typography>
-                    <Slider
-                        value={reviewScoreRange}
-                        onChange={(event, newValue) => setReviewScoreRange(newValue as number[])}
-                        valueLabelDisplay="auto"
-                        min={0}
-                        max={10}
-                        step={0.5}
+                    <FilterControls
+                        playedFilter={playedFilter}
+                        setPlayedFilter={setPlayedFilter}
+                        hideFilter={hideFilter}
+                        setHideFilter={setHideFilter}
+                        ratingRange={ratingRange}
+                        setRatingRange={setRatingRange}
+                        reviewScoreRange={reviewScoreRange}
+                        setReviewScoreRange={setReviewScoreRange}
                     />
                 </Box>
 
@@ -205,7 +140,7 @@ const App: React.FC = () => {
                                     ))}
                                 </List>
                             </Container>
-                        }/>
+                        } />
                     </Routes>
                 </Box>
             </Box>
