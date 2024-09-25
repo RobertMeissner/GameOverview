@@ -1,12 +1,12 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import axios from 'axios';
 import DataTable from './components/DataTable';
+import TopThreeListItem from './components/TopThreeListItem';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import {AppBar, Box, Checkbox, Slider, Toolbar, List, ListItemButton, ListItemText, Divider} from '@mui/material';
 import {BrowserRouter as Router, Route, Routes, Link} from 'react-router-dom';
 
-// Define the type of your data
 export interface DataItem {
     game_hash: string;
     name: string;
@@ -17,7 +17,6 @@ export interface DataItem {
     found_game_name: string;
     corrected_app_id: number;
     app_id: number;
-
     [key: string]: string | number | boolean;
 }
 
@@ -76,12 +75,11 @@ const App: React.FC = () => {
         }
     }, [loading, data]);
 
-
     const handleCheckboxChange = useCallback(async (hash: string, columnName: string) => {
         setData(prevData =>
             prevData.map(item => {
                 if (item.game_hash === hash) {
-                    return {...item, [columnName]: !item[columnName]};
+                    return { ...item, [columnName]: !item[columnName] };
                 }
                 return item;
             })
@@ -111,27 +109,25 @@ const App: React.FC = () => {
         return data
             .filter(item => !item.hide && !item.played)
             .sort((a, b) => {
-                // First, compare by review_score
                 if (b.review_score !== a.review_score) {
-                    return b.review_score - a.review_score; // Descending order
+                    return b.review_score - a.review_score;
                 }
-                // If review_score is equal, then compare by rating
-                return b.rating - a.rating; // Descending order
+                return b.rating - a.rating;
             })
             .slice(0, 3);
     };
+
     return (
         <Router>
-            <Box sx={{display: 'flex'}}>
+            <Box sx={{ display: 'flex' }}>
                 <AppBar position="fixed">
                     <Toolbar>
-                        <Typography variant="h6" noWrap component="div" sx={{flexGrow: 1}}>
+                        <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
                             My Application
                         </Typography>
                     </Toolbar>
                 </AppBar>
 
-                {/* Fixed Sidebar */}
                 <Box
                     sx={{
                         width: 240,
@@ -151,7 +147,7 @@ const App: React.FC = () => {
                         </ListItemButton>
                     </List>
 
-                    <Divider sx={{marginY: 1}}/> {/* Horizontal Line */}
+                    <Divider sx={{ marginY: 1 }} />
                     <Typography variant="h6">Filters</Typography>
 
                     <Typography>Filter by Played (Show only not played games)</Typography>
@@ -187,64 +183,26 @@ const App: React.FC = () => {
                     />
                 </Box>
 
-                <Box component="main" sx={{flexGrow: 1, padding: 3}}>
-                    <Toolbar/> {/* Empty toolbar to compensate for AppBar */}
+                <Box component="main" sx={{ flexGrow: 1, padding: 3 }}>
+                    <Toolbar />
                     <Routes>
                         <Route path="/overview" element={
-                            <Container sx={{flexGrow: 1}}>
-                                <DataTable data={filteredData} onToggleFlag={handleCheckboxChange}/>
+                            <Container sx={{ flexGrow: 1 }}>
+                                <DataTable data={filteredData} onToggleFlag={handleCheckboxChange} />
                             </Container>
-                        }/>
+                        } />
                         <Route path="/" element={
-                            <Container sx={{flexGrow: 1}}>
+                            <Container sx={{ flexGrow: 1 }}>
                                 <Typography variant="h4">Top Three Rated Titles</Typography>
                                 <List>
                                     {getTopThreeTitles().map(item => (
-          <ListItemButton key={item.game_hash}>
-            <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-              <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-                <ListItemText
-                  primary={item.name}
-                  secondary={`Rating: ${item.rating.toPrecision(2)} / Name: ${item.found_game_name}`}
-                />
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Checkbox
-                    checked={item.played}
-                    onChange={() => handleCheckboxChange(item.game_hash, 'played')}
-                    color="primary"
-                  />
-                  <Typography variant="caption">Played</Typography>
-                  <Checkbox
-                    checked={item.hide}
-                    onChange={() => handleCheckboxChange(item.game_hash, 'hide')}
-                    color="primary"
-                  />
-                  <Typography variant="caption">Hide</Typography>
-                </Box>
-              </Box>
-              {/* Image display */}
-              <Box sx={{ width: '16%', marginLeft: 2 }}>
-                {thumbnails[item.app_id] && (
-                  <img
-                    src={thumbnails[item.app_id]}
-                    alt={`${item.name} cover`}
-                    style={{ width: '100%', height: 'auto', aspectRatio: '16/9' }}
-                  />
-                )}
-              </Box>
-              {/* Clickable link for app_id */}
-              <Box sx={{ marginLeft: 'auto', alignSelf: 'center' }}>
-                <a
-                  href={`https://store.steampowered.com/app/${item.app_id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Typography variant="caption" color="primary">View in Store</Typography>
-                </a>
-              </Box>
-            </Box>
-          </ListItemButton>
-        ))}
+                                        <TopThreeListItem
+                                            key={item.game_hash}
+                                            item={item}
+                                            onToggleFlag={handleCheckboxChange}
+                                            thumbnailUrl={thumbnails[item.app_id]}
+                                        />
+                                    ))}
                                 </List>
                             </Container>
                         }/>
