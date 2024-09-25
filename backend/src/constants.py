@@ -2,7 +2,7 @@ import os
 
 is_running_in_docker = os.path.exists("/.dockerenv")
 
-DATA_FOLDER = "data"
+DATA_FOLDER = "../data"
 if is_running_in_docker:
     DATA_FOLDER = "../../data"
 

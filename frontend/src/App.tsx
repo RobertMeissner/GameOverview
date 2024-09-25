@@ -5,8 +5,6 @@ import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import {AppBar, Box, Checkbox, Slider, Toolbar, List, ListItemButton, ListItemText, Divider} from '@mui/material';
 import {BrowserRouter as Router, Route, Routes, Link} from 'react-router-dom';
-import * as fs from "node:fs";
-import * as path from "node:path";
 
 // Define the type of your data
 export interface DataItem {
@@ -29,6 +27,8 @@ const App: React.FC = () => {
     const [hideFilter, setHideFilter] = useState(false);
     const [ratingRange, setRatingRange] = useState<number[]>([0.8, 1]);
     const [reviewScoreRange, setReviewScoreRange] = useState<number[]>([7, 9]);
+    const [thumbnails, setThumbnails] = useState<{ [key: number]: string }>({});
+    const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
         const loadData = async () => {
@@ -36,6 +36,7 @@ const App: React.FC = () => {
                 const response = await axios.get<DataItem[]>('http://localhost:8000/data/data.parquet');
                 if (Array.isArray(response.data)) {
                     setData(response.data);
+                    setLoading(false);
                 } else {
                     console.error("Expected response to be an array but received:", response.data);
                 }
@@ -45,7 +46,36 @@ const App: React.FC = () => {
         };
 
         loadData();
+
     }, []);
+
+    useEffect(() => {
+        if (!loading) {
+            const fetchThumbnails = async () => {
+                const items = getTopThreeTitles();
+                try {
+                    const thumbnailPromises = items.map(item =>
+                        axios.get<Blob>(`http://localhost:8000/thumbnail/${item.app_id}`, { responseType: 'blob' })
+                            .then(response => {
+                                const url = URL.createObjectURL(response.data);
+                                return { app_id: item.app_id, url };
+                            })
+                    );
+                    const results = await Promise.all(thumbnailPromises);
+                    const newThumbnails: { [key: number]: string } = {};
+                    results.forEach(result => {
+                        newThumbnails[result.app_id] = result.url;
+                    });
+                    setThumbnails(newThumbnails);
+                } catch (error) {
+                    console.error("Failed to fetch thumbnails:", error);
+                }
+            };
+
+            fetchThumbnails();
+        }
+    }, [loading, data]);
+
 
     const handleCheckboxChange = useCallback(async (hash: string, columnName: string) => {
         setData(prevData =>
@@ -90,23 +120,6 @@ const App: React.FC = () => {
             })
             .slice(0, 3);
     };
-
-    function logDirectories(dir: string, depth: number = 0): void {
-        const files = fs.readdirSync(dir);
-
-        files.forEach(file => {
-            const fullPath = path.join(dir, file);
-
-            if (fs.lstatSync(fullPath).isDirectory()) {
-                console.log(`${' '.repeat(depth * 2)}- ${file}`);
-                logDirectories(fullPath, depth + 1);
-            }
-        });
-    }
-
-    const currentDir = process.cwd();
-    console.log(`Current Directory: ${currentDir}`);
-    logDirectories(currentDir);
     return (
         <Router>
             <Box sx={{display: 'flex'}}>
@@ -187,50 +200,51 @@ const App: React.FC = () => {
                                 <Typography variant="h4">Top Three Rated Titles</Typography>
                                 <List>
                                     {getTopThreeTitles().map(item => (
-                                        <ListItemButton key={item.game_hash}>
-                                            <Box sx={{display: 'flex', alignItems: 'center', width: '100%'}}>
-                                                <Box sx={{flexGrow: 1, display: 'flex', flexDirection: 'column'}}>
-                                                    <ListItemText
-                                                        primary={item.name}
-                                                        secondary={`Rating: ${item.rating.toPrecision(2)} / Name: ${item.found_game_name}`}
-                                                    />
-                                                    <Box sx={{display: 'flex', alignItems: 'center'}}>
-                                                        <Checkbox
-                                                            checked={item.played}
-                                                            onChange={() => handleCheckboxChange(item.game_hash, 'played')}
-                                                            color="primary"
-                                                        />
-                                                        <Typography variant="caption">Played</Typography>
-                                                        <Checkbox
-                                                            checked={item.hide}
-                                                            onChange={() => handleCheckboxChange(item.game_hash, 'hide')}
-                                                            color="primary"
-                                                        />
-                                                        <Typography variant="caption">Hide</Typography>
-                                                    </Box>
-                                                </Box>
-                                                {/* Image display */}
-                                                <Box sx={{width: '16%', marginLeft: 2}}>
-                                                    <img
-                                                        src={`/data/thumbnails/${item.app_id}.png`}
-                                                        alt={`${item.name} cover`}
-                                                        style={{width: '100%', height: 'auto', aspectRatio: '16/9'}}
-                                                    />
-                                                </Box>
-                                                {/* Clickable link for app_id */}
-                                                <Box sx={{marginLeft: 'auto', alignSelf: 'center'}}>
-                                                    <a
-                                                        href={`https://store.steampowered.com/app/${item.app_id}`}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                    >
-                                                        <Typography variant="caption" color="primary">View in
-                                                            Store</Typography>
-                                                    </a>
-                                                </Box>
-                                            </Box>
-                                        </ListItemButton>
-                                    ))}
+          <ListItemButton key={item.game_hash}>
+            <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+              <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                <ListItemText
+                  primary={item.name}
+                  secondary={`Rating: ${item.rating.toPrecision(2)} / Name: ${item.found_game_name}`}
+                />
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Checkbox
+                    checked={item.played}
+                    onChange={() => handleCheckboxChange(item.game_hash, 'played')}
+                    color="primary"
+                  />
+                  <Typography variant="caption">Played</Typography>
+                  <Checkbox
+                    checked={item.hide}
+                    onChange={() => handleCheckboxChange(item.game_hash, 'hide')}
+                    color="primary"
+                  />
+                  <Typography variant="caption">Hide</Typography>
+                </Box>
+              </Box>
+              {/* Image display */}
+              <Box sx={{ width: '16%', marginLeft: 2 }}>
+                {thumbnails[item.app_id] && (
+                  <img
+                    src={thumbnails[item.app_id]}
+                    alt={`${item.name} cover`}
+                    style={{ width: '100%', height: 'auto', aspectRatio: '16/9' }}
+                  />
+                )}
+              </Box>
+              {/* Clickable link for app_id */}
+              <Box sx={{ marginLeft: 'auto', alignSelf: 'center' }}>
+                <a
+                  href={`https://store.steampowered.com/app/${item.app_id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Typography variant="caption" color="primary">View in Store</Typography>
+                </a>
+              </Box>
+            </Box>
+          </ListItemButton>
+        ))}
                                 </List>
                             </Container>
                         }/>

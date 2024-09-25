@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from src.constants import (
     APP_ID,
     CORRECTED_APP_ID,
+    DATA_FOLDER,
     HASH,
     HIDE_FIELD,
     RATING_FIELD,
@@ -17,6 +18,7 @@ from src.constants import (
     played_flag,
 )
 from src.game_ratings import game_ratings
+from starlette.responses import FileResponse
 
 app = FastAPI()
 
@@ -44,10 +46,9 @@ columns_to_transfer = [
 
 @app.get("/data/{filename}")
 async def get_parquet_file(filename: str):
-    file_path = os.path.join("../data", filename)  # Ensure this path is correct
+    file_path = os.path.join(DATA_FOLDER, filename)  # Ensure this path is correct
     if not os.path.isfile(file_path):
         raise HTTPException(status_code=404, detail="File not found")
-    print(f"Handling file {file_path}")
     # Read the Parquet file using PyArrow
     try:
         table = pq.read_table(file_path)
@@ -72,8 +73,7 @@ class UpdateRequest(BaseModel):
 
 @app.post("/data/{filename}/update")
 async def update_played_flag(filename: str, props: UpdateRequest):
-    print(filename, props)
-    file_path = os.path.join("../data", filename)
+    file_path = os.path.join(DATA_FOLDER, filename)
 
     if not os.path.isfile(file_path):
         raise HTTPException(status_code=404, detail="File not found")
@@ -110,6 +110,15 @@ async def root():
 async def merge_dataframes():
     game_ratings()
     return {"detail": "DataFrames merged successfully"}
+
+
+@app.get("/thumbnail/{app_id}")
+def get_thumbnail(app_id: int):
+    file_path = f"{DATA_FOLDER}/thumbnails/{app_id}.png"
+    if os.path.isfile(file_path):
+        return FileResponse(file_path)
+    else:
+        raise HTTPException(status_code=404, detail="Thumbnail not found")
 
 
 if __name__ == "__main__":
