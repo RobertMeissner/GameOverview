@@ -10,6 +10,7 @@ interface TopThreeListItemProps {
 }
 
 const TopThreeListItem: React.FC<TopThreeListItemProps> = ({item, onToggleFlag, thumbnailUrl}) => {
+    console.log("Top3", item, thumbnailUrl);
     return (
         <ListItemButton key={item.game_hash}>
             <Box sx={{display: 'flex', alignItems: 'center', width: '100%'}}>

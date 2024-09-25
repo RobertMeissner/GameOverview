@@ -11,15 +11,18 @@ const useThumbnails = (data: DataItem[], loading: boolean): { [key: number]: str
             const fetchThumbnails = async () => {
                 const items = data.filter(item => !item.hide && !item.played).slice(0, 3);
                 try {
-                    const thumbnailPromises = items.map(item =>
-                        axios.get<Blob>(`http://localhost:8000/thumbnail/${item.app_id}`, { responseType: 'blob' })
-                            .then(response => {
-                                const url = URL.createObjectURL(response.data);
-                                return { app_id: item.app_id, url };
-                            })
+                    console.log("item", items);
+                    const results = await Promise.all(
+                        items.map(async item => {
+                            console.log(item);
+                            const response = await axios.get<Blob>(`http://localhost:8000/thumbnail/${item.app_id}`, { responseType: 'blob' });
+                            const url = URL.createObjectURL(response.data);
+                            return { app_id: item.app_id, url };
+                        })
                     );
-                    const results = await Promise.all(thumbnailPromises);
                     const newThumbnails: { [key: number]: string } = {};
+
+                    console.log("item2", results);
                     results.forEach(result => {
                         newThumbnails[result.app_id] = result.url;
                     });

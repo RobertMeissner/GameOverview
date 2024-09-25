@@ -115,7 +115,7 @@ async def merge_dataframes():
 @app.get("/thumbnail/{app_id}")
 def get_thumbnail(app_id: int):
     file_path = f"{DATA_FOLDER}/thumbnails/{app_id}.png"
-    if os.path.isfile(file_path):
+    if app_id != 0 and os.path.isfile(file_path):
         return FileResponse(file_path)
     else:
         raise HTTPException(status_code=404, detail="Thumbnail not found")

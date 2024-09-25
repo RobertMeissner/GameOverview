@@ -1,6 +1,6 @@
 // App.tsx
 
-import React, { useCallback, useState } from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import { Box, AppBar, Container, Divider, ListItemButton, ListItemText, Toolbar, Typography, List } from '@mui/material';
 import useData from './hooks/useData';
@@ -25,12 +25,32 @@ export interface DataItem {
 
 const App: React.FC = () => {
     const [data, loading, setData] = useData();
-    const thumbnails = useThumbnails(data, loading);
+    const [topThreeGames, setTopThreeGames] = useState<DataItem[]>([]);
+    const thumbnails = useThumbnails(topThreeGames, loading);
 
     const [playedFilter, setPlayedFilter] = useState(false);
     const [hideFilter, setHideFilter] = useState(false);
     const [ratingRange, setRatingRange] = useState<number[]>([0.8, 1]);
     const [reviewScoreRange, setReviewScoreRange] = useState<number[]>([7, 9]);
+
+    const updateTopThreeGames = useCallback(() => {
+        const topThree = data
+            .filter(item => !item.hide && !item.played)
+            .sort((a, b) => {
+                if (b.review_score !== a.review_score) {
+                    return b.review_score - a.review_score;
+                }
+                return b.rating - a.rating;
+            })
+            .slice(0, 3);
+        setTopThreeGames(topThree);
+    }, [data]);
+
+    useEffect(() => {
+        if (!loading) {
+            updateTopThreeGames();
+        }
+    }, [loading, data, updateTopThreeGames]);
 
     const handleCheckboxChange = useCallback(async (hash: string, columnName: string) => {
         setData(prevData =>
@@ -49,10 +69,11 @@ const App: React.FC = () => {
                 index: index,
                 value: !data[index]?.[columnName],
             });
+            updateTopThreeGames();
         } catch (error) {
             console.error("Error updating column value:", error);
         }
-    }, [data, setData]);
+    }, [data, setData, updateTopThreeGames]);
 
     const filteredData = data.filter(item => {
         const ratingInRange = item.rating >= ratingRange[0] && item.rating <= ratingRange[1];
@@ -62,18 +83,6 @@ const App: React.FC = () => {
 
         return ratingInRange && reviewScoreInRange && playedCriteria && hideCriteria;
     });
-
-    const getTopThreeTitles = () => {
-        return data
-            .filter(item => !item.hide && !item.played)
-            .sort((a, b) => {
-                if (b.review_score !== a.review_score) {
-                    return b.review_score - a.review_score;
-                }
-                return b.rating - a.rating;
-            })
-            .slice(0, 3);
-    };
 
     return (
         <Router>
@@ -130,7 +139,7 @@ const App: React.FC = () => {
                             <Container sx={{ flexGrow: 1 }}>
                                 <Typography variant="h4">Top Three Rated Titles</Typography>
                                 <List>
-                                    {getTopThreeTitles().map(item => (
+                                    {topThreeGames.map(item => (
                                         <TopThreeListItem
                                             key={item.game_hash}
                                             item={item}
