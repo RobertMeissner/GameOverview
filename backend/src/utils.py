@@ -62,6 +62,11 @@ EXPECTED_DF_COLUMNS = {
     "has_leaderboards": pd.StringDtype(),
     "content_descriptorids": pd.StringDtype(),
     "playtime_2weeks": pd.Int64Dtype(),
+    "gog_id": pd.Int64Dtype(),
+    "title": pd.StringDtype(),
+    "reviewsRating": pd.Int64Dtype(),
+    "coverVertical": pd.StringDtype(),
+    "coverHorizontal": pd.StringDtype(),
 }
 
 
@@ -100,13 +105,21 @@ def process_data(df: pd.DataFrame) -> pd.DataFrame:
         CORRECTED_APP_ID,
         "total_positive",
         "total_negative",
+        "gog_id",
+        "reviewsRating",
     ]
     df[columns_to_fill_with_zero] = df[columns_to_fill_with_zero].fillna(0)
 
     columns_to_fill_with_minus_1 = [total_reviews]
     df[columns_to_fill_with_minus_1] = df[columns_to_fill_with_minus_1].fillna(-1)
 
-    columns_to_fill_with_empty = ["found_game_name", "review_score_desc"]
+    columns_to_fill_with_empty = [
+        "found_game_name",
+        "review_score_desc",
+        "title",
+        "coverVertical",
+        "coverHorizontal",
+    ]
     df[columns_to_fill_with_empty] = df[columns_to_fill_with_empty].fillna("")
 
     columns_to_fill_with_false = [HIDE_FIELD]

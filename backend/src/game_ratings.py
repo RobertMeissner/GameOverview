@@ -9,7 +9,7 @@ from src.constants import (
     total_reviews,
 )
 from src.epic_parser import epic_games
-from src.gog_api import gog_games
+from src.gog_api import gog_data, gog_games
 from src.markdown_parser import played_games
 from src.request_rating import request_rating, steam_app_ids_matched
 from src.steam_api import steam_games
@@ -37,6 +37,7 @@ def game_ratings():
     df = games_from_accounts(df)
 
     df = steam_app_ids_matched(df)
+    df = process_data(df)
     save_data(df)
 
     print(f"Games to cycle: {df.shape[0]}")
@@ -47,8 +48,17 @@ def game_ratings():
     ):
         if row[total_reviews] == -1 or row[APP_ID] == 0:
             df.iloc[index] = request_rating(row)
-            df = process_data(df)
-            save_data(df)
+
+        if row["gog_id"] == 0:
+            gog_response = gog_data(row[game_name])
+            for column, value in gog_response.items():
+                df.at[index, column] = value
+
+            print(
+                f"GOG {df.at[index, game_name]}\t{df.at[index, 'gog_id']}\tdata: {round(df.at[index, 'reviewsRating'], 1) /10}"
+            )
+        df = process_data(df)
+        save_data(df)
 
     df = process_data(df)
     save_data(df)

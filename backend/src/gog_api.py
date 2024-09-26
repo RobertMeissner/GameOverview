@@ -5,7 +5,14 @@ import os
 import pandas as pd
 import requests
 from dotenv import load_dotenv
-from src.constants import DATA_FOLDER, GOG_FILEPATH, game_name, played_flag, store_name
+from src.constants import (
+    DATA_FILEPATH,
+    DATA_FOLDER,
+    GOG_FILEPATH,
+    game_name,
+    played_flag,
+    store_name,
+)
 from src.utils import load_data
 from tqdm import tqdm
 
@@ -150,5 +157,78 @@ def gog_access_token(gog_login_code, gog_refresh_token):
     return access_token, refresh_token
 
 
+def parse_gog_response(data: dict) -> dict:
+    result = {}
+    if "products" in data and len(data["products"]) > 0:
+        product = data["products"][0]
+        result = {
+            "gog_id": int(product.get("id", 0)),
+            "title": product.get("title", ""),
+            "reviewsRating": int(product.get("reviewsRating", 0)),
+            "coverVertical": product.get("coverVertical", ""),
+            "coverHorizontal": product.get("coverHorizontal", ""),
+        }
+
+    return result
+
+
+def gog_data(game_name: str) -> dict:
+    url = (
+        f"https://catalog.gog.com/v1/catalog?limit=1&locale=en-US&order=desc:score&page=1"
+        f"&productType=in:game,pack,dlc,extras&query=like:{game_name.replace(' ', '+')}"
+    )
+
+    payload = {}
+    headers = {
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:130.0) Gecko/20100101 Firefox/130.0",
+        "Accept": "application/json, text/plain, */*",
+        "Accept-Language": "en-US,en;q=0.5",
+        "Accept-Encoding": "gzip, deflate, br, zstd",
+        "Origin": "https://www.gog.com",
+        "DNT": "1",
+        "Connection": "keep-alive",
+        "Referer": "https://www.gog.com/",
+        "Sec-Fetch-Dest": "empty",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Site": "same-site",
+    }
+
+    response = requests.request("GET", url, headers=headers, data=payload)
+
+    if response.status_code == 200:
+        return parse_gog_response(response.json())
+    return {}
+
+
+def load_and_update_parquet(file_path: str, output_path: str, column: str):
+    # Load the parquet file into a DataFrame
+    df = pd.read_parquet(file_path)
+
+    # Set the specified column to 0
+    df[column] = 0
+
+    # Save the updated DataFrame back to a parquet file
+    df.to_parquet(output_path, index=False)
+
+
 if __name__ == "__main__":
-    gog_games()
+    do_tests = False
+    if do_tests:
+        gog_games()
+
+    if do_tests:
+        # Example usage
+        input_file_path = DATA_FILEPATH
+        output_file_path = input_file_path
+        column_to_update = "gog_id"
+
+        load_and_update_parquet(input_file_path, output_file_path, column_to_update)
+
+    if do_tests:
+        # Example usage:
+        test_game = "The Witcher 3: Wild Hunt"
+        gog_game_id = gog_data(test_game)
+        if gog_game_id:
+            print(f"The GoG game ID for '{test_game}' is {gog_game_id['gog_id']}.")
+        else:
+            print(f"Game '{game_name}' not found on GoG.")
