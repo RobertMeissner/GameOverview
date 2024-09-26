@@ -10,7 +10,7 @@ import {
     Paper,
     TableSortLabel,
     TablePagination,
-    Box, TextField
+    Box, TextField, Typography
 } from '@mui/material';
 import Thumbnail from './Thumbnail';
 import {DataItem} from '../App';
@@ -166,10 +166,17 @@ const DataTable: React.FC<DataTableProps> = ({data, onDataChange, columnWhitelis
                                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleCorrectedAppIdChange(row.game_hash, parseInt(e.target.value))}
                                             />
                                         ) : column.id === "store" ? (
-                                            <StoreURL appId={row.app_id} store={row.store} />
+                                            <StoreURL appId={row.app_id} store={row.store}/>
+                                        ) : column.id === 'rating' ? (
+                                            <Typography
+                                                component="span"
+                                                sx={{fontWeight: 'bold', color: 'green'}}
+                                            >
+                                                {(row.rating * 100).toFixed(1)}%
+                                            </Typography>
                                         ) : (
                                             row[column.id as keyof DataItem] !== undefined ?
-                                            String(row[column.id as keyof DataItem]) : '-'
+                                                String(row[column.id as keyof DataItem]) : '-'
                                         )}
                                     </TableCell>
                                 ))}

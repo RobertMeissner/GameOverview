@@ -1,12 +1,12 @@
-import React, { useCallback, useState, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
-import { Box, AppBar, Divider, List, ListItemButton, ListItemText, Toolbar, Typography } from '@mui/material';
+import React, {useCallback, useState, useEffect} from 'react';
+import {BrowserRouter as Router, Route, Routes, Link} from 'react-router-dom';
+import {Box, AppBar, Divider, List, ListItemButton, ListItemText, Toolbar, Typography} from '@mui/material';
 import axios from 'axios';
 import useData from './hooks/useData';
 import FilterControls from './components/FilterControls';
 import DataTable from './components/DataTable';
 import TopThreeListItem from './components/TopThreeListItem';
-import { ThumbnailProvider } from './context/ThumbnailContext';
+import {ThumbnailProvider} from './context/ThumbnailContext';
 
 export interface DataItem {
     game_hash: string;
@@ -19,6 +19,7 @@ export interface DataItem {
     corrected_app_id: number;
     app_id: number;
     store: string;
+
     [key: string]: string | number | boolean;
 }
 
@@ -35,6 +36,8 @@ const App: React.FC = () => {
 
     const SIDEBAR_WIDTH = 240;
     const APPBAR_HEIGHT = 64; // Height of AppBar
+
+    const columnWhitelist = ["thumbnail", 'name', 'rating', 'review_score', 'played', 'hide', 'store', "app_id", "corrected_app_id"]
 
     const updateTopThreeGames = useCallback(() => {
         const topThree = data
@@ -59,7 +62,7 @@ const App: React.FC = () => {
         setData(prevData =>
             prevData.map(item => {
                 if (item.game_hash === hash) {
-                    const updatedItem = { ...item, [columnName]: value };
+                    const updatedItem = {...item, [columnName]: value};
 
                     // Make an asynchronous call to update the backend
                     axios.post(`http://localhost:8000/data/data.parquet/update`, {
@@ -89,7 +92,7 @@ const App: React.FC = () => {
         const zeroIdsCriteria = filterZeroIds ? (item.app_id === 0 && item.corrected_app_id === 0) : true;
 
         const searchCriteria = searchQuery.length === 0 ? true :
-                               new RegExp(searchQuery.split('').join('.*'), 'i').test(item.name);
+            new RegExp(searchQuery.split('').join('.*'), 'i').test(item.name);
 
 
         return ratingInRange && reviewScoreInRange && playedCriteria && hideCriteria && zeroIdsCriteria && searchCriteria;
@@ -98,16 +101,16 @@ const App: React.FC = () => {
     return (
         <Router>
             <ThumbnailProvider>
-                <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-                    <AppBar position="fixed" sx={{ zIndex: 'drawer', height: APPBAR_HEIGHT }}>
+                <Box sx={{display: 'flex', flexDirection: 'column', height: '100vh'}}>
+                    <AppBar position="fixed" sx={{zIndex: 'drawer', height: APPBAR_HEIGHT}}>
                         <Toolbar>
-                            <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+                            <Typography variant="h6" noWrap component="div" sx={{flexGrow: 1}}>
                                 My Application
                             </Typography>
                         </Toolbar>
                     </AppBar>
-                    <Toolbar /> {/* Add this for AppBar space compensation */}
-                    <Box sx={{ display: 'flex', flexDirection: 'row', flexGrow: 1 }}>
+                    <Toolbar/> {/* Add this for AppBar space compensation */}
+                    <Box sx={{display: 'flex', flexDirection: 'row', flexGrow: 1}}>
                         <Box
                             sx={{
                                 width: SIDEBAR_WIDTH,
@@ -122,13 +125,13 @@ const App: React.FC = () => {
                         >
                             <List>
                                 <ListItemButton component={Link} to="/overview">
-                                    <ListItemText primary="Overview" />
+                                    <ListItemText primary="Overview"/>
                                 </ListItemButton>
                                 <ListItemButton component={Link} to="/">
-                                    <ListItemText primary="Top Three" />
+                                    <ListItemText primary="Top Three"/>
                                 </ListItemButton>
                             </List>
-                            <Divider sx={{ marginY: 1 }} />
+                            <Divider sx={{marginY: 1}}/>
                             <FilterControls
                                 playedFilter={playedFilter}
                                 setPlayedFilter={setPlayedFilter}
@@ -156,19 +159,19 @@ const App: React.FC = () => {
                         >
                             <Routes>
                                 <Route path="/overview" element={
-                                    <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                                    <Box sx={{flexGrow: 1, display: 'flex', flexDirection: 'column'}}>
                                         <Typography variant="h4">Overview</Typography>
                                         <DataTable
                                             data={filteredData}
                                             onDataChange={handleDataChange}
-                                            columnWhitelist={['name', 'rating', 'review_score', 'played', 'hide', 'store']}
+                                            columnWhitelist={columnWhitelist}
                                         />
                                     </Box>
-                                } />
+                                }/>
                                 <Route path="/" element={
-                                    <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                                    <Box sx={{flexGrow: 1, display: 'flex', flexDirection: 'column'}}>
                                         <Typography variant="h4">Top Three Rated Titles</Typography>
-                                        <List sx={{ flexGrow: 1 }}>
+                                        <List sx={{flexGrow: 1}}>
                                             {topThreeGames.map(item => (
                                                 <TopThreeListItem
                                                     key={item.game_hash}
@@ -178,7 +181,7 @@ const App: React.FC = () => {
                                             ))}
                                         </List>
                                     </Box>
-                                } />
+                                }/>
                             </Routes>
                         </Box>
                     </Box>

@@ -9,7 +9,7 @@ export class StoreURL extends React.Component<{ appId: number, store: string }> 
                 target="_blank"
                 rel="noopener noreferrer"
             >
-                <Typography variant="caption" color="primary">{this.props.store}</Typography>
+                <Typography variant="h6" color="primary">{this.props.store.toUpperCase()}</Typography>
             </a>
         </Box>;
     }
