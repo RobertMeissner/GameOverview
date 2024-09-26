@@ -1,7 +1,7 @@
 // src/components/FilterControls.tsx
 
 import React from 'react';
-import { Box, Checkbox, Slider, Typography } from '@mui/material';
+import { Box, Checkbox, Slider, Typography, FormControlLabel } from '@mui/material';
 
 interface FilterControlsProps {
     playedFilter: boolean;
@@ -12,13 +12,21 @@ interface FilterControlsProps {
     setRatingRange: (value: number[]) => void;
     reviewScoreRange: number[];
     setReviewScoreRange: (value: number[]) => void;
+    filterZeroIds: boolean; // New prop
+    setFilterZeroIds: (value: boolean | ((prev: boolean) => boolean)) => void; // New prop function
 }
 
 const FilterControls: React.FC<FilterControlsProps> = ({
-    playedFilter, setPlayedFilter,
-    hideFilter, setHideFilter,
-    ratingRange, setRatingRange,
-    reviewScoreRange, setReviewScoreRange
+    playedFilter,
+    setPlayedFilter,
+    hideFilter,
+    setHideFilter,
+    ratingRange,
+    setRatingRange,
+    reviewScoreRange,
+    setReviewScoreRange,
+    filterZeroIds, // Destructure the new props
+    setFilterZeroIds
 }) => {
     return (
         <Box>
@@ -54,6 +62,12 @@ const FilterControls: React.FC<FilterControlsProps> = ({
                 min={0}
                 max={10}
                 step={0.5}
+            />
+
+            <Typography>Filter by Zero IDs</Typography>
+            <FormControlLabel
+                control={<Checkbox checked={filterZeroIds} onChange={() => setFilterZeroIds((prev: boolean) => !prev)} />}
+                label="Only Zero IDs"
             />
         </Box>
     );

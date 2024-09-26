@@ -30,6 +30,7 @@ const App: React.FC = () => {
     const [hideFilter, setHideFilter] = useState(false);
     const [ratingRange, setRatingRange] = useState<number[]>([0.8, 1]);
     const [reviewScoreRange, setReviewScoreRange] = useState<number[]>([7, 9]);
+    const [filterZeroIds, setFilterZeroIds] = useState(false);
 
     const SIDEBAR_WIDTH = 240;
     const APPBAR_HEIGHT = 64; // Height of AppBar
@@ -84,8 +85,9 @@ const App: React.FC = () => {
         const reviewScoreInRange = item.review_score >= reviewScoreRange[0] && item.review_score <= reviewScoreRange[1];
         const playedCriteria = playedFilter ? !item.played : true;
         const hideCriteria = hideFilter ? !item.hide : true;
+        const zeroIdsCriteria = filterZeroIds ? (item.app_id === 0 && item.corrected_app_id === 0) : true;
 
-        return ratingInRange && reviewScoreInRange && playedCriteria && hideCriteria;
+        return ratingInRange && reviewScoreInRange && playedCriteria && hideCriteria && zeroIdsCriteria;
     });
 
     return (
@@ -131,6 +133,8 @@ const App: React.FC = () => {
                                 setRatingRange={setRatingRange}
                                 reviewScoreRange={reviewScoreRange}
                                 setReviewScoreRange={setReviewScoreRange}
+                                filterZeroIds={filterZeroIds}
+                                setFilterZeroIds={setFilterZeroIds}
                             />
                         </Box>
                         <Box
