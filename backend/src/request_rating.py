@@ -8,6 +8,7 @@ import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
+from settings import drop_demo_in_names
 from src.constants import (
     APP_ID,
     CORRECTED_APP_ID,
@@ -68,8 +69,11 @@ def steam_rating(application_id, df):
 # Update rows where APP_ID == 0 by applying steam_app_id
 def update_app_id_and_name(row: pd.Series, catalog: dict) -> pd.Series:
     print(f"Working {row[game_name]}: {row[APP_ID]}", end="\t")
-    row[APP_ID] = app_id_matched_by_catalog(row[game_name], catalog=catalog)
-    row[found_game_name] = row[game_name]
+    name = row[game_name]
+    if drop_demo_in_names:
+        name = name.replace("DEMO", "").replace("demo", "").replace("Demo", "").strip()
+    row[APP_ID] = app_id_matched_by_catalog(name, catalog=catalog)
+    row[found_game_name] = name
     print(f"Found: {row[APP_ID]}")
     return row
 

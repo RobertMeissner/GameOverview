@@ -70,7 +70,7 @@ async def get_parquet_file(filename: str):
 class UpdateRequest(BaseModel):
     column: str
     index: int
-    value: bool
+    value: bool | int
 
 
 @app.post("/data/{filename}/update")
