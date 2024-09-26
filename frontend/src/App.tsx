@@ -25,6 +25,7 @@ export interface DataItem {
 const App: React.FC = () => {
     const [data, loading, setData] = useData();
     const [topThreeGames, setTopThreeGames] = useState<DataItem[]>([]);
+    const [searchQuery, setSearchQuery] = useState<string>(""); // New state for search query
 
     const [playedFilter, setPlayedFilter] = useState(false);
     const [hideFilter, setHideFilter] = useState(false);
@@ -87,7 +88,11 @@ const App: React.FC = () => {
         const hideCriteria = hideFilter ? !item.hide : true;
         const zeroIdsCriteria = filterZeroIds ? (item.app_id === 0 && item.corrected_app_id === 0) : true;
 
-        return ratingInRange && reviewScoreInRange && playedCriteria && hideCriteria && zeroIdsCriteria;
+        const searchCriteria = searchQuery.length === 0 ? true :
+                               new RegExp(searchQuery.split('').join('.*'), 'i').test(item.name);
+
+
+        return ratingInRange && reviewScoreInRange && playedCriteria && hideCriteria && zeroIdsCriteria && searchCriteria;
     });
 
     return (
@@ -135,6 +140,8 @@ const App: React.FC = () => {
                                 setReviewScoreRange={setReviewScoreRange}
                                 filterZeroIds={filterZeroIds}
                                 setFilterZeroIds={setFilterZeroIds}
+                                searchQuery={searchQuery}
+                                setSearchQuery={setSearchQuery}
                             />
                         </Box>
                         <Box
@@ -154,6 +161,7 @@ const App: React.FC = () => {
                                         <DataTable
                                             data={filteredData}
                                             onDataChange={handleDataChange}
+                                            columnWhitelist={['name', 'rating', 'review_score', 'played', 'hide', 'store']}
                                         />
                                     </Box>
                                 } />

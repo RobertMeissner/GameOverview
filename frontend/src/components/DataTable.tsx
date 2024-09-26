@@ -20,6 +20,7 @@ import {StoreURL} from "./StoreURL";
 interface DataTableProps {
     data: DataItem[];
     onDataChange: (hash: string, columnName: keyof DataItem, value: any) => void;
+    columnWhitelist: (keyof DataItem | 'thumbnail')[]; // New prop for whitelist
 }
 
 interface Column {
@@ -57,7 +58,7 @@ const TableHeader: React.FC<{
     );
 };
 
-const DataTable: React.FC<DataTableProps> = ({data, onDataChange}) => {
+const DataTable: React.FC<DataTableProps> = ({data, onDataChange, columnWhitelist}) => {
     const {thumbnails, fetchThumbnail} = useThumbnailsContext();
     const [order, setOrder] = useState<'asc' | 'desc'>('asc');
     const [orderBy, setOrderBy] = useState<keyof DataItem>('name'); // Default sorting column
@@ -76,7 +77,7 @@ const DataTable: React.FC<DataTableProps> = ({data, onDataChange}) => {
         {id: 'found_game_name', label: 'Found Game Name'},
         {id: 'corrected_app_id', label: 'Corrected App ID'},
         {id: 'store', label: 'Store'},
-    ];
+    ].filter(column => columnWhitelist.includes(column.id));
 
     const handleRequestSort = (property: keyof DataItem) => {
         const isAsc = orderBy === property && order === 'asc';

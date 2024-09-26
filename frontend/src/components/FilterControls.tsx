@@ -1,7 +1,7 @@
 // src/components/FilterControls.tsx
 
 import React from 'react';
-import { Box, Checkbox, Slider, Typography, FormControlLabel } from '@mui/material';
+import { Box, Checkbox, Slider, Typography, TextField, FormControlLabel } from '@mui/material';
 
 interface FilterControlsProps {
     playedFilter: boolean;
@@ -14,6 +14,8 @@ interface FilterControlsProps {
     setReviewScoreRange: (value: number[]) => void;
     filterZeroIds: boolean; // New prop
     setFilterZeroIds: (value: boolean | ((prev: boolean) => boolean)) => void; // New prop function
+    searchQuery: string; // New prop
+    setSearchQuery: (value: string) => void; // New prop function
 }
 
 const FilterControls: React.FC<FilterControlsProps> = ({
@@ -25,8 +27,10 @@ const FilterControls: React.FC<FilterControlsProps> = ({
     setRatingRange,
     reviewScoreRange,
     setReviewScoreRange,
-    filterZeroIds, // Destructure the new props
-    setFilterZeroIds
+    filterZeroIds,
+    setFilterZeroIds,
+    searchQuery,
+    setSearchQuery,
 }) => {
     return (
         <Box>
@@ -62,6 +66,13 @@ const FilterControls: React.FC<FilterControlsProps> = ({
                 min={0}
                 max={10}
                 step={0.5}
+            />
+
+            <Typography>Search by Game Name</Typography>
+            <TextField
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search..."
             />
 
             <Typography>Filter by Zero IDs</Typography>
