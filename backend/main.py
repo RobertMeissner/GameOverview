@@ -16,6 +16,7 @@ from src.constants import (
     found_game_name,
     game_name,
     played_flag,
+    store_name,
 )
 from src.game_ratings import game_ratings
 from starlette.responses import FileResponse
@@ -41,6 +42,7 @@ columns_to_transfer = [
     HASH,
     found_game_name,
     CORRECTED_APP_ID,
+    store_name,
 ]
 
 

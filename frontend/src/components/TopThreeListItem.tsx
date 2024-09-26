@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
-import { ListItemButton, Box, ListItemText, Checkbox, Typography } from '@mui/material';
+import React, {useEffect} from 'react';
+import {Box, Checkbox, ListItemButton, ListItemText, Typography} from '@mui/material';
 import Thumbnail from './Thumbnail';
-import { DataItem } from '../App';
-import { useThumbnailsContext } from '../context/ThumbnailContext';
+import {DataItem} from '../App';
+import {useThumbnailsContext} from '../context/ThumbnailContext';
+import {StoreURL} from "./StoreURL";
 
 interface TopThreeListItemProps {
     item: DataItem;
@@ -17,15 +18,15 @@ const TopThreeListItem: React.FC<TopThreeListItemProps> = ({ item, onToggleFlag 
     }, [item.app_id, fetchThumbnail]);
 
     return (
-        <ListItemButton key={item.game_hash} sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-            <Thumbnail url={thumbnails[item.app_id] || ''} altText={`${item.name} cover`} sizeMultiplier={9} />
+        <ListItemButton key={item.game_hash} sx={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+            <Thumbnail url={thumbnails[item.app_id] || ''} altText={`${item.name} cover`} sizeMultiplier={9}/>
 
-            <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', marginLeft: 2 }}>
+            <Box sx={{flexGrow: 1, display: 'flex', flexDirection: 'column', marginLeft: 2}}>
                 <ListItemText
                     primary={item.name}
                     secondary={`Rating: ${item.rating.toPrecision(2)} / Name: ${item.found_game_name}`}
                 />
-                <Box sx={{ display: 'flex', alignItems: 'center', marginTop: 1 }}>
+                <Box sx={{display: 'flex', alignItems: 'center', marginTop: 1}}>
                     <Checkbox
                         checked={item.played}
                         onChange={() => onToggleFlag(item.game_hash, 'played')}
@@ -40,15 +41,7 @@ const TopThreeListItem: React.FC<TopThreeListItemProps> = ({ item, onToggleFlag 
                     <Typography variant="caption">Hide</Typography>
                 </Box>
             </Box>
-            <Box sx={{ marginLeft: 'auto', alignSelf: 'center' }}>
-                <a
-                    href={`https://store.steampowered.com/app/${item.app_id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    <Typography variant="caption" color="primary">View in Store</Typography>
-                </a>
-            </Box>
+            <StoreURL appId={item.app_id} store={item.store}/>
 
 
         </ListItemButton>

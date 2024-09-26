@@ -1,6 +1,6 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
-import { Box, AppBar, Container, Divider, List, ListItemButton, ListItemText, Toolbar, Typography } from '@mui/material';
+import { Box, AppBar, Divider, List, ListItemButton, ListItemText, Toolbar, Typography } from '@mui/material';
 import axios from 'axios';
 import useData from './hooks/useData';
 import FilterControls from './components/FilterControls';
@@ -18,6 +18,7 @@ export interface DataItem {
     found_game_name: string;
     corrected_app_id: number;
     app_id: number;
+    store: string;
     [key: string]: string | number | boolean;
 }
 

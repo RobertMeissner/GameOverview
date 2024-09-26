@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, {useMemo, useState, useEffect} from 'react';
 import {
     Table,
     TableBody,
@@ -13,8 +13,9 @@ import {
     Box
 } from '@mui/material';
 import Thumbnail from './Thumbnail';
-import { DataItem } from '../App';
-import { useThumbnailsContext } from '../context/ThumbnailContext';
+import {DataItem} from '../App';
+import {useThumbnailsContext} from '../context/ThumbnailContext';
+import {StoreURL} from "./StoreURL";
 
 interface DataTableProps {
     data: DataItem[];
@@ -31,12 +32,13 @@ const TableHeader: React.FC<{
     order: 'asc' | 'desc';
     orderBy: keyof DataItem | 'thumbnail';
     onRequestSort: (property: keyof DataItem) => void;
-}> = ({ columns, order, orderBy, onRequestSort }) => {
+}> = ({columns, order, orderBy, onRequestSort}) => {
     return (
         <TableHead>
             <TableRow>
                 {columns.map((column) => (
-                    <TableCell key={column.id} sx={{ position: 'sticky', top: 0, backgroundColor: 'background.paper', zIndex: 1 }}>
+                    <TableCell key={column.id}
+                               sx={{position: 'sticky', top: 0, backgroundColor: 'background.paper', zIndex: 1}}>
                         {column.id === 'thumbnail' ? (
                             column.label
                         ) : (
@@ -55,24 +57,25 @@ const TableHeader: React.FC<{
     );
 };
 
-const DataTable: React.FC<DataTableProps> = ({ data, onToggleFlag }) => {
-    const { thumbnails, fetchThumbnail } = useThumbnailsContext();
+const DataTable: React.FC<DataTableProps> = ({data, onToggleFlag}) => {
+    const {thumbnails, fetchThumbnail} = useThumbnailsContext();
     const [order, setOrder] = useState<'asc' | 'desc'>('asc');
     const [orderBy, setOrderBy] = useState<keyof DataItem>('name'); // Default sorting column
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
     const columns: Column[] = [
-        { id: 'thumbnail', label: 'Thumbnail' },
-        { id: 'name', label: 'Name' },
-        { id: 'rating', label: 'Rating' },
-        { id: 'played', label: 'Played' },
-        { id: 'hide', label: 'Hide' },
-        { id: 'review_score', label: 'Review Score' },
-        { id: 'app_id', label: 'App ID' },
-        { id: 'game_hash', label: 'Hash' },
-        { id: 'found_game_name', label: 'Found Game Name' },
-        { id: 'corrected_app_id', label: 'Corrected App ID' },
+        {id: 'thumbnail', label: 'Thumbnail'},
+        {id: 'name', label: 'Name'},
+        {id: 'rating', label: 'Rating'},
+        {id: 'played', label: 'Played'},
+        {id: 'hide', label: 'Hide'},
+        {id: 'review_score', label: 'Review Score'},
+        {id: 'app_id', label: 'App ID'},
+        {id: 'game_hash', label: 'Hash'},
+        {id: 'found_game_name', label: 'Found Game Name'},
+        {id: 'corrected_app_id', label: 'Corrected App ID'},
+        {id: 'store', label: 'Store'},
     ];
 
     const handleRequestSort = (property: keyof DataItem) => {
@@ -115,8 +118,8 @@ const DataTable: React.FC<DataTableProps> = ({ data, onToggleFlag }) => {
     }, [paginatedData, fetchThumbnail]);
 
     return (
-        <Paper sx={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', flexGrow: 1 }}>
-            <Box sx={{ position: 'sticky', top: 0, zIndex: 2, backgroundColor: 'background.paper' }}>
+        <Paper sx={{display: 'flex', flexDirection: 'column', overflow: 'hidden', flexGrow: 1}}>
+            <Box sx={{position: 'sticky', top: 0, zIndex: 2, backgroundColor: 'background.paper'}}>
                 <TablePagination
                     rowsPerPageOptions={[5, 10, 25]}
                     component="div"
@@ -127,7 +130,7 @@ const DataTable: React.FC<DataTableProps> = ({ data, onToggleFlag }) => {
                     onRowsPerPageChange={handleChangeRowsPerPage}
                 />
             </Box>
-            <TableContainer sx={{ flexGrow: 1, maxHeight:1000 }}>
+            <TableContainer sx={{flexGrow: 1, maxHeight: 1000}}>
                 <Table stickyHeader>
                     <TableHeader
                         columns={columns}
@@ -151,10 +154,10 @@ const DataTable: React.FC<DataTableProps> = ({ data, onToggleFlag }) => {
                                                 checked={!!row[column.id as keyof DataItem]}
                                                 onChange={() => onToggleFlag(row.game_hash, column.id as 'played' | 'hide')}
                                             />
-                                        ) : (
+                                        ) : column.id === "store" ? (<StoreURL appId={row.app_id} store={row.store}/>):(
                                             row[column.id as keyof DataItem] !== undefined ?
-                                                String(row[column.id as keyof DataItem]) : '-'
-                                        )}
+                                            String(row[column.id as keyof DataItem]) : '-'
+                                            )}
                                     </TableCell>
                                 ))}
                             </TableRow>
