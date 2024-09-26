@@ -53,18 +53,17 @@ const App: React.FC = () => {
         }
     }, [loading, data, updateTopThreeGames]);
 
-    const handleCheckboxChange = useCallback((hash: string, columnName: 'played' | 'hide') => {
+    const handleDataChange = useCallback((hash: string, columnName: keyof DataItem, value: any) => {
         setData(prevData =>
             prevData.map(item => {
                 if (item.game_hash === hash) {
-                    const updatedValue = !item[columnName];
-                    const updatedItem = { ...item, [columnName]: updatedValue };
+                    const updatedItem = { ...item, [columnName]: value };
 
                     // Make an asynchronous call to update the backend
                     axios.post(`http://localhost:8000/data/data.parquet/update`, {
                         column: columnName,
                         index: prevData.findIndex(i => i.game_hash === hash),
-                        value: updatedValue,
+                        value: value,
                     }).catch(error => {
                         console.error("Error updating column value:", error);
                         // If there's an error, revert the change in the state
@@ -150,7 +149,7 @@ const App: React.FC = () => {
                                         <Typography variant="h4">Overview</Typography>
                                         <DataTable
                                             data={filteredData}
-                                            onToggleFlag={handleCheckboxChange}
+                                            onDataChange={handleDataChange}
                                         />
                                     </Box>
                                 } />
@@ -162,7 +161,7 @@ const App: React.FC = () => {
                                                 <TopThreeListItem
                                                     key={item.game_hash}
                                                     item={item}
-                                                    onToggleFlag={handleCheckboxChange}
+                                                    onDataChange={handleDataChange}
                                                 />
                                             ))}
                                         </List>

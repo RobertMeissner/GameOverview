@@ -10,7 +10,7 @@ import {
     Paper,
     TableSortLabel,
     TablePagination,
-    Box
+    Box, TextField
 } from '@mui/material';
 import Thumbnail from './Thumbnail';
 import {DataItem} from '../App';
@@ -19,7 +19,7 @@ import {StoreURL} from "./StoreURL";
 
 interface DataTableProps {
     data: DataItem[];
-    onToggleFlag: (hash: string, columnName: 'played' | 'hide') => void;
+    onDataChange: (hash: string, columnName: keyof DataItem, value: any) => void;
 }
 
 interface Column {
@@ -57,7 +57,7 @@ const TableHeader: React.FC<{
     );
 };
 
-const DataTable: React.FC<DataTableProps> = ({data, onToggleFlag}) => {
+const DataTable: React.FC<DataTableProps> = ({data, onDataChange}) => {
     const {thumbnails, fetchThumbnail} = useThumbnailsContext();
     const [order, setOrder] = useState<'asc' | 'desc'>('asc');
     const [orderBy, setOrderBy] = useState<keyof DataItem>('name'); // Default sorting column
@@ -117,6 +117,10 @@ const DataTable: React.FC<DataTableProps> = ({data, onToggleFlag}) => {
         });
     }, [paginatedData, fetchThumbnail]);
 
+    const handleCorrectedAppIdChange = (hash: string, value: number) => {
+        onDataChange(hash, 'corrected_app_id', value);
+    };
+
     return (
         <Paper sx={{display: 'flex', flexDirection: 'column', overflow: 'hidden', flexGrow: 1}}>
             <Box sx={{position: 'sticky', top: 0, zIndex: 2, backgroundColor: 'background.paper'}}>
@@ -152,12 +156,20 @@ const DataTable: React.FC<DataTableProps> = ({data, onToggleFlag}) => {
                                         ) : column.id === 'played' || column.id === 'hide' ? (
                                             <Checkbox
                                                 checked={!!row[column.id as keyof DataItem]}
-                                                onChange={() => onToggleFlag(row.game_hash, column.id as 'played' | 'hide')}
+                                                onChange={() => onDataChange(row.game_hash, column.id as 'played' | 'hide', !row[column.id as keyof DataItem])}
                                             />
-                                        ) : column.id === "store" ? (<StoreURL appId={row.app_id} store={row.store}/>):(
+                                        ) : column.id === 'corrected_app_id' ? (
+                                            <TextField
+                                                type="number"
+                                                value={row.corrected_app_id}
+                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleCorrectedAppIdChange(row.game_hash, parseInt(e.target.value))}
+                                            />
+                                        ) : column.id === "store" ? (
+                                            <StoreURL appId={row.app_id} store={row.store} />
+                                        ) : (
                                             row[column.id as keyof DataItem] !== undefined ?
                                             String(row[column.id as keyof DataItem]) : '-'
-                                            )}
+                                        )}
                                     </TableCell>
                                 ))}
                             </TableRow>

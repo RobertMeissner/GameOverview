@@ -7,10 +7,10 @@ import {StoreURL} from "./StoreURL";
 
 interface TopThreeListItemProps {
     item: DataItem;
-    onToggleFlag: (hash: string, columnName: 'played' | 'hide') => void;
+    onDataChange: (hash: string, columnName: keyof DataItem, value: any) => void;
 }
 
-const TopThreeListItem: React.FC<TopThreeListItemProps> = ({ item, onToggleFlag }) => {
+const TopThreeListItem: React.FC<TopThreeListItemProps> = ({ item, onDataChange }) => {
     const { thumbnails, fetchThumbnail } = useThumbnailsContext();
 
     useEffect(() => {
@@ -29,13 +29,13 @@ const TopThreeListItem: React.FC<TopThreeListItemProps> = ({ item, onToggleFlag 
                 <Box sx={{display: 'flex', alignItems: 'center', marginTop: 1}}>
                     <Checkbox
                         checked={item.played}
-                        onChange={() => onToggleFlag(item.game_hash, 'played')}
+                        onChange={() => onDataChange(item.game_hash, 'played', !item.played)}
                         color="primary"
                     />
                     <Typography variant="caption">Played</Typography>
                     <Checkbox
                         checked={item.hide}
-                        onChange={() => onToggleFlag(item.game_hash, 'hide')}
+                        onChange={() => onDataChange(item.game_hash, 'hide', !item.hide)}
                         color="primary"
                     />
                     <Typography variant="caption">Hide</Typography>
