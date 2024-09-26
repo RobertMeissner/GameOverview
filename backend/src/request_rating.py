@@ -45,6 +45,7 @@ def request_rating(df: pd.Series) -> pd.Series:
         logging.error("Exception information:", exc_info=True)
         tb = traceback.format_exc()
         logging.error("Full traceback:\n" + tb)
+        raise e
 
     print(f"{df[game_name]}\t{df[APP_ID]}\tdata: {round(df[RATING_FIELD], 3) * 100}")
 
@@ -64,6 +65,8 @@ def steam_rating(application_id, df):
             df[RATING_FIELD] = rating
             for key, value in text["query_summary"].items():
                 df[key] = value
+    else:
+        response.raise_for_status()
 
 
 # Update rows where APP_ID == 0 by applying steam_app_id

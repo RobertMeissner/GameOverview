@@ -2,7 +2,6 @@ import pandas as pd
 from dotenv import load_dotenv
 from src.constants import (
     APP_ID,
-    CORRECTED_APP_ID,
     HASH,
     game_name,
     played_flag,
@@ -46,7 +45,7 @@ def game_ratings():
         total=df.shape[0],
         bar_format="{l_bar}{bar}| {percentage:.0f}% | {elapsed}<{remaining} | {n_fmt}/{total_fmt} games processed",
     ):
-        if row[total_reviews] == -1 or row[CORRECTED_APP_ID] != 0:
+        if row[total_reviews] == -1 or row[APP_ID] == 0:
             df.iloc[index] = request_rating(row)
             df = process_data(df)
             save_data(df)
