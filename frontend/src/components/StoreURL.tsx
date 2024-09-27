@@ -37,7 +37,9 @@ export class StoreURL extends React.Component<StoreURLProps> {
                             GoG
                         </Typography>
                     </Link>
-                )}
+                )}{store === 'epic' ? <Typography variant="h6" color="primary">
+                Epic
+            </Typography> : ''}
             </Box>
         );
     }
