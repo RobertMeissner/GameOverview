@@ -1,6 +1,7 @@
 import os
 
 is_running_in_docker = os.path.exists("/.dockerenv")
+# is_running_tests = os.getenv('PYTEST_ENV', 'production') == "mock"
 
 DATA_FOLDER = "../data"
 if is_running_in_docker:
