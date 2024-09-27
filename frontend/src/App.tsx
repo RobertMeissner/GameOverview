@@ -1,6 +1,6 @@
 import React, {useCallback, useState, useEffect} from 'react';
 import {BrowserRouter as Router, Route, Routes, Link} from 'react-router-dom';
-import {Box, AppBar, Divider, List, ListItemButton, ListItemText, Toolbar, Typography} from '@mui/material';
+import {Box, AppBar, Divider, List, ListItemButton, ListItemText, Toolbar, Typography, styled} from '@mui/material';
 import axios from 'axios';
 import useData from './hooks/useData';
 import FilterControls from './components/FilterControls';
@@ -24,6 +24,14 @@ export interface DataItem {
 
     [key: string]: string | number | boolean;
 }
+
+const TileGrid = styled(Box)`
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); /* Responsive columns */
+    gap: 0.5rem;  /* Gap between grid items */
+    padding: 0.5rem; /* Remove top/bottom padding if there is any */
+    margin: 0; /* Remove top/bottom margins if there is any *
+`;
 
 const App: React.FC = () => {
     const [data, loading, setData] = useData();
@@ -173,7 +181,7 @@ const App: React.FC = () => {
                                 <Route path="/" element={
                                     <Box sx={{flexGrow: 1, display: 'flex', flexDirection: 'column'}}>
                                         <Typography variant="h4">Top Three Rated Titles</Typography>
-                                        <List sx={{flexGrow: 1}}>
+                                        <TileGrid sx={{flexGrow: 1}}>
                                             {topThreeGames.map(item => (
                                                 <TopThreeListItem
                                                     key={item.game_hash}
@@ -181,7 +189,7 @@ const App: React.FC = () => {
                                                     onDataChange={handleDataChange}
                                                 />
                                             ))}
-                                        </List>
+                                        </TileGrid>
                                     </Box>
                                 }/>
                             </Routes>
