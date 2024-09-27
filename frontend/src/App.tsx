@@ -27,16 +27,16 @@ export interface DataItem {
 
 const TileGrid = styled(Box)`
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); /* Responsive columns */
-    gap: 0.5rem;  /* Gap between grid items */
-    padding: 0.5rem; /* Remove top/bottom padding if there is any */
-    margin: 0; /* Remove top/bottom margins if there is any *
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); 
+    gap: 0.5rem;
+    padding: 0.5rem;
+    margin: 0;
 `;
 
 const App: React.FC = () => {
     const [data, loading, setData] = useData();
     const [topThreeGames, setTopThreeGames] = useState<DataItem[]>([]);
-    const [searchQuery, setSearchQuery] = useState<string>(""); // New state for search query
+    const [searchQuery, setSearchQuery] = useState<string>("");
 
     const [playedFilter, setPlayedFilter] = useState(false);
     const [hideFilter, setHideFilter] = useState(false);
@@ -187,6 +187,7 @@ const App: React.FC = () => {
                                                     key={item.game_hash}
                                                     item={item}
                                                     onDataChange={handleDataChange}
+                                                    showTitle={false}
                                                 />
                                             ))}
                                         </TileGrid>
