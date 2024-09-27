@@ -41,7 +41,7 @@ const TopThreeListItem: React.FC<TopThreeListItemProps> = ({ item, onDataChange 
                     <Typography variant="caption">Hide</Typography>
                 </Box>
             </Box>
-            <StoreURL appId={item.app_id} store={item.store}/>
+            <StoreURL appId={item.app_id} store={item.store} gogAppUrl={item.storeLink}/>
 
 
         </ListItemButton>

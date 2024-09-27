@@ -67,6 +67,7 @@ EXPECTED_DF_COLUMNS = {
     "reviewsRating": pd.Int64Dtype(),
     "coverVertical": pd.StringDtype(),
     "coverHorizontal": pd.StringDtype(),
+    "storeLink": pd.StringDtype(),
 }
 
 
@@ -119,6 +120,7 @@ def process_data(df: pd.DataFrame) -> pd.DataFrame:
         "title",
         "coverVertical",
         "coverHorizontal",
+        "storeLink",
     ]
     df[columns_to_fill_with_empty] = df[columns_to_fill_with_empty].fillna("")
 

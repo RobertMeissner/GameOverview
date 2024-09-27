@@ -19,6 +19,8 @@ export interface DataItem {
     corrected_app_id: number;
     app_id: number;
     store: string;
+    reviewsRating: number;
+    storeLink: string;
 
     [key: string]: string | number | boolean;
 }
@@ -37,7 +39,7 @@ const App: React.FC = () => {
     const SIDEBAR_WIDTH = 240;
     const APPBAR_HEIGHT = 64; // Height of AppBar
 
-    const columnWhitelist = ["thumbnail", 'name', 'rating', 'review_score', 'played', 'hide', 'store', "app_id", "corrected_app_id"]
+    const columnWhitelist = ["thumbnail", 'name', 'rating', 'review_score', 'played', 'hide', 'store', "app_id", "corrected_app_id", "reviewsRating"]
 
     const updateTopThreeGames = useCallback(() => {
         const topThree = data

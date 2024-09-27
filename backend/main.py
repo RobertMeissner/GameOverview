@@ -43,6 +43,8 @@ columns_to_transfer = [
     found_game_name,
     CORRECTED_APP_ID,
     store_name,
+    "reviewsRating",
+    "storeLink",
 ]
 
 

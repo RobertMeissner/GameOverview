@@ -77,6 +77,7 @@ const DataTable: React.FC<DataTableProps> = ({data, onDataChange, columnWhitelis
         {id: 'found_game_name', label: 'Found Game Name'},
         {id: 'corrected_app_id', label: 'Corrected App ID'},
         {id: 'store', label: 'Store'},
+        {id: 'reviewsRating', label: 'Rating GoG'},
     ].filter(column => columnWhitelist.includes(column.id));
 
     const handleRequestSort = (property: keyof DataItem) => {
@@ -166,13 +167,13 @@ const DataTable: React.FC<DataTableProps> = ({data, onDataChange, columnWhitelis
                                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleCorrectedAppIdChange(row.game_hash, parseInt(e.target.value))}
                                             />
                                         ) : column.id === "store" ? (
-                                            <StoreURL appId={row.app_id} store={row.store}/>
+                                            <StoreURL appId={row.app_id} store={row.store} gogAppUrl={row.storeLink}/>
                                         ) : column.id === 'rating' ? (
                                             <Typography
                                                 component="span"
-                                                sx={{fontWeight: 'bold', color: 'green'}}
+                                                sx={{ fontWeight: 'bold', color: 'green' }}
                                             >
-                                                {(row.rating * 100).toFixed(1)}%
+                                                {(row.rating * 100).toFixed(1)}% / {(row.reviewsRating / 10).toFixed(1)}
                                             </Typography>
                                         ) : (
                                             row[column.id as keyof DataItem] !== undefined ?

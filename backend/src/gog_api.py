@@ -167,6 +167,7 @@ def parse_gog_response(data: dict) -> dict:
             "reviewsRating": int(product.get("reviewsRating", 0)),
             "coverVertical": product.get("coverVertical", ""),
             "coverHorizontal": product.get("coverHorizontal", ""),
+            "storeLink": product.get("storeLink", ""),
         }
 
     return result
@@ -217,7 +218,6 @@ if __name__ == "__main__":
         gog_games()
 
     if do_tests:
-        # Example usage
         input_file_path = DATA_FILEPATH
         output_file_path = input_file_path
         column_to_update = "gog_id"
