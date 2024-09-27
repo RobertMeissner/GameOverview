@@ -46,5 +46,48 @@ def thumbnails():
     download_thumbnails(app_ids_list)
 
 
+# import os
+#
+# import pandas as pd
+# import requests
+#
+#
+# def download_gog_thumbnails(parquet_filepath: str, output_folder: str = "thumbnails"):
+#     # Create the output folder if it doesn't exist
+#     os.makedirs(output_folder, exist_ok=True)
+#
+#     # Read the parquet file
+#     df = pd.read_parquet(parquet_filepath)
+#
+#     # Iterate through each row in the DataFrame
+#     for index, row in df.iterrows():
+#         gog_id = row["gog_id"]
+#         cover_horizontal = row["coverHorizontal"]
+#         cover_vertical = row["coverVertical"]
+#
+#         # Download and save the horizontal cover image
+#         if cover_horizontal:
+#             hor_filename = os.path.join(output_folder, f"{gog_id}_hor.png")
+#             download_image(cover_horizontal, hor_filename)
+#
+#         # Download and save the vertical cover image
+#         if cover_vertical:
+#             ver_filename = os.path.join(output_folder, f"{gog_id}_ver.jpg")
+#             download_image(cover_vertical, ver_filename)
+#
+#
+# def download_image(url: str, file_path: str):
+#     response = requests.get(url, stream=True)
+#     if response.status_code == 200:
+#         with open(file_path, "wb") as out_file:
+#             for chunk in response.iter_content(chunk_size=8192):
+#                 out_file.write(chunk)
+#     else:
+#         print(f"Failed to download {url}")
+#
+#
+# # Example usage
+# download_gog_thumbnails("path_to_your_parquet_file.parquet")
+
 if __name__ == "__main__":
     thumbnails()
