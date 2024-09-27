@@ -17,6 +17,7 @@ from src.constants import (
     found_game_name,
     game_name,
 )
+from utils import without_demo_in_name
 
 load_dotenv()
 
@@ -74,7 +75,7 @@ def update_app_id_and_name(row: pd.Series, catalog: dict) -> pd.Series:
     print(f"Working {row[game_name]}: {row[APP_ID]}", end="\t")
     name = row[game_name]
     if drop_demo_in_names:
-        name = name.replace("DEMO", "").replace("demo", "").replace("Demo", "").strip()
+        name = without_demo_in_name(name)
     row[APP_ID] = app_id_matched_by_catalog(name, catalog=catalog)
     row[found_game_name] = name
     print(f"Found: {row[APP_ID]}")

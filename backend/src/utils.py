@@ -148,3 +148,7 @@ if __name__ == "__main__":
     df = load_data()
     df = game_hash(df)
     save_data(df)
+
+
+def without_demo_in_name(name: str) -> str:
+    return name.replace("DEMO", "").replace("demo", "").replace("Demo", "").strip()

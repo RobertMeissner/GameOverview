@@ -19,6 +19,7 @@ from src.utils import (
     load_data,
     process_data,
     save_data,
+    without_demo_in_name,
 )
 from tqdm import tqdm
 
@@ -50,7 +51,7 @@ def game_ratings():
             df.iloc[index] = request_rating(row)
 
         if row["gog_id"] == 0:
-            gog_response = gog_data(row[game_name])
+            gog_response = gog_data(without_demo_in_name(row[game_name]))
             for column, value in gog_response.items():
                 df.at[index, column] = value
 
