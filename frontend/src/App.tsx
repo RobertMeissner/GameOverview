@@ -21,13 +21,14 @@ export interface DataItem {
     store: string;
     reviewsRating: number;
     storeLink: string;
+    later: boolean;
 
     [key: string]: string | number | boolean;
 }
 
 const TileGrid = styled(Box)`
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); 
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
     gap: 0.5rem;
     padding: 0.5rem;
     margin: 0;
@@ -43,15 +44,16 @@ const App: React.FC = () => {
     const [ratingRange, setRatingRange] = useState<number[]>([0.8, 1]);
     const [reviewScoreRange, setReviewScoreRange] = useState<number[]>([7, 9]);
     const [filterZeroIds, setFilterZeroIds] = useState(false);
+    const [laterFilter, setLaterFilter] = useState(false);
 
     const SIDEBAR_WIDTH = 240;
     const APPBAR_HEIGHT = 64; // Height of AppBar
 
-    const columnWhitelist = ["thumbnail", 'name', 'rating', 'review_score', 'played', 'hide', 'store', "app_id", "corrected_app_id", "reviewsRating"]
+    const columnWhitelist = ["thumbnail", 'name', 'rating', 'review_score', 'played', 'hide', 'store', "app_id", "corrected_app_id", "reviewsRating", "later"]
 
     const updateTopThreeGames = useCallback(() => {
         const topThree = data
-            .filter(item => !item.hide && !item.played)
+            .filter(item => !item.hide && !item.played && !item.later)
             .sort((a, b) => {
                 if (b.review_score !== a.review_score) {
                     return b.review_score - a.review_score;
@@ -99,13 +101,14 @@ const App: React.FC = () => {
         const reviewScoreInRange = item.review_score >= reviewScoreRange[0] && item.review_score <= reviewScoreRange[1];
         const playedCriteria = playedFilter ? !item.played : true;
         const hideCriteria = hideFilter ? !item.hide : true;
+        const laterCriteria = laterFilter ? !item.later : true;
         const zeroIdsCriteria = filterZeroIds ? (item.app_id === 0 && item.corrected_app_id === 0) : true;
 
         const searchCriteria = searchQuery.length === 0 ? true :
             new RegExp(searchQuery.split('').join('.*'), 'i').test(item.name);
 
 
-        return ratingInRange && reviewScoreInRange && playedCriteria && hideCriteria && zeroIdsCriteria && searchCriteria;
+        return ratingInRange && reviewScoreInRange && playedCriteria && hideCriteria && laterCriteria && zeroIdsCriteria && searchCriteria;
     });
 
     return (
@@ -155,6 +158,8 @@ const App: React.FC = () => {
                                 setFilterZeroIds={setFilterZeroIds}
                                 searchQuery={searchQuery}
                                 setSearchQuery={setSearchQuery}
+                                laterFilter={laterFilter}
+                                setLaterFilter={setLaterFilter}
                             />
                         </Box>
                         <Box

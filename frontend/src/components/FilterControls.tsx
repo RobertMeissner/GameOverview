@@ -1,7 +1,7 @@
 // src/components/FilterControls.tsx
 
 import React from 'react';
-import { Box, Checkbox, Slider, Typography, TextField, FormControlLabel } from '@mui/material';
+import {Box, Checkbox, Slider, Typography, TextField, FormControlLabel} from '@mui/material';
 
 interface FilterControlsProps {
     playedFilter: boolean;
@@ -16,38 +16,51 @@ interface FilterControlsProps {
     setFilterZeroIds: (value: boolean | ((prev: boolean) => boolean)) => void; // New prop function
     searchQuery: string; // New prop
     setSearchQuery: (value: string) => void; // New prop function
+    laterFilter: boolean; // New prop
+    setLaterFilter: (value: boolean | ((prev: boolean) => boolean)) => void;
 }
 
 const FilterControls: React.FC<FilterControlsProps> = ({
-    playedFilter,
-    setPlayedFilter,
-    hideFilter,
-    setHideFilter,
-    ratingRange,
-    setRatingRange,
-    reviewScoreRange,
-    setReviewScoreRange,
-    filterZeroIds,
-    setFilterZeroIds,
-    searchQuery,
-    setSearchQuery,
-}) => {
+                                                           playedFilter,
+                                                           setPlayedFilter,
+                                                           hideFilter,
+                                                           setHideFilter,
+                                                           ratingRange,
+                                                           setRatingRange,
+                                                           reviewScoreRange,
+                                                           setReviewScoreRange,
+                                                           filterZeroIds,
+                                                           setFilterZeroIds,
+                                                           searchQuery,
+                                                           setSearchQuery,
+                                                           laterFilter,
+                                                           setLaterFilter
+                                                       }) => {
     return (
         <Box>
             <Typography variant="h6">Filters</Typography>
 
-            <Typography>Filter by Played (Show only not played games)</Typography>
-            <Checkbox
-                checked={playedFilter}
-                onChange={() => setPlayedFilter((prev: boolean) => !prev)}
+            <FormControlLabel
+                control={<Checkbox
+                    checked={playedFilter}
+                    onChange={() => setPlayedFilter((prev: boolean) => !prev)}
+                />}
+                label="Only not played"
             />
-
-            <Typography>Filter by Hide</Typography>
-            <Checkbox
-                checked={hideFilter}
-                onChange={() => setHideFilter((prev: boolean) => !prev)}
+            <FormControlLabel
+                control={<Checkbox
+                    checked={hideFilter}
+                    onChange={() => setHideFilter((prev: boolean) => !prev)}
+                />}
+                label="Hide"
             />
-
+            <FormControlLabel
+                control={<Checkbox
+                    checked={laterFilter}
+                    onChange={() => setLaterFilter((prev: boolean) => !prev)}
+                />}
+                label="Later"
+            />
             <Typography>Filter by Rating</Typography>
             <Slider
                 value={ratingRange}
@@ -75,9 +88,10 @@ const FilterControls: React.FC<FilterControlsProps> = ({
                 placeholder="Search..."
             />
 
-            <Typography>Filter by Zero IDs</Typography>
+            <Typography>Only IDs == 0</Typography>
             <FormControlLabel
-                control={<Checkbox checked={filterZeroIds} onChange={() => setFilterZeroIds((prev: boolean) => !prev)} />}
+                control={<Checkbox checked={filterZeroIds}
+                                   onChange={() => setFilterZeroIds((prev: boolean) => !prev)}/>}
                 label="Only Zero IDs"
             />
         </Box>

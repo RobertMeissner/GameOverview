@@ -71,6 +71,13 @@ expected_structure = {
     "has_leaderboards": pd.StringDtype(),
     "content_descriptorids": pd.StringDtype(),
     "playtime_2weeks": pd.Int64Dtype(),
+    "gog_id": pd.Int64Dtype(),
+    "title": pd.StringDtype(),
+    "reviewsRating": pd.Int64Dtype(),
+    "coverVertical": pd.StringDtype(),
+    "coverHorizontal": pd.StringDtype(),
+    "storeLink": pd.StringDtype(),
+    "later": pd.BooleanDtype(),
 }
 
 
@@ -150,14 +157,14 @@ class TestConcatIfNew(unittest.TestCase):
     def test_games_from_stores(self):
         df = coerce_dataframe_types(games_from_stores(init_df()))
         assert_dataframe_structure(df, expected_structure)
-        assert df.shape == (951, 45)
+        assert df.shape == (959, 52)
         assert df.duplicated().sum() == 1
         assert df["name"].duplicated().sum() == 1
 
     def test_games_from_accounts(self):
         df = games_from_accounts(init_df())
         assert_dataframe_structure(df, expected_structure)
-        assert df.shape == (1176, 45)
+        assert df.shape == (1187, 52)
         assert df.duplicated().sum() == 0
         assert df["name"].duplicated().sum() == 0
 

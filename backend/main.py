@@ -1,6 +1,7 @@
 import os
 
 import pyarrow.parquet as pq
+from constants import LATER_FIELD
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -45,6 +46,7 @@ columns_to_transfer = [
     store_name,
     "reviewsRating",
     "storeLink",
+    LATER_FIELD,
 ]
 
 

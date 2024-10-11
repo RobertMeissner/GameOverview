@@ -82,6 +82,7 @@ const DataTable: React.FC<DataTableProps> = ({data, onDataChange, columnWhitelis
         {id: 'corrected_app_id', label: 'Corrected App ID'},
         {id: 'store', label: 'Store'},
         {id: 'reviewsRating', label: 'Rating GoG'},
+        {id: 'later', label: 'Later'},
     ].filter(column => columnWhitelist.includes(column.id));
 
     const handleRequestSort = (property: keyof DataItem) => {
@@ -166,10 +167,10 @@ const DataTable: React.FC<DataTableProps> = ({data, onDataChange, columnWhitelis
                                                     altText={`${row.name} cover`}
                                                     sizeMultiplier={4}
                                                 />
-                                            ) : column.id === 'played' || column.id === 'hide' ? (
+                                            ) : column.id === 'played' || column.id === 'hide' || column.id === 'later' ? (
                                                 <Checkbox
                                                     checked={!!row[column.id as keyof DataItem]}
-                                                    onChange={() => onDataChange(row.game_hash, column.id as 'played' | 'hide', !row[column.id as keyof DataItem])}
+                                                    onChange={() => onDataChange(row.game_hash, column.id as 'played' | 'hide' | 'later', !row[column.id as keyof DataItem])}
                                                 />
                                             ) : column.id === 'corrected_app_id' ? (
                                                 <TextField

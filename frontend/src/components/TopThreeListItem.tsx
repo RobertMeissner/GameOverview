@@ -4,7 +4,7 @@ import Thumbnail from './Thumbnail';
 import { DataItem } from '../App';
 import { useThumbnailsContext } from '../context/ThumbnailContext';
 import { StoreURL } from "./StoreURL";
-import { PlayArrow, VisibilityOff, Link as LinkIcon } from "@mui/icons-material"; // Import LinkIcon
+import {PlayArrow, VisibilityOff, Link as LinkIcon, Schedule} from "@mui/icons-material"; // Import LinkIcon
 import { RatingComponent } from "./RatingComponent";
 
 interface TopThreeListItemProps {
@@ -40,6 +40,11 @@ const TopThreeListItem: React.FC<TopThreeListItemProps> = ({item, onDataChange, 
     const handleHideToggle = (event: React.MouseEvent) => {
         event.stopPropagation();
         onDataChange(item.game_hash, 'hide', !item.hide);
+    };
+
+    const handleLaterToggle = (event: React.MouseEvent) => {
+        event.stopPropagation();
+        onDataChange(item.game_hash, 'later', !item.later); // Handle "later" toggle
     };
 
     return (
@@ -97,31 +102,54 @@ const TopThreeListItem: React.FC<TopThreeListItemProps> = ({item, onDataChange, 
                             <RatingComponent row={item} makeWhite={true} />
                         }
                     />
-                    <Box sx={{ display: 'flex', alignItems: 'center', marginTop: 0.25 }}>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            marginTop: 0.25,
+                            marginRight: 5.25,
+                            backgroundColor: 'rgba(255,255,255,0.7)',
+                            borderRadius: "4px",
+                            padding: "0.1rem",
+                            width: "100%",
+                            justifyContent: "space-around"
+                        }}
+                    >
                         <IconButton
-                            sx={{ color: item.played ? 'primary.main' : 'white',textShadow: '1px 1px 2px rgba(0, 0, 0, 0.7)' }} // 200% scale
+                            sx={{ color: item.played ? 'primary.main' : 'black'}}
                             onClick={handlePlayedToggle}
                         >
-                            <PlayArrow sx={{fontSize: "2rem",textShadow: '1px 1px 2px rgba(0, 0, 0, 0.7)'}}/>
+                            <PlayArrow sx={{fontSize: "1.5rem"}} />
                         </IconButton>
-                        <Typography variant="caption" sx={{ marginLeft: 0.5, color: 'white',textShadow: '1px 1px 2px rgba(0, 0, 0, 0.7)' }}>Played</Typography>
+                        <Typography variant="caption" sx={{ marginLeft: 0.5, color: 'black', fontSize: '0.75rem' }}>
+                            Played
+                        </Typography>
                         <IconButton
-                            sx={{ color: item.hide ? 'primary.main' : 'white'}} // 200% scale
+                            sx={{ color: item.hide ? 'primary.main' : 'black'}}
                             onClick={handleHideToggle}
                         >
-                            <VisibilityOff sx={{fontSize: "2rem",textShadow: '1px 1px 2px rgba(0, 0, 0, 0.7)'}} />
+                            <VisibilityOff sx={{fontSize: "1.5rem"}} />
                         </IconButton>
-                        <Typography variant="caption" sx={{ marginLeft: 0.5, color: 'white' ,textShadow: '1px 1px 2px rgba(0, 0, 0, 0.7)'}}>Hide</Typography>
-
-                        {/* Link Icon for explicit navigation */}
+                        <Typography variant="caption" sx={{ marginLeft: 0.5, color: 'black', fontSize: '0.75rem' }}>
+                            Hide
+                        </Typography>
+                        <IconButton
+                            sx={{ color: item.later ? 'primary.main' : 'black'}}
+                            onClick={handleLaterToggle}
+                        >
+                            <Schedule sx={{ fontSize: "1.5rem" }} />
+                        </IconButton>
+                        <Typography variant="caption" sx={{ marginLeft: 0.5, color: 'black', fontSize: '0.75rem' }}>
+                            Later
+                        </Typography>
                         <IconButton
                             component="a"
                             href={item.storeLink ? item.storeLink : item.app_id ? `https://store.steampowered.com/app/${item.app_id}` : ""}
                             target="_blank"
                             rel="noopener noreferrer"
-                            sx={{ marginLeft: 1,textShadow: '1px 1px 2px rgba(0, 0, 0, 0.7)' }} // 200% scale for link icon
+                            sx={{ marginLeft: 1 }}
                         >
-                            <LinkIcon sx={{ color: 'white', fontSize: "2rem",textShadow: '1px 1px 2px rgba(0, 0, 0, 0.7)'  }} />
+                            <LinkIcon sx={{ color: 'black', fontSize: "1.5rem" }} />
                         </IconButton>
                     </Box>
                 </Box>
