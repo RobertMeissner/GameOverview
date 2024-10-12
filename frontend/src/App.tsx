@@ -49,7 +49,7 @@ const App: React.FC = () => {
     const SIDEBAR_WIDTH = 240;
     const APPBAR_HEIGHT = 64; // Height of AppBar
 
-    const columnWhitelist = ["thumbnail", 'name', 'rating', 'review_score', 'played', 'hide', 'store', "app_id", "corrected_app_id", "reviewsRating", "later"]
+    const columnWhitelist = ["thumbnail", 'name', 'rating', 'review_score', 'played', 'hide', 'store', "app_id", "corrected_app_id", "found_game_name","reviewsRating", "later"]
 
     const updateTopThreeGames = useCallback(() => {
         const topThree = data

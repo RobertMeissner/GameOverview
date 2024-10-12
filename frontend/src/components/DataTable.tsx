@@ -1,8 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {
     Box,
     Button,
-    Checkbox,
+    IconButton,
     Paper,
     Table,
     TableBody,
@@ -13,13 +13,19 @@ import {
     TableRow,
     TableSortLabel,
     TextField,
+    Typography,
 } from '@mui/material';
+import {
+    PlayArrow,
+    VisibilityOff,
+    Schedule
+} from '@mui/icons-material'; // Import the necessary icons
 import Thumbnail from './Thumbnail';
-import { DataItem } from '../App';
-import { useThumbnailsContext } from '../context/ThumbnailContext';
-import { StoreURL } from "./StoreURL";
+import {DataItem} from '../App';
+import {useThumbnailsContext} from '../context/ThumbnailContext';
+import {StoreURL} from "./StoreURL";
 import TopThreeListItem from './TopThreeListItem';
-import { RatingComponent } from "./RatingComponent";
+import {RatingComponent} from "./RatingComponent";
 
 interface DataTableProps {
     data: DataItem[];
@@ -37,11 +43,12 @@ const TableHeader: React.FC<{
     order: 'asc' | 'desc';
     orderBy: keyof DataItem | 'thumbnail' | 'status';
     onRequestSort: (property: keyof DataItem) => void;
-}> = ({ columns, order, orderBy, onRequestSort }) => (
+}> = ({columns, order, orderBy, onRequestSort}) => (
     <TableHead>
         <TableRow>
             {columns.map((column) => (
-                <TableCell key={column.id} sx={{ position: 'sticky', top: 0, backgroundColor: 'background.paper', zIndex: 1 }}>
+                <TableCell key={column.id}
+                           sx={{position: 'sticky', top: 0, backgroundColor: 'background.paper', zIndex: 1}}>
                     {column.id === 'thumbnail' || column.id === 'status' ? (
                         column.label
                     ) : (
@@ -59,8 +66,8 @@ const TableHeader: React.FC<{
     </TableHead>
 );
 
-const DataTable: React.FC<DataTableProps> = ({ data, onDataChange, columnWhitelist }) => {
-    const { thumbnails, fetchThumbnail } = useThumbnailsContext();
+const DataTable: React.FC<DataTableProps> = ({data, onDataChange, columnWhitelist}) => {
+    const {thumbnails, fetchThumbnail} = useThumbnailsContext();
     const [order, setOrder] = useState<'asc' | 'desc'>('asc');
     const [orderBy, setOrderBy] = useState<keyof DataItem>('name'); // Default sorting column
     const [page, setPage] = useState(0);
@@ -69,19 +76,18 @@ const DataTable: React.FC<DataTableProps> = ({ data, onDataChange, columnWhiteli
 
     const tilesPerPage = 24
     const columns: Column[] = [
-        { id: 'thumbnail', label: 'Thumbnail' },
-        { id: 'status', label: 'Status' }, // Custom column for checkboxes
+        {id: 'thumbnail', label: 'Thumbnail'},
+        {id: 'status', label: 'Status'}, // Custom column for checkboxes
         ...[
-            { id: 'name', label: 'Name' },
+            { id: 'name_found', label: 'Name' }, // Combined column
             { id: 'rating', label: 'Rating' },
             { id: 'review_score', label: 'Review Score' },
             { id: 'app_id', label: 'App ID' },
             { id: 'game_hash', label: 'Hash' },
-            { id: 'found_game_name', label: 'Found Game Name' },
             { id: 'corrected_app_id', label: 'Corrected App ID' },
             { id: 'store', label: 'Store' },
             { id: 'reviewsRating', label: 'Rating GoG' },
-        ].filter(column => columnWhitelist.includes(column.id as keyof DataItem)),
+        ].filter(column => columnWhitelist.includes(column.id as keyof DataItem) || column.id === 'name_found'),
     ];
 
     const handleRequestSort = (property: keyof DataItem) => {
@@ -127,9 +133,13 @@ const DataTable: React.FC<DataTableProps> = ({ data, onDataChange, columnWhiteli
         onDataChange(hash, 'corrected_app_id', value);
     };
 
+    const handleToggleStatus = (hash: string, columnName: 'played' | 'hide' | 'later', value: boolean) => {
+        onDataChange(hash, columnName, value);
+    };
+
     return (
-        <Paper sx={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', flexGrow: 1 }}>
-            <Box sx={{ position: 'sticky', top: 0, zIndex: 2, backgroundColor: 'background.paper', padding: 1 }}>
+        <Paper sx={{display: 'flex', flexDirection: 'column', overflow: 'hidden', flexGrow: 1}}>
+            <Box sx={{position: 'sticky', top: 0, zIndex: 2, backgroundColor: 'background.paper', padding: 1}}>
                 <Button variant="outlined" onClick={() => {
                     setViewMode(viewMode === 'table' ? 'tiles' : 'table');
                     setRowsPerPage(tilesPerPage);
@@ -146,7 +156,7 @@ const DataTable: React.FC<DataTableProps> = ({ data, onDataChange, columnWhiteli
                     onRowsPerPageChange={handleChangeRowsPerPage}
                 />
             </Box>
-            <TableContainer sx={{ flexGrow: 1, maxHeight: 1000 }}>
+            <TableContainer sx={{flexGrow: 1, maxHeight: 1000}}>
                 {viewMode === 'table' ? (
                     <Table stickyHeader>
                         <TableHeader
@@ -169,7 +179,7 @@ const DataTable: React.FC<DataTableProps> = ({ data, onDataChange, columnWhiteli
                                                     />
                                                 </TableCell>
                                             );
-                                        } else if (column.id === 'status') {
+                                        } else if (column.id === 'status') { // Status column contains icon buttons
                                             return (
                                                 <TableCell key={column.id}>
                                                     <Box
@@ -177,20 +187,93 @@ const DataTable: React.FC<DataTableProps> = ({ data, onDataChange, columnWhiteli
                                                             display: 'flex',
                                                             flexDirection: 'column',
                                                             alignItems: 'center',
+                                                            marginTop: 0.25,
+                                                            marginRight: 0.25,
+                                                            backgroundColor: 'rgba(255,255,255,0.7)',
+                                                            borderRadius: "4px",
+                                                            padding: "0.1rem",
+                                                            width: "100%",
+                                                            justifyContent: "center"
                                                         }}
                                                     >
-                                                        {['played', 'hide', 'later'].map((id) => (
-                                                            <Checkbox
-                                                                key={id}
-                                                                checked={!!row[id as keyof DataItem]}
-                                                                onChange={() => onDataChange(row.game_hash, id as 'played' | 'hide' | 'later', !row[id as keyof DataItem])}
-                                                            />
-                                                        ))}
+                                                        <Box sx={{display: 'flex', alignItems: 'center'}}>
+                                                            <IconButton
+                                                                sx={{
+                                                                    color: row.played ? 'primary.main' : 'black',
+                                                                    padding: 0
+                                                                }}
+                                                                onClick={() => handleToggleStatus(row.game_hash, 'played', !row.played)}
+                                                            >
+                                                                <PlayArrow sx={{fontSize: "1.5rem"}}/>
+                                                            </IconButton>
+                                                            <Typography variant="caption" sx={{
+                                                                marginLeft: 0.25,
+                                                                color: 'black',
+                                                                fontSize: '0.75rem'
+                                                            }}>
+                                                                Played
+                                                            </Typography>
+                                                        </Box>
+                                                        <Box sx={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            marginTop: 0.5
+                                                        }}>
+                                                            <IconButton
+                                                                sx={{
+                                                                    color: row.hide ? 'primary.main' : 'black',
+                                                                    padding: 0
+                                                                }}
+                                                                onClick={() => handleToggleStatus(row.game_hash, 'hide', !row.hide)}
+                                                            >
+                                                                <VisibilityOff sx={{fontSize: "1.5rem"}}/>
+                                                            </IconButton>
+                                                            <Typography variant="caption" sx={{
+                                                                marginLeft: 0.25,
+                                                                color: 'black',
+                                                                fontSize: '0.75rem'
+                                                            }}>
+                                                                Hide
+                                                            </Typography>
+                                                        </Box>
+                                                        <Box sx={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            marginTop: 0.5
+                                                        }}>
+                                                            <IconButton
+                                                                sx={{
+                                                                    color: row.later ? 'primary.main' : 'black',
+                                                                    padding: 0
+                                                                }}
+                                                                onClick={() => handleToggleStatus(row.game_hash, 'later', !row.later)}
+                                                            >
+                                                                <Schedule sx={{fontSize: "1.5rem"}}/>
+                                                            </IconButton>
+                                                            <Typography variant="caption" sx={{
+                                                                marginLeft: 0.25,
+                                                                color: 'black',
+                                                                fontSize: '0.75rem'
+                                                            }}>
+                                                                Later
+                                                            </Typography>
+                                                        </Box>
                                                     </Box>
                                                 </TableCell>
                                             );
-                                        } else if (column.id === 'played' || column.id === 'hide' || column.id === 'later') {
-                                            return null; // Omit individual checkboxes
+                                        } else if (column.id === 'name_found') { // Combined cell for name and found_game_name
+                                            return (
+                                                <TableCell key={column.id}>
+                                                    <Box>
+                                                        <Typography component="div" variant="body1" sx={{ fontWeight: 'bold' }}>
+                                                            {row.name}
+                                                        </Typography>
+                                                        <Typography component="div" variant="body2" sx={{ color: 'grey.600' }}>
+                                                            {row.found_game_name}
+                                                        </Typography>
+                                                    </Box>
+                                                </TableCell>
+                                            );
                                         } else if (column.id === 'review_score') { // Fix 'played' column to display review_score
                                             return (
                                                 <TableCell key={column.id}>
@@ -207,9 +290,10 @@ const DataTable: React.FC<DataTableProps> = ({ data, onDataChange, columnWhiteli
                                                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleCorrectedAppIdChange(row.game_hash, parseInt(e.target.value))}
                                                         />
                                                     ) : column.id === "store" ? (
-                                                        <StoreURL appId={row.app_id} store={row.store} gogAppUrl={row.storeLink} />
+                                                        <StoreURL appId={row.app_id} store={row.store}
+                                                                  gogAppUrl={row.storeLink}/>
                                                     ) : column.id === 'rating' ? (
-                                                        <RatingComponent row={row} />
+                                                        <RatingComponent row={row}/>
                                                     ) : (
                                                         row[column.id as keyof DataItem] !== undefined ?
                                                             String(row[column.id as keyof DataItem]) : '-'
@@ -223,9 +307,9 @@ const DataTable: React.FC<DataTableProps> = ({ data, onDataChange, columnWhiteli
                         </TableBody>
                     </Table>
                 ) : (
-                    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: 2 }}>
+                    <Box sx={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: 2}}>
                         {paginatedData.map((row) => (
-                            <TopThreeListItem key={row.game_hash} item={row} onDataChange={onDataChange} />
+                            <TopThreeListItem key={row.game_hash} item={row} onDataChange={onDataChange}/>
                         ))}
                     </Box>
                 )}

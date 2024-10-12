@@ -11,7 +11,6 @@ export class StoreURL extends React.Component<StoreURLProps> {
     render() {
         const {appId, gogAppUrl, store} = this.props;
 
-        console.log(gogAppUrl, appId, store);
         return (
             <Box sx={{marginLeft: "auto", alignSelf: "center"}}>
                 {appId !== 0 && (
