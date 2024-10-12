@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
     Box,
     Button,
@@ -15,35 +15,34 @@ import {
     TextField,
 } from '@mui/material';
 import Thumbnail from './Thumbnail';
-import {DataItem} from '../App';
-import {useThumbnailsContext} from '../context/ThumbnailContext';
-import {StoreURL} from "./StoreURL";
+import { DataItem } from '../App';
+import { useThumbnailsContext } from '../context/ThumbnailContext';
+import { StoreURL } from "./StoreURL";
 import TopThreeListItem from './TopThreeListItem';
-import {RatingComponent} from "./RatingComponent"; // Import your tile component here
+import { RatingComponent } from "./RatingComponent";
 
 interface DataTableProps {
     data: DataItem[];
     onDataChange: (hash: string, columnName: keyof DataItem, value: any) => void;
-    columnWhitelist: (keyof DataItem | 'thumbnail')[];
+    columnWhitelist: (keyof DataItem | 'thumbnail' | 'status')[];
 }
 
 interface Column {
-    id: keyof DataItem | 'thumbnail';
+    id: keyof DataItem | 'thumbnail' | 'status';
     label: string;
 }
 
 const TableHeader: React.FC<{
     columns: Column[];
     order: 'asc' | 'desc';
-    orderBy: keyof DataItem | 'thumbnail';
+    orderBy: keyof DataItem | 'thumbnail' | 'status';
     onRequestSort: (property: keyof DataItem) => void;
 }> = ({ columns, order, orderBy, onRequestSort }) => (
     <TableHead>
         <TableRow>
             {columns.map((column) => (
-                <TableCell key={column.id}
-                    sx={{ position: 'sticky', top: 0, backgroundColor: 'background.paper', zIndex: 1 }}>
-                    {column.id === 'thumbnail' ? (
+                <TableCell key={column.id} sx={{ position: 'sticky', top: 0, backgroundColor: 'background.paper', zIndex: 1 }}>
+                    {column.id === 'thumbnail' || column.id === 'status' ? (
                         column.label
                     ) : (
                         <TableSortLabel
@@ -60,8 +59,8 @@ const TableHeader: React.FC<{
     </TableHead>
 );
 
-const DataTable: React.FC<DataTableProps> = ({data, onDataChange, columnWhitelist}) => {
-    const {thumbnails, fetchThumbnail} = useThumbnailsContext();
+const DataTable: React.FC<DataTableProps> = ({ data, onDataChange, columnWhitelist }) => {
+    const { thumbnails, fetchThumbnail } = useThumbnailsContext();
     const [order, setOrder] = useState<'asc' | 'desc'>('asc');
     const [orderBy, setOrderBy] = useState<keyof DataItem>('name'); // Default sorting column
     const [page, setPage] = useState(0);
@@ -70,20 +69,20 @@ const DataTable: React.FC<DataTableProps> = ({data, onDataChange, columnWhitelis
 
     const tilesPerPage = 24
     const columns: Column[] = [
-        {id: 'thumbnail', label: 'Thumbnail'},
-        {id: 'name', label: 'Name'},
-        {id: 'rating', label: 'Rating'},
-        {id: 'played', label: 'Played'},
-        {id: 'hide', label: 'Hide'},
-        {id: 'review_score', label: 'Review Score'},
-        {id: 'app_id', label: 'App ID'},
-        {id: 'game_hash', label: 'Hash'},
-        {id: 'found_game_name', label: 'Found Game Name'},
-        {id: 'corrected_app_id', label: 'Corrected App ID'},
-        {id: 'store', label: 'Store'},
-        {id: 'reviewsRating', label: 'Rating GoG'},
-        {id: 'later', label: 'Later'},
-    ].filter(column => columnWhitelist.includes(column.id));
+        { id: 'thumbnail', label: 'Thumbnail' },
+        { id: 'status', label: 'Status' }, // Custom column for checkboxes
+        ...[
+            { id: 'name', label: 'Name' },
+            { id: 'rating', label: 'Rating' },
+            { id: 'review_score', label: 'Review Score' },
+            { id: 'app_id', label: 'App ID' },
+            { id: 'game_hash', label: 'Hash' },
+            { id: 'found_game_name', label: 'Found Game Name' },
+            { id: 'corrected_app_id', label: 'Corrected App ID' },
+            { id: 'store', label: 'Store' },
+            { id: 'reviewsRating', label: 'Rating GoG' },
+        ].filter(column => columnWhitelist.includes(column.id as keyof DataItem)),
+    ];
 
     const handleRequestSort = (property: keyof DataItem) => {
         const isAsc = orderBy === property && order === 'asc';
@@ -132,8 +131,8 @@ const DataTable: React.FC<DataTableProps> = ({data, onDataChange, columnWhitelis
         <Paper sx={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', flexGrow: 1 }}>
             <Box sx={{ position: 'sticky', top: 0, zIndex: 2, backgroundColor: 'background.paper', padding: 1 }}>
                 <Button variant="outlined" onClick={() => {
-                    setViewMode(viewMode === 'table' ? 'tiles' : 'table')
-                    setRowsPerPage(tilesPerPage)
+                    setViewMode(viewMode === 'table' ? 'tiles' : 'table');
+                    setRowsPerPage(tilesPerPage);
                 }}>
                     Switch to {viewMode === 'table' ? 'Tiles' : 'Table'}
                 </Button>
@@ -159,35 +158,66 @@ const DataTable: React.FC<DataTableProps> = ({data, onDataChange, columnWhitelis
                         <TableBody>
                             {paginatedData.map((row) => (
                                 <TableRow key={row.game_hash}>
-                                    {columns.map((column) => (
-                                        <TableCell key={column.id}>
-                                            {column.id === 'thumbnail' ? (
-                                                <Thumbnail
-                                                    url={thumbnails[row.app_id] || ''}
-                                                    altText={`${row.name} cover`}
-                                                    sizeMultiplier={4}
-                                                />
-                                            ) : column.id === 'played' || column.id === 'hide' || column.id === 'later' ? (
-                                                <Checkbox
-                                                    checked={!!row[column.id as keyof DataItem]}
-                                                    onChange={() => onDataChange(row.game_hash, column.id as 'played' | 'hide' | 'later', !row[column.id as keyof DataItem])}
-                                                />
-                                            ) : column.id === 'corrected_app_id' ? (
-                                                <TextField
-                                                    type="number"
-                                                    value={row.corrected_app_id}
-                                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleCorrectedAppIdChange(row.game_hash, parseInt(e.target.value))}
-                                                />
-                                            ) : column.id === "store" ? (
-                                                <StoreURL appId={row.app_id} store={row.store} gogAppUrl={row.storeLink} />
-                                            ) : column.id === 'rating' ? (
-                                                <RatingComponent row={row}/>
-                                            ) : (
-                                                row[column.id as keyof DataItem] !== undefined ?
-                                                    String(row[column.id as keyof DataItem]) : '-'
-                                            )}
-                                        </TableCell>
-                                    ))}
+                                    {columns.map((column) => {
+                                        if (column.id === 'thumbnail') {
+                                            return (
+                                                <TableCell key={column.id}>
+                                                    <Thumbnail
+                                                        url={thumbnails[row.app_id] || ''}
+                                                        altText={`${row.name} cover`}
+                                                        sizeMultiplier={4}
+                                                    />
+                                                </TableCell>
+                                            );
+                                        } else if (column.id === 'status') {
+                                            return (
+                                                <TableCell key={column.id}>
+                                                    <Box
+                                                        sx={{
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            alignItems: 'center',
+                                                        }}
+                                                    >
+                                                        {['played', 'hide', 'later'].map((id) => (
+                                                            <Checkbox
+                                                                key={id}
+                                                                checked={!!row[id as keyof DataItem]}
+                                                                onChange={() => onDataChange(row.game_hash, id as 'played' | 'hide' | 'later', !row[id as keyof DataItem])}
+                                                            />
+                                                        ))}
+                                                    </Box>
+                                                </TableCell>
+                                            );
+                                        } else if (column.id === 'played' || column.id === 'hide' || column.id === 'later') {
+                                            return null; // Omit individual checkboxes
+                                        } else if (column.id === 'review_score') { // Fix 'played' column to display review_score
+                                            return (
+                                                <TableCell key={column.id}>
+                                                    {row.review_score !== undefined ? String(row.review_score) : '-'}
+                                                </TableCell>
+                                            );
+                                        } else {
+                                            return (
+                                                <TableCell key={column.id}>
+                                                    {column.id === 'corrected_app_id' ? (
+                                                        <TextField
+                                                            type="number"
+                                                            value={row.corrected_app_id}
+                                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleCorrectedAppIdChange(row.game_hash, parseInt(e.target.value))}
+                                                        />
+                                                    ) : column.id === "store" ? (
+                                                        <StoreURL appId={row.app_id} store={row.store} gogAppUrl={row.storeLink} />
+                                                    ) : column.id === 'rating' ? (
+                                                        <RatingComponent row={row} />
+                                                    ) : (
+                                                        row[column.id as keyof DataItem] !== undefined ?
+                                                            String(row[column.id as keyof DataItem]) : '-'
+                                                    )}
+                                                </TableCell>
+                                            );
+                                        }
+                                    })}
                                 </TableRow>
                             ))}
                         </TableBody>
