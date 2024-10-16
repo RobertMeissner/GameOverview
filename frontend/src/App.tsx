@@ -7,6 +7,7 @@ import FilterControls from './components/FilterControls';
 import DataTable from './components/DataTable';
 import TopThreeListItem from './components/TopThreeListItem';
 import {ThumbnailProvider} from './context/ThumbnailContext';
+import AddDataItem from "./components/AddDataItem";
 
 export interface DataItem {
     game_hash: string;
@@ -41,11 +42,11 @@ const App: React.FC = () => {
 
     const [playedFilter, setPlayedFilter] = useState(false);
     const [hideFilter, setHideFilter] = useState(false);
-    const [ratingRange, setRatingRange] = useState<number[]>([0.8, 1]);
-    const [reviewScoreRange, setReviewScoreRange] = useState<number[]>([7, 9]);
+    const [ratingReviewFilter, setRatingReviewFilter] = useState(true); // New filter for ratings and scores
     const [filterZeroIds, setFilterZeroIds] = useState(false);
     const [laterFilter, setLaterFilter] = useState(false);
 
+    const [dialogOpen, setDialogOpen] = useState(false);  // State for managing the dialog
     const SIDEBAR_WIDTH = 240;
     const APPBAR_HEIGHT = 64; // Height of AppBar
 
@@ -69,6 +70,12 @@ const App: React.FC = () => {
             updateTopThreeGames();
         }
     }, [loading, data, updateTopThreeGames]);
+
+
+    const handleDataAdded = () => {
+        // Refresh or refetch the data after a new DataItem is added
+        // e.g., you can call setData or trigger a fetch function
+    };
 
     const handleDataChange = useCallback((hash: string, columnName: keyof DataItem, value: any) => {
         setData(prevData =>
@@ -97,18 +104,16 @@ const App: React.FC = () => {
     }, [setData]);
 
     const filteredData = data.filter(item => {
-        const ratingInRange = item.rating >= ratingRange[0] && item.rating <= ratingRange[1];
-        const reviewScoreInRange = item.review_score >= reviewScoreRange[0] && item.review_score <= reviewScoreRange[1];
+        const ratingReviewCriteria = ratingReviewFilter ? (item.rating > 0.8 && item.review_score >= 8) : true; // New filter logic for ratings & scores
         const playedCriteria = playedFilter ? !item.played : true;
         const hideCriteria = hideFilter ? !item.hide : true;
         const laterCriteria = laterFilter ? !item.later : true;
-        const zeroIdsCriteria = filterZeroIds ? (item.app_id === 0 && item.corrected_app_id === 0) : true;
+        const zeroIdsCriteria = filterZeroIds ? (item.app_id === 0 && item.corrected_app_id === 0 || item.found_game_name ? item.name != item.found_game_name : false) : true;
 
         const searchCriteria = searchQuery.length === 0 ? true :
             new RegExp(searchQuery.split('').join('.*'), 'i').test(item.name);
 
-
-        return ratingInRange && reviewScoreInRange && playedCriteria && hideCriteria && laterCriteria && zeroIdsCriteria && searchCriteria;
+        return ratingReviewCriteria && playedCriteria && hideCriteria && laterCriteria && zeroIdsCriteria && searchCriteria;
     });
 
     return (
@@ -118,7 +123,7 @@ const App: React.FC = () => {
                     <AppBar position="fixed" sx={{zIndex: 'drawer', height: APPBAR_HEIGHT}}>
                         <Toolbar>
                             <Typography variant="h6" noWrap component="div" sx={{flexGrow: 1}}>
-                                My Application
+                                Game Overview
                             </Typography>
                         </Toolbar>
                     </AppBar>
@@ -143,6 +148,9 @@ const App: React.FC = () => {
                                 <ListItemButton component={Link} to="/">
                                     <ListItemText primary="Top Three"/>
                                 </ListItemButton>
+                                <ListItemButton component={Link} to="/addDataItem">
+                                    <ListItemText primary="Add new game"/>
+                                </ListItemButton>
                             </List>
                             <Divider sx={{marginY: 1}}/>
                             <FilterControls
@@ -150,16 +158,14 @@ const App: React.FC = () => {
                                 setPlayedFilter={setPlayedFilter}
                                 hideFilter={hideFilter}
                                 setHideFilter={setHideFilter}
-                                ratingRange={ratingRange}
-                                setRatingRange={setRatingRange}
-                                reviewScoreRange={reviewScoreRange}
-                                setReviewScoreRange={setReviewScoreRange}
                                 filterZeroIds={filterZeroIds}
                                 setFilterZeroIds={setFilterZeroIds}
                                 searchQuery={searchQuery}
                                 setSearchQuery={setSearchQuery}
                                 laterFilter={laterFilter}
                                 setLaterFilter={setLaterFilter}
+                                ratingReviewFilter={ratingReviewFilter}
+                                setRatingReviewFilter={setRatingReviewFilter}
                             />
                         </Box>
                         <Box
@@ -197,7 +203,10 @@ const App: React.FC = () => {
                                             ))}
                                         </TileGrid>
                                     </Box>
-                                }/>
+                                } />
+                                <Route path="/addDataItem" element={
+                                    <AddDataItem onDataAdded={handleDataAdded} />
+                                } />
                             </Routes>
                         </Box>
                     </Box>

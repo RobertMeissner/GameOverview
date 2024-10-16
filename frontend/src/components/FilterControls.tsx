@@ -8,10 +8,8 @@ interface FilterControlsProps {
     setPlayedFilter: (value: boolean | ((prev: boolean) => boolean)) => void;
     hideFilter: boolean;
     setHideFilter: (value: boolean | ((prev: boolean) => boolean)) => void;
-    ratingRange: number[];
-    setRatingRange: (value: number[]) => void;
-    reviewScoreRange: number[];
-    setReviewScoreRange: (value: number[]) => void;
+    ratingReviewFilter: boolean;
+    setRatingReviewFilter: (value: boolean | ((prev: boolean) => boolean)) => void;
     filterZeroIds: boolean; // New prop
     setFilterZeroIds: (value: boolean | ((prev: boolean) => boolean)) => void; // New prop function
     searchQuery: string; // New prop
@@ -25,19 +23,23 @@ const FilterControls: React.FC<FilterControlsProps> = ({
                                                            setPlayedFilter,
                                                            hideFilter,
                                                            setHideFilter,
-                                                           ratingRange,
-                                                           setRatingRange,
-                                                           reviewScoreRange,
-                                                           setReviewScoreRange,
                                                            filterZeroIds,
                                                            setFilterZeroIds,
                                                            searchQuery,
                                                            setSearchQuery,
                                                            laterFilter,
-                                                           setLaterFilter
+                                                           setLaterFilter,
+                                                           ratingReviewFilter,
+                                                           setRatingReviewFilter
                                                        }) => {
     return (
         <Box>
+            <Typography>Search by Game Name</Typography>
+            <TextField
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search..."
+            />
             <Typography variant="h6">Filters</Typography>
 
             <FormControlLabel
@@ -61,38 +63,18 @@ const FilterControls: React.FC<FilterControlsProps> = ({
                 />}
                 label="Later"
             />
-            <Typography>Filter by Rating</Typography>
-            <Slider
-                value={ratingRange}
-                onChange={(event, newValue) => setRatingRange(newValue as number[])}
-                valueLabelDisplay="auto"
-                min={0}
-                max={1}
-                step={0.01}
+            <FormControlLabel
+                control={<Checkbox
+                    checked={ratingReviewFilter}
+                    onChange={() => setRatingReviewFilter((prev: boolean) => !prev)}
+                />}
+                label="Only best Rating"
             />
 
-            <Typography>Filter by Review Score</Typography>
-            <Slider
-                value={reviewScoreRange}
-                onChange={(event, newValue) => setReviewScoreRange(newValue as number[])}
-                valueLabelDisplay="auto"
-                min={0}
-                max={10}
-                step={0.5}
-            />
-
-            <Typography>Search by Game Name</Typography>
-            <TextField
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search..."
-            />
-
-            <Typography>Only IDs == 0</Typography>
             <FormControlLabel
                 control={<Checkbox checked={filterZeroIds}
                                    onChange={() => setFilterZeroIds((prev: boolean) => !prev)}/>}
-                label="Only Zero IDs"
+                label="Unidentified games"
             />
         </Box>
     );
