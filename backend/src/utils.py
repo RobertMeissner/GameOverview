@@ -9,6 +9,7 @@ from src.constants import (
     HIDE_FIELD,
     LATER_FIELD,
     RATING_FIELD,
+    THUMBNAIL_URL,
     URL,
     game_name,
     played_flag,
@@ -70,6 +71,7 @@ EXPECTED_DF_COLUMNS = {
     "coverHorizontal": pd.StringDtype(),
     "storeLink": pd.StringDtype(),
     LATER_FIELD: pd.BooleanDtype(),
+    THUMBNAIL_URL: pd.StringDtype(),
 }
 
 
@@ -123,10 +125,11 @@ def process_data(df: pd.DataFrame) -> pd.DataFrame:
         "coverVertical",
         "coverHorizontal",
         "storeLink",
+        THUMBNAIL_URL,
     ]
     df[columns_to_fill_with_empty] = df[columns_to_fill_with_empty].fillna("")
 
-    columns_to_fill_with_false = [HIDE_FIELD, LATER_FIELD]
+    columns_to_fill_with_false = [HIDE_FIELD, LATER_FIELD, played_flag]
     df[columns_to_fill_with_false] = df[columns_to_fill_with_false].fillna(False)
     return coerce_dataframe_types(game_hash(df))
 

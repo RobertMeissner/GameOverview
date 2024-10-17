@@ -1,12 +1,13 @@
 import os
 
+import pandas as pd
 import pyarrow.parquet as pq
-from constants import LATER_FIELD
+from constants import DATA_FILEPATH, LATER_FIELD, THUMBNAIL_URL
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from request_rating import game_by_app_id
+from request_rating import game_by_app_id, steam_rating
 from src.constants import (
     APP_ID,
     CORRECTED_APP_ID,
@@ -22,6 +23,8 @@ from src.constants import (
 )
 from src.game_ratings import game_ratings
 from starlette.responses import FileResponse
+from thumbnails import download_thumbnail
+from utils import process_data
 
 app = FastAPI()
 
@@ -123,7 +126,7 @@ class NewItemFoundResponse(BaseModel):
 
 
 @app.post("/games/add")
-def search_game_by_name(props: NewItemRequest):
+def search_game_by_name(props: NewItemRequest) -> NewItemFoundResponse:
     if props.store not in ["gog", "steam"]:
         raise HTTPException(status_code=400, detail="Store not found")
 
@@ -143,6 +146,54 @@ def search_game_by_name(props: NewItemRequest):
             item.thumbnail_url = response["thumbnail_url"]
 
     return item  # Return results with 'not-found' if no matches were found
+
+
+@app.post("/games/create")
+def create_game(props: NewItemFoundResponse):
+    if props.store not in ["gog", "steam"] or props.name == "" or props.app_id == 0:
+        raise HTTPException(status_code=400, detail="Store not found")
+
+    file_path = os.path.join(DATA_FILEPATH)
+
+    if not os.path.isfile(file_path):
+        raise HTTPException(status_code=404, detail="File not found")
+
+    try:
+        # TODO: Refactor business logic "away"
+        table = pq.read_table(file_path)
+        df = table.to_pandas()
+
+        if props.app_id in df[APP_ID].values:
+            raise HTTPException(
+                status_code=409,
+                detail=f"Conflict: An app_id '{props.app_id}' already exists in your database.",
+            )
+
+        new_row = pd.DataFrame(
+            {
+                game_name: [props.name],
+                APP_ID: [props.app_id],
+                store_name: [props.store],
+                THUMBNAIL_URL: [props.thumbnail_url],
+            }
+        )
+
+        new_row = steam_rating(props.app_id, new_row)
+        download_thumbnail(props.app_id)
+        # Concatenate the new row to the DataFrame
+        df = pd.concat([df, new_row], ignore_index=True)
+        df = process_data(df)
+
+        # Save the updated DataFrame back to Parquet
+        df.to_parquet(file_path, index=False)
+
+        return {"message": "Update successful"}
+    except Exception as e:
+        if isinstance(e, HTTPException):
+            raise
+        raise HTTPException(status_code=500, detail=str(e))
+
+    return {"message": f"{props.name} was created"}
 
 
 @app.get("/")

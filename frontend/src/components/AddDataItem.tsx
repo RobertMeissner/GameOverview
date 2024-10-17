@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
     Button,
     Paper,
@@ -16,12 +16,13 @@ import {
 import axios from 'axios';
 
 const AddDataItem: React.FC<{ onDataAdded: () => void }> = ({ onDataAdded }) => {
-    const [formData, setFormData] = useState({
+    const initialFormData = {
         name: '',
         app_id: '',
         store: 'steam', // Default store
-    });
+    };
 
+    const [formData, setFormData] = useState(initialFormData);
     const [additionalFieldsVisible, setAdditionalFieldsVisible] = useState(false);
     const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
 
@@ -41,7 +42,13 @@ const AddDataItem: React.FC<{ onDataAdded: () => void }> = ({ onDataAdded }) => 
         }));
     };
 
-    const handleAddDataItem = async (): Promise<void> => {
+    const resetForm = () => {
+        setFormData(initialFormData);
+        setAdditionalFieldsVisible(false);
+        setThumbnailUrl(null);
+    };
+
+    const handleTestDataItem = async (): Promise<void> => {
         if (!formData.name && (!formData.app_id || !formData.store)) {
             alert('Please provide either a name or both app_id and store.');
             return;
@@ -50,7 +57,7 @@ const AddDataItem: React.FC<{ onDataAdded: () => void }> = ({ onDataAdded }) => 
         const postData = async (data: {
             name: string;
             store: string;
-            app_id: number | string; // Accepting string initially for validation
+            app_id: number | string;
         }): Promise<void> => {
             try {
                 const response = await axios.post('http://localhost:8000/games/add', data);
@@ -71,16 +78,33 @@ const AddDataItem: React.FC<{ onDataAdded: () => void }> = ({ onDataAdded }) => 
     };
 
     const handleCreateDataItem = async (): Promise<void> => {
-        try {
-            const response = await axios.post('http://localhost:8000/games/create', formData);
-            if (response.status === 200) {
-                alert('Data item created successfully!');
-            }
-        } catch (error) {
-            console.error("Error creating data item:", error);
-            alert('Failed to create the data item. Please try again.');
-        }
+    // Prepare the data to be sent
+    const data = {
+        name: formData.name,
+        store: formData.store,
+        app_id: formData.app_id,
+        thumbnail_url: thumbnailUrl,
     };
+
+    try {
+        const response = await axios.post('http://localhost:8000/games/create', data);
+        if (response.status === 200) {
+            alert('Data item created successfully!');
+            resetForm(); // Optional: reset the form after creation
+        }
+    } catch (error) {
+        if (axios.isAxiosError(error) && error.response) {
+            if (error.response.status === 409) {
+                alert(error.response.data.detail || 'Conflict error occurred.');
+            } else {
+                alert('Failed to create the data item. Please try again.');
+            }
+        } else {
+            console.error("Error creating data item:", error);
+            alert('An unexpected error occurred. Please try again.');
+        }
+    }
+};
 
     return (
         <Paper elevation={3} sx={{ padding: 3, margin: 3 }}>
@@ -95,6 +119,7 @@ const AddDataItem: React.FC<{ onDataAdded: () => void }> = ({ onDataAdded }) => 
                     margin="normal"
                     value={formData.name}
                     onChange={handleInputChange}
+                    disabled={additionalFieldsVisible}
                 />
                 {thumbnailUrl && (
                     <Box
@@ -113,6 +138,7 @@ const AddDataItem: React.FC<{ onDataAdded: () => void }> = ({ onDataAdded }) => 
                 type="number"
                 value={formData.app_id}
                 onChange={handleInputChange}
+                disabled={additionalFieldsVisible}
             />
             <FormControl fullWidth margin="normal">
                 <InputLabel id="store-label">Store</InputLabel>
@@ -121,11 +147,17 @@ const AddDataItem: React.FC<{ onDataAdded: () => void }> = ({ onDataAdded }) => 
                     name="store"
                     value={formData.store}
                     onChange={handleSelectChange}
+                    variant="filled"
+                    disabled={additionalFieldsVisible}
                 >
                     <MenuItem value="steam">Steam</MenuItem>
                     <MenuItem value="gog">GOG</MenuItem>
                 </Select>
             </FormControl>
+            {!additionalFieldsVisible &&
+                <Button variant="contained" color="primary" onClick={handleTestDataItem}>
+                    Test Game
+                </Button>}
             {additionalFieldsVisible && (
                 <>
                     <FormControlLabel
@@ -156,11 +188,14 @@ const AddDataItem: React.FC<{ onDataAdded: () => void }> = ({ onDataAdded }) => 
                         label="Later"
                     />
                     <Box sx={{ marginTop: 2, display: 'flex', gap: 2 }}>
-                        <Button variant="contained" color="primary" onClick={handleCreateDataItem}>
-                            Create
+                        <Button variant="contained" color="primary" onClick={handleTestDataItem}>
+                            Test Game
                         </Button>
-                        <Button variant="contained" color="primary" onClick={handleAddDataItem}>
-                            WIP: Test Data Item
+                        <Button variant="contained" color="primary" onClick={handleCreateDataItem}>
+                            Add Game
+                        </Button>
+                        <Button variant="outlined" color="secondary" onClick={resetForm}>
+                            Reset
                         </Button>
                     </Box>
                 </>

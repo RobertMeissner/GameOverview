@@ -23,6 +23,7 @@ URL = "url"
 review_score = "review_score"
 total_reviews = "total_reviews"
 HASH = "game_hash"
+THUMBNAIL_URL = "thumbnail_url"
 
 MINIMUM_RATING = 0.8
 
