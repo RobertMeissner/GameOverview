@@ -10,7 +10,6 @@ from src.constants import (
 )
 from src.epic_parser import epic_games
 from src.gog_api import gog_data, gog_games
-from src.markdown_parser import played_games
 from src.request_rating import request_rating, steam_app_ids_matched
 from src.steam_api import steam_games
 from src.utils import (
@@ -96,7 +95,7 @@ def merged_data_sources(df: pd.DataFrame, df_loaded: pd.DataFrame) -> pd.DataFra
 
 def games_from_accounts(df):
     df = games_from_stores(df)
-    df = update_played_status(df, played_games())
+    # df = update_played_status(df, played_games())
     df = merge_duplicates(df)
     df = process_data(df)
     df = merged_data_sources(df=df, df_loaded=load_data())

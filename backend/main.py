@@ -1,4 +1,5 @@
 import os
+from io import StringIO
 
 import pandas as pd
 import pyarrow.parquet as pq
@@ -22,7 +23,7 @@ from src.constants import (
     store_name,
 )
 from src.game_ratings import game_ratings
-from starlette.responses import FileResponse
+from starlette.responses import FileResponse, Response, StreamingResponse
 from thumbnails import download_thumbnail
 from utils import process_data
 
@@ -52,6 +53,46 @@ columns_to_transfer = [
     "storeLink",
     LATER_FIELD,
 ]
+
+
+@app.get("/data/export_markdown")
+async def export_markdown():
+    df = pq.read_pandas(os.path.join(DATA_FILEPATH)).to_pandas()
+
+    game_names = df[game_name].tolist()
+    game_names.sort()
+    markdown_content = "\n".join([f"[[{name}]]" for name in game_names])
+
+    return Response(
+        content=markdown_content,
+        media_type="text/markdown",
+        headers={"Content-Disposition": "attachment; filename=exported_data.md"},
+    )
+
+
+@app.get("/data/export")
+def export_data():
+    df = pq.read_pandas(os.path.join(DATA_FILEPATH)).to_pandas()
+    whitelisted_columns = [
+        game_name,
+        APP_ID,
+        CORRECTED_APP_ID,
+        found_game_name,
+        played_flag,
+        HIDE_FIELD,
+        LATER_FIELD,
+    ]
+    df_filtered = df[whitelisted_columns]
+
+    output = StringIO()
+    df_filtered.to_csv(output, index=False)
+    output.seek(0)
+
+    return StreamingResponse(
+        output,
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=exported_data.csv"},
+    )
 
 
 @app.get("/data/{filename}")

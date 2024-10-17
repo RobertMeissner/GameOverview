@@ -8,6 +8,7 @@ import DataTable from './components/DataTable';
 import TopThreeListItem from './components/TopThreeListItem';
 import {ThumbnailProvider} from './context/ThumbnailContext';
 import AddDataItem from "./components/AddDataItem";
+import ExportData from "./components/ExportData";
 
 export interface DataItem {
     game_hash: string;
@@ -151,6 +152,9 @@ const App: React.FC = () => {
                                 <ListItemButton component={Link} to="/addDataItem">
                                     <ListItemText primary="Add new game"/>
                                 </ListItemButton>
+                                <ListItemButton component={Link} to="/export">
+                                    <ListItemText primary="Export" />
+                                </ListItemButton>
                             </List>
                             <Divider sx={{marginY: 1}}/>
                             <FilterControls
@@ -207,6 +211,7 @@ const App: React.FC = () => {
                                 <Route path="/addDataItem" element={
                                     <AddDataItem onDataAdded={handleDataAdded} />
                                 } />
+                                <Route path="/export" element={<ExportData />} />
                             </Routes>
                         </Box>
                     </Box>
