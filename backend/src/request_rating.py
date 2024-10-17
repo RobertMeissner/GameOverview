@@ -143,3 +143,28 @@ def app_id_matched_by_search(name: str) -> tuple[int, str]:
         if "data-ds-appid" in matches[0]:
             app_id = int(matches[0]["data-ds-appid"])
     return app_id, matched_name
+
+
+def game_by_app_id(app_id: int):
+    url = "https://store.steampowered.com/api/appdetails"
+    try:
+        # Make the API request
+        response = requests.get(url, params={"appids": app_id})
+        response.raise_for_status()  # Raise an error for bad responses
+
+        # Parse the JSON response
+        data = response.json()
+
+        # Check if the game details are available
+        if data[str(app_id)]["success"]:
+            game_data = data[str(app_id)]["data"]
+            name = game_data.get("name", "")
+            thumbnail_url = game_data.get("header_image", "")  # Get thumbnail URL
+
+            return {game_name: name, "thumbnail_url": thumbnail_url}
+        else:
+            return {"error": "Game not found"}
+
+    except requests.RequestException as e:
+        print(f"An error occurred: {e}")
+        return {"error": str(e)}

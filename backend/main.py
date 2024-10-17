@@ -6,6 +6,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from request_rating import game_by_app_id
 from src.constants import (
     APP_ID,
     CORRECTED_APP_ID,
@@ -105,6 +106,43 @@ async def update_played_flag(filename: str, props: UpdateRequest):
         return {"message": "Update successful"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# Define a Pydantic model for the expected input
+class NewItemRequest(BaseModel):
+    name: str
+    app_id: int
+    store: str
+
+
+class NewItemFoundResponse(BaseModel):
+    name: str
+    app_id: int
+    store: str
+    thumbnail_url: str
+
+
+@app.post("/games/add")
+def search_game_by_name(props: NewItemRequest):
+    if props.store not in ["gog", "steam"]:
+        raise HTTPException(status_code=400, detail="Store not found")
+
+    item = NewItemFoundResponse(
+        name=props.name, app_id=props.app_id, store=props.store, thumbnail_url=""
+    )
+    # TODO: Decouple this
+    if item.app_id != 0:
+        if item.store == "gog":
+            pass
+        elif item.store == "steam":
+            response = game_by_app_id(item.app_id)
+            if "error" in response.keys():
+                raise HTTPException(status_code=400, detail=response["error"])
+
+            item.name = response[game_name]
+            item.thumbnail_url = response["thumbnail_url"]
+
+    return item  # Return results with 'not-found' if no matches were found
 
 
 @app.get("/")
