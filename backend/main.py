@@ -148,8 +148,18 @@ def search_game_by_name(props: NewItemRequest) -> NewItemFoundResponse:
     return item  # Return results with 'not-found' if no matches were found
 
 
+class AddItemRequest(BaseModel):
+    name: str
+    app_id: int
+    store: str
+    thumbnail_url: str
+    played: bool
+    hide: bool
+    later: bool
+
+
 @app.post("/games/create")
-def create_game(props: NewItemFoundResponse):
+def create_game(props: AddItemRequest):
     if props.store not in ["gog", "steam"] or props.name == "" or props.app_id == 0:
         raise HTTPException(status_code=400, detail="Store not found")
 
@@ -175,16 +185,18 @@ def create_game(props: NewItemFoundResponse):
                 APP_ID: [props.app_id],
                 store_name: [props.store],
                 THUMBNAIL_URL: [props.thumbnail_url],
+                played_flag: [props.played],
+                HIDE_FIELD: [props.hide],
+                LATER_FIELD: [props.later],
             }
         )
 
         new_row = steam_rating(props.app_id, new_row)
         download_thumbnail(props.app_id)
-        # Concatenate the new row to the DataFrame
+
         df = pd.concat([df, new_row], ignore_index=True)
         df = process_data(df)
 
-        # Save the updated DataFrame back to Parquet
         df.to_parquet(file_path, index=False)
 
         return {"message": "Update successful"}
@@ -192,8 +204,6 @@ def create_game(props: NewItemFoundResponse):
         if isinstance(e, HTTPException):
             raise
         raise HTTPException(status_code=500, detail=str(e))
-
-    return {"message": f"{props.name} was created"}
 
 
 @app.get("/")
