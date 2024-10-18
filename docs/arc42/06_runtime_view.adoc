@@ -37,15 +37,86 @@ See https://docs.arc42.org/section-6/[Runtime View] in the arc42 documentation.
 
 ****
 
-=== <Runtime Scenario 1>
+=== Data Flow
 
 
-* _<insert runtime diagram or textual description of the scenario>_
-* _<insert description of the notable aspects of the interactions between the
-building block instances depicted in this diagram.>_
+[mermaid, add-game-flow, svg]
+....
+classDiagram
+    Stores <|-- Game
+    class Game{
+        String name
+        Stores store
+        int app_id
+        bool played
+        bool hide
+        bool later
+        string thumbnail_url
+        load()
+        -get_gog_data()
+        -get_steam_data()
+        -get_app_id_from_name()
+    }
 
-=== <Runtime Scenario 2>
+    class Stores{
+        Steam
+        GoG
+    }
+....
 
-=== ...
+=== Rough
 
-=== <Runtime Scenario n>
+[mermaid]
+....
+graph TD
+    UserBrowser -->|https| ReactApp[React]
+    ReactApp -->|http| Backend[FastAPI]
+    Backend -->|http| DB[Pandas df]
+    Backend -->|https| ExternalAPI1[Steam API]
+    Backend -->|https| ExternalAPI2[GoG API]
+....
+
+
+=== Getting games into the frontend
+
+[mermaid]
+....
+sequenceDiagram;
+    participant M as Manual
+    participant F as Frontend;
+    participant BE as Backend;
+    participant SA as SteamAPI;
+    participant GA as GoGAPI;
+    participant EA as EpicAPI;
+    participant D as DataFrame;
+
+    M->>D: List Games by Name
+    M->>GA: Get games manually
+    M->>EA: Get games manually
+    BE->>D: Load game names
+    BE->>SA: Attempt to get Steam app ids
+    BE->>GA: Attempt to find Game on GoG
+
+    F->>BE: GET /data/data.parquet: Load games
+    BE-->>F: Response (success/failure);
+....
+
+=== Adding a new game
+
+[mermaid, add-game-flow, svg]
+....
+flowchart TD
+    A1[By app_id] --> B1[test `app_id` on store page]
+    A2[By name] --> B2[search for name on store page]
+    B2 --> C2{Match found?}
+    C2 -->|Yes| B1
+    C2 -->|No| D
+    B1 -->|Valid| C{Is Game in Database?}
+    B1 -->|Invalid| D[Return Validation Error]
+    C -->|Yes| E[Return 'Game Already Exists' Error]
+    C -->|No| F[Add Game to Database]
+    F --> G[Return Success]
+    E --> H[End]
+    D --> H[End]
+    G --> H[End]
+....
