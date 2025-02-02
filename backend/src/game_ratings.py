@@ -20,6 +20,7 @@ from src.utils import (
     save_data,
     without_demo_in_name,
 )
+from steam_family_parser import steam_family_games
 from tqdm import tqdm
 
 load_dotenv()
@@ -108,7 +109,7 @@ def merge_duplicates(df):
 
 
 def games_from_stores(df):
-    sources = [gog_games, steam_games, epic_games]
+    sources = [gog_games, steam_games, epic_games, steam_family_games]
     for source in sources:
         df = concat_if_new(df, source())
     return df
