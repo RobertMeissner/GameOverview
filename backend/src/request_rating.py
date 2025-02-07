@@ -48,8 +48,6 @@ def request_rating(df: pd.Series) -> pd.Series:
         logging.error("Full traceback:\n" + tb)
         raise e
 
-    print(f"{df[game_name]}\t{df[APP_ID]}\tdata: {round(df[RATING_FIELD], 3) * 100}")
-
     return df
 
 
