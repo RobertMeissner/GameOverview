@@ -24,6 +24,7 @@ export interface DataItem {
     reviewsRating: number;
     storeLink: string;
     later: boolean;
+    metacritic_score: number;
 
     [key: string]: string | number | boolean;
 }
@@ -51,16 +52,16 @@ const App: React.FC = () => {
     const SIDEBAR_WIDTH = 240;
     const APPBAR_HEIGHT = 64; // Height of AppBar
 
-    const columnWhitelist = ["thumbnail", 'name', 'rating', 'review_score', 'played', 'hide', 'store', "app_id", "corrected_app_id", "found_game_name","reviewsRating", "later"]
+    const columnWhitelist = ["thumbnail", 'name', 'rating',"review_score", 'metacritic_score', 'played', 'hide', 'store', "app_id", "corrected_app_id", "found_game_name","reviewsRating", "later"]
 
     const updateTopThreeGames = useCallback(() => {
         const topThree = data
             .filter(item => !item.hide && !item.played && !item.later)
             .sort((a, b) => {
-                if (b.review_score !== a.review_score) {
+                if (b.review_score != a.review_score) {
                     return b.review_score - a.review_score;
                 }
-                return b.rating - a.rating;
+                return a.rating - b.rating;
             })
             .slice(0, 3);
         setTopThreeGames(topThree);
@@ -105,7 +106,7 @@ const App: React.FC = () => {
     }, [setData]);
 
     const filteredData = data.filter(item => {
-        const ratingReviewCriteria = ratingReviewFilter ? (item.rating > 0.8 && item.review_score >= 8) : true; // New filter logic for ratings & scores
+        const ratingReviewCriteria = ratingReviewFilter ? (item.rating > 0.8 && item.metacritic_score >= 8) : true; // New filter logic for ratings & scores
         const playedCriteria = playedFilter ? !item.played : true;
         const hideCriteria = hideFilter ? !item.hide : true;
         const laterCriteria = laterFilter ? !item.later : true;
