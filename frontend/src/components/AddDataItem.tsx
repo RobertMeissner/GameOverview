@@ -63,7 +63,7 @@ const AddDataItem: React.FC<{ onDataAdded: () => void }> = ({onDataAdded}) => {
             app_id: number | string;
         }): Promise<void> => {
             try {
-                const response = await axios.post('http://localhost:8000/games/add', data);
+                const response = await axios.post('https://steam-api.your-subdomain.workers.dev/games/add', data);
                 if (response.status === 200) {
                     const {name, app_id, store, thumbnail_url} = response.data;
                     setFormData({
