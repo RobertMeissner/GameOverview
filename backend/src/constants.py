@@ -24,6 +24,9 @@ review_score = "review_score"
 total_reviews = "total_reviews"
 HASH = "game_hash"
 THUMBNAIL_URL = "thumbnail_url"
+METACRITIC_SCORE = "metacritic_score"
+METACRITIC_GAME_NAME = "metacritic_game_name"
+
 
 MINIMUM_RATING = 0.8
 

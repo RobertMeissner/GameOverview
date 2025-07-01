@@ -1,6 +1,7 @@
 import hashlib
 
 import pandas as pd
+from constants import METACRITIC_GAME_NAME, METACRITIC_SCORE
 from src.constants import (
     APP_ID,
     CORRECTED_APP_ID,
@@ -72,6 +73,13 @@ EXPECTED_DF_COLUMNS = {
     "storeLink": pd.StringDtype(),
     LATER_FIELD: pd.BooleanDtype(),
     THUMBNAIL_URL: pd.StringDtype(),
+    METACRITIC_SCORE: pd.Int64Dtype(),
+    METACRITIC_GAME_NAME: pd.StringDtype(),
+    "hltb_main_story": pd.Int64Dtype(),
+    "hltb_main_extra": pd.Int64Dtype(),
+    "hltb_completionist": pd.Int64Dtype(),
+    "hltb_game_id": pd.Int64Dtype(),
+    "hltb_similarity": pd.Int64Dtype(),
 }
 
 
@@ -112,6 +120,7 @@ def process_data(df: pd.DataFrame) -> pd.DataFrame:
         "total_negative",
         "gog_id",
         "reviewsRating",
+        METACRITIC_SCORE,
     ]
     df[columns_to_fill_with_zero] = df[columns_to_fill_with_zero].fillna(0)
 
@@ -126,6 +135,7 @@ def process_data(df: pd.DataFrame) -> pd.DataFrame:
         "coverHorizontal",
         "storeLink",
         THUMBNAIL_URL,
+        METACRITIC_GAME_NAME,
     ]
     df[columns_to_fill_with_empty] = df[columns_to_fill_with_empty].fillna("")
 

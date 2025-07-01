@@ -80,6 +80,7 @@ const DataTable: React.FC<DataTableProps> = ({data, onDataChange, columnWhitelis
         {id: 'status', label: 'Status'}, // Custom column for checkboxes
         ...[
             { id: 'name_found', label: 'Name' }, // Combined column
+            { id: 'metacritic_score', label: 'MetaCritic' },
             { id: 'rating', label: 'Rating' },
             { id: 'review_score', label: 'Review Score' },
             { id: 'app_id', label: 'App ID' },

@@ -53,4 +53,22 @@ var gogData = {"sortBy":"date_ ...
 
 ## Epic Games
 
-Go to your account, transaction history, copy the html and store it in `data/epic.html`
+Go to `https://www.epicgames.com/account/transactions?lang=de&productName=egs`
+
+There, use the console to run:
+
+```shell
+const fetchGamesList = async (pageToken = '', existingList = []) => { 
+  const data = await (await fetch(`https://www.epicgames.com/account/v2/payment/ajaxGetOrderHistory?sortDir=DESC&sortBy=DATE&nextPageToken=${pageToken}&locale=en-US`)).json(); 
+  const gamesList = data.orders.reduce((acc, value) => [...acc, ...value.items.map(v => v.description)], []);
+  console.log(`Games on this page: ${gamesList.length}, Next page starts from date: ${data.nextPageToken}`);
+  const newList = [...existingList, ...gamesList];
+  if (!data.nextPageToken) return newList; 
+  return await fetchGamesList(data.nextPageToken, newList);
+}
+fetchGamesList().then(console.log);
+```
+Wait.
+Copy results from the console into `data/epic_console_log.json`
+
+Kudos go to [NikkelM](https://github.com/NikkelM/Steam-App-ID-Finder)

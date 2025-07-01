@@ -3,7 +3,7 @@ from io import StringIO
 
 import pandas as pd
 import pyarrow.parquet as pq
-from constants import DATA_FILEPATH, LATER_FIELD, THUMBNAIL_URL
+from constants import DATA_FILEPATH, LATER_FIELD, METACRITIC_SCORE, THUMBNAIL_URL
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -52,6 +52,7 @@ columns_to_transfer = [
     "reviewsRating",
     "storeLink",
     LATER_FIELD,
+    METACRITIC_SCORE,
 ]
 
 
@@ -105,6 +106,7 @@ async def get_parquet_file(filename: str):
         table = pq.read_table(file_path)
         df = table.to_pandas()  # ["game_name"]
         df_filtered = df[columns_to_transfer]
+        print(df_filtered.head)
         df[played_flag] = df[played_flag].astype(bool)
         df[HIDE_FIELD] = df[HIDE_FIELD].astype(bool)
         # Convert DataFrame to JSON
