@@ -63,7 +63,7 @@ const AddDataItem: React.FC<{ onDataAdded: () => void }> = ({onDataAdded}) => {
             app_id: number | string;
         }): Promise<void> => {
             try {
-                const response = await axios.post('https://steam-api.your-subdomain.workers.dev/games/add', data);
+                const response = await axios.post(`${process.env.REACT_APP_STEAM_API_URL}/games/add`, data);
                 if (response.status === 200) {
                     const {name, app_id, store, thumbnail_url} = response.data;
                     setFormData({
@@ -99,7 +99,7 @@ const AddDataItem: React.FC<{ onDataAdded: () => void }> = ({onDataAdded}) => {
         };
 
         try {
-            const response = await axios.post('http://localhost:8000/games/create', data);
+            const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/games/create`, data);
             if (response.status === 200) {
                 alert('Data item created successfully!');
                 resetForm(); // Optional: reset the form after creation
