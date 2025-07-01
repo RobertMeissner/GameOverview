@@ -6,7 +6,7 @@
   "scripts": {
     "build": "npm run build:frontend && npm run copy:assets",
     "build:frontend": "cd ../frontend && npm install && npm run build",
-    "copy:assets": "cp -r ../frontend/build/* ./static/",
+    "copy:assets": "mkdir -p ./static && cp -r ../frontend/build/* ./static/",
     "deploy": "wrangler deploy",
     "dev": "wrangler dev"
   },
