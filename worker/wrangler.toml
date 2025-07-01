@@ -1,0 +1,16 @@
+name = "nextbestgame"
+main = "src/index.js"
+compatibility_date = "2024-07-01"
+
+[site]
+bucket = "./static"
+
+[[kv_namespaces]]
+binding = "ASSETS"
+id = "your-kv-namespace-id"
+preview_id = "your-preview-kv-namespace-id"
+
+[env.production]
+routes = [
+  { pattern = "nextbestgame.pages.dev/*", zone_name = "nextbestgame.pages.dev" }
+]

@@ -1,0 +1,19 @@
+{
+  "name": "nextbestgame-worker",
+  "version": "1.0.0",
+  "description": "Unified Cloudflare Worker for frontend and API",
+  "main": "src/index.js",
+  "scripts": {
+    "build": "npm run build:frontend && npm run copy:assets",
+    "build:frontend": "cd ../frontend && npm install && npm run build",
+    "copy:assets": "cp -r ../frontend/build/* ./static/",
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev"
+  },
+  "dependencies": {
+    "@cloudflare/kv-asset-handler": "^0.3.0"
+  },
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}
