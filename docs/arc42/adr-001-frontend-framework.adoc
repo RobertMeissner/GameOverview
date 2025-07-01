@@ -1,0 +1,26 @@
+= ADR-001: Frontend Framework Selection
+
+== Status
+Accepted
+
+== Context
+The application requires a modern frontend framework for building the game overview dashboard with data visualization and filtering capabilities.
+
+== Decision
+We will use React with TypeScript for the frontend implementation.
+
+== Rationale
+[Add your reasoning here]
+
+== Consequences
+=== Positive
+* Component-based architecture
+* Strong TypeScript support
+* Large ecosystem of UI libraries
+
+=== Negative
+* Bundle size considerations
+* Learning curve for team members
+
+== Notes
+[Add any additional notes here]

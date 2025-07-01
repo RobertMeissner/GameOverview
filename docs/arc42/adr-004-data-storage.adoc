@@ -1,0 +1,27 @@
+= ADR-004: Data Storage Strategy
+
+== Status
+Accepted
+
+== Context
+The application needs to store and manage game data from multiple sources with different update frequencies.
+
+== Decision
+We will use file-based storage with structured data formats for game information.
+
+== Rationale
+[Add your reasoning here]
+
+== Consequences
+=== Positive
+* Simple deployment and backup
+* No database infrastructure required
+* Version control friendly
+
+=== Negative
+* Limited query capabilities
+* Scalability constraints
+* Concurrent access limitations
+
+== Notes
+[Add any additional notes here]

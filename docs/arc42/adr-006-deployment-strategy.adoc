@@ -1,0 +1,26 @@
+= ADR-006: Deployment Strategy
+
+== Status
+Accepted
+
+== Context
+The application consists of a Python backend and React frontend that need to be deployed and made accessible to users.
+
+== Decision
+We will use containerized deployment with Docker for both frontend and backend components.
+
+== Rationale
+[Add your reasoning here]
+
+== Consequences
+=== Positive
+* Consistent deployment across environments
+* Easy scaling and orchestration
+* Isolated dependencies
+
+=== Negative
+* Additional infrastructure complexity
+* Container overhead
+
+== Notes
+[Add any additional notes here]

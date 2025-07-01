@@ -1,0 +1,26 @@
+= ADR-002: Backend Language Selection
+
+== Status
+Accepted
+
+== Context
+The backend needs to handle API integrations with multiple gaming platforms (Steam, Epic, GOG) and provide data processing capabilities.
+
+== Decision
+We will use Python for the backend implementation.
+
+== Rationale
+[Add your reasoning here]
+
+== Consequences
+=== Positive
+* Excellent library ecosystem for web scraping and APIs
+* Fast development cycle
+* Strong data processing capabilities
+
+=== Negative
+* Performance considerations for high-load scenarios
+* Deployment complexity
+
+== Notes
+[Add any additional notes here]

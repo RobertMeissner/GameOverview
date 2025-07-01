@@ -1,0 +1,26 @@
+= ADR-005: External API Integration Pattern
+
+== Status
+Accepted
+
+== Context
+The application integrates with multiple gaming platform APIs (Steam, Epic Games, GOG) with different authentication and rate limiting requirements.
+
+== Decision
+We will implement separate parser modules for each platform with a unified interface.
+
+== Rationale
+[Add your reasoning here]
+
+== Consequences
+=== Positive
+* Clear separation of concerns
+* Easy to add new platforms
+* Platform-specific optimizations possible
+
+=== Negative
+* Code duplication for common functionality
+* Multiple API key management
+
+== Notes
+[Add any additional notes here]

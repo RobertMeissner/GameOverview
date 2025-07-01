@@ -1,0 +1,26 @@
+= ADR-003: UI Component Library
+
+== Status
+Accepted
+
+== Context
+The frontend requires a consistent design system and pre-built components for rapid development.
+
+== Decision
+We will use Material-UI (MUI) as the primary UI component library.
+
+== Rationale
+[Add your reasoning here]
+
+== Consequences
+=== Positive
+* Consistent Material Design system
+* Comprehensive component set
+* Good TypeScript support
+
+=== Negative
+* Bundle size impact
+* Design constraints
+
+== Notes
+[Add any additional notes here]
