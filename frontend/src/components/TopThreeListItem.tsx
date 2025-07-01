@@ -1,9 +1,7 @@
 import React, { useEffect } from 'react';
 import { Box, IconButton, ListItemButton, ListItemText, styled, Typography } from '@mui/material';
-import Thumbnail from './Thumbnail';
 import { DataItem } from '../App';
 import { useThumbnailsContext } from '../context/ThumbnailContext';
-import { StoreURL } from "./StoreURL";
 import {PlayArrow, VisibilityOff, Link as LinkIcon, Schedule} from "@mui/icons-material"; // Import LinkIcon
 import { RatingComponent } from "./RatingComponent";
 

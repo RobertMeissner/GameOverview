@@ -1,7 +1,7 @@
 // src/components/FilterControls.tsx
 
 import React from 'react';
-import {Box, Checkbox, Slider, Typography, TextField, FormControlLabel} from '@mui/material';
+import {Box, Checkbox, Typography, TextField, FormControlLabel} from '@mui/material';
 
 interface FilterControlsProps {
     playedFilter: boolean;

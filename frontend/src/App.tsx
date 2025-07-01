@@ -48,7 +48,7 @@ const App: React.FC = () => {
     const [filterZeroIds, setFilterZeroIds] = useState(false);
     const [laterFilter, setLaterFilter] = useState(false);
 
-    const [dialogOpen, setDialogOpen] = useState(false);  // State for managing the dialog
+    //     // const [dialogOpen, setDialogOpen] = useState(false);  // State for managing the dialog
     const SIDEBAR_WIDTH = 240;
     const APPBAR_HEIGHT = 64; // Height of AppBar
 
@@ -58,7 +58,7 @@ const App: React.FC = () => {
         const topThree = data
             .filter(item => !item.hide && !item.played && !item.later)
             .sort((a, b) => {
-                if (b.review_score != a.review_score) {
+                if (b.review_score !== a.review_score) {
                     return b.review_score - a.review_score;
                 }
                 return a.rating - b.rating;
@@ -110,7 +110,7 @@ const App: React.FC = () => {
         const playedCriteria = playedFilter ? !item.played : true;
         const hideCriteria = hideFilter ? !item.hide : true;
         const laterCriteria = laterFilter ? !item.later : true;
-        const zeroIdsCriteria = filterZeroIds ? (item.app_id === 0 && item.corrected_app_id === 0 || item.found_game_name ? item.name != item.found_game_name : false) : true;
+        const zeroIdsCriteria = filterZeroIds ? ((item.app_id === 0 && item.corrected_app_id === 0) || (item.found_game_name ? item.name !== item.found_game_name : false)) : true;
 
         const searchCriteria = searchQuery.length === 0 ? true :
             new RegExp(searchQuery.split('').join('.*'), 'i').test(item.name);
