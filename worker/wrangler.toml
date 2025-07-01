@@ -7,8 +7,8 @@ bucket = "./static"
 
 [[kv_namespaces]]
 binding = "ASSETS"
-id = "your-kv-namespace-id"
-preview_id = "your-preview-kv-namespace-id"
+id = "985c8479245f41d1ab8f0fffe5bec30f"
+preview_id = "00f0db0138804894821952e63035a3da"
 
 [env.production]
 routes = [
