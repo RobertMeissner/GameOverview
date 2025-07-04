@@ -2,18 +2,27 @@
   "name": "nextbestgame-worker",
   "version": "1.0.0",
   "description": "Unified Cloudflare Worker for frontend and API",
-  "main": "src/index.js",
+  "main": "src/index.ts",
   "scripts": {
     "build": "npm run build:frontend && npm run copy:assets",
     "build:frontend": "cd ../frontend && npm install && npm run build",
     "copy:assets": "mkdir -p ./static && cp -r ../frontend/build/* ./static/",
     "deploy": "wrangler deploy",
-    "dev": "wrangler dev"
+    "dev": "wrangler dev",
+    "type-check": "tsc --noEmit",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage"
   },
   "dependencies": {
     "@cloudflare/kv-asset-handler": "^0.3.0"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241127.0",
+    "@types/node": "^20.0.0",
+    "miniflare": "^3.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0",
+    "vitest-environment-miniflare": "^2.14.0",
     "wrangler": "^3.0.0"
   }
 }

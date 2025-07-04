@@ -1,0 +1,114 @@
+= ADR-007: JWT-Based Authentication with Cloudflare D1
+
+**Status**: Implemented +
+**Date**: 2025-01-04 +
+**Deciders**: Development Team
+
+== Context
+
+The GameOverview application requires user authentication to provide personalized game libraries and user-specific data. The application runs on Cloudflare Workers, which has specific constraints around session management and database access.
+
+=== Requirements
+* Secure user authentication and authorization
+* Stateless authentication suitable for serverless environment
+* Support for both API token and cookie-based authentication
+* Integration with Cloudflare D1 database
+* Protection against common security vulnerabilities
+
+=== Constraints
+* Cloudflare Workers runtime limitations
+* No traditional session storage available
+* Must work with Web Crypto API (no Node.js crypto)
+* Limited to Cloudflare D1 for data persistence
+
+== Decision
+
+We will implement JWT (JSON Web Token) based authentication with the following architecture:
+
+=== Authentication Flow
+1. **Registration/Login**: Users provide credentials, receive JWT token
+2. **Token Storage**: Dual approach - localStorage for SPA + HTTP-only cookies for security
+3. **Request Authentication**: Support both Bearer tokens and cookie-based auth
+4. **Token Validation**: Server-side JWT verification with Web Crypto API
+
+=== Technical Implementation
+* **Password Hashing**: SHA-256 using Web Crypto API
+* **JWT Signing**: HMAC-SHA256 with configurable secret
+* **Token Expiration**: 24-hour default with configurable duration
+* **Database**: Cloudflare D1 with proper user isolation
+* **CORS**: Configured for cross-origin requests with credentials
+
+=== Security Measures
+* HTTP-only cookies prevent XSS token theft
+* Secure and SameSite cookie attributes
+* Password minimum length requirements
+* Email format validation
+* Unique constraints on email and username
+* Foreign key constraints for data integrity
+
+== Consequences
+
+=== Positive
+* ✅ **Stateless**: Perfect for serverless/edge computing
+* ✅ **Scalable**: No server-side session storage required
+* ✅ **Secure**: Industry-standard JWT with proper security practices
+* ✅ **Flexible**: Supports both API and web browser authentication
+* ✅ **Fast**: Minimal database queries for authentication
+* ✅ **Standards Compliant**: Uses Web Crypto API and standard JWT format
+
+=== Negative
+* ❌ **Token Revocation**: Cannot invalidate tokens before expiration
+* ❌ **Token Size**: JWT tokens larger than session IDs
+* ❌ **Crypto Limitations**: Limited to Web Crypto API algorithms
+* ❌ **Secret Management**: JWT secret must be securely managed
+
+=== Mitigations
+* Short token expiration times (24h) limit exposure window
+* Refresh token mechanism can be added for longer sessions
+* Environment variable management for JWT secrets
+* Monitoring and alerting for authentication failures
+
+== Implementation Details
+
+=== Database Schema
+```sql
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    username TEXT UNIQUE NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+=== API Endpoints
+* `POST /api/auth/register` - User registration
+* `POST /api/auth/login` - User login
+* `POST /api/auth/logout` - User logout (cookie clearing)
+* `GET /api/auth/me` - Get current user info
+
+=== Frontend Integration
+* React Context for global auth state
+* Axios interceptors for automatic token handling
+* Protected route components
+* Automatic token refresh on API errors
+
+== Alternatives Considered
+
+=== Session-Based Authentication
+**Rejected**: Requires server-side session storage, not suitable for Cloudflare Workers
+
+=== OAuth/OIDC Integration
+**Deferred**: Adds complexity and external dependencies, can be added later
+
+=== Magic Link Authentication
+**Deferred**: Requires email service integration, more complex implementation
+
+=== API Key Authentication
+**Rejected**: Less secure for user-facing applications, no user context
+
+== References
+* https://jwt.io/introduction/[JWT Introduction]
+* https://developers.cloudflare.com/workers/runtime-apis/web-crypto/[Cloudflare Web Crypto API]
+* https://developers.cloudflare.com/d1/[Cloudflare D1 Documentation]
+* https://owasp.org/www-project-cheat-sheets/cheatsheets/JSON_Web_Token_for_Java_Cheat_Sheet.html[OWASP JWT Security]
