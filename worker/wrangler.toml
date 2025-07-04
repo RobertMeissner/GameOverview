@@ -2,15 +2,5 @@ name = "nextbestgame"
 main = "src/index.js"
 compatibility_date = "2024-07-01"
 
-[site]
-bucket = "./static"
-
-[[kv_namespaces]]
-binding = "ASSETS"
-id = "985c8479245f41d1ab8f0fffe5bec30f"
-preview_id = "00f0db0138804894821952e63035a3da"
-
-[env.production]
-routes = [
-  { pattern = "nextbestgame.pages.dev/*", zone_name = "nextbestgame.pages.dev" }
-]
+[assets]
+directory = "./static"
