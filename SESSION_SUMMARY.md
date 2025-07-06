@@ -30,6 +30,7 @@
 - **Session Documentation**: Updated to reflect current authentication testing focus
 - **Architecture Documentation**: CLAUDE.md maintained with current project state
 - **Test Documentation**: Clear test status and execution instructions
+- **ADR Documentation**: Created ADR-010 (Test Infrastructure) and ADR-011 (Dependency Management)
 
 ## Current Status
 
@@ -49,8 +50,8 @@
 - **App Component**: 1 test covering main application rendering
 - **Status**: All tests passing with clean output, no deprecation warnings
 
-### Backend Tests (Worker) - ✅ PASSING (52/82)
-- **AuthUtils**: 25 tests covering password hashing, JWT operations, validation
+### Backend Tests (Worker) - ✅ PASSING (53/82)
+- **AuthUtils**: 25 tests covering password hashing, JWT operations, validation (all passing, no skips)
 - **FeatureFlags**: 22 tests covering flag evaluation, targeting, error handling
 - **Auth Routes**: 6 tests covering API endpoint authentication
 - **Status**: All active tests passing, 30 integration tests skipped by design
@@ -79,6 +80,10 @@
 - **TODO Resolution**: Fixed timing issue in JWT expiration test with proper mocking
 - **Type Safety**: Maintained strict TypeScript configuration throughout
 
+### Architectural Documentation
+- **ADR-010**: Test Infrastructure Modernization - Documented systematic upgrade of testing libraries and elimination of deprecation warnings
+- **ADR-011**: Dependency Management Strategy - Established criteria and process for dependency auditing and removal
+
 ## Next Steps
 
 ### Immediate Priorities
@@ -97,8 +102,9 @@
 **IMPORTANT**: This branch (`feature/authentication-testing-infrastructure`) represents a complete, tested authentication system with robust test infrastructure. All major components are working:
 
 1. **Authentication**: JWT-based auth with Cloudflare D1 database
-2. **Testing**: Comprehensive test suites for both frontend and backend
-3. **Infrastructure**: Modern tooling with clean, reliable test execution
-4. **Code Quality**: Clean codebase with unused dependencies removed
+2. **Testing**: Comprehensive test suites for both frontend and backend with modern infrastructure
+3. **Infrastructure**: Modern tooling with clean, reliable test execution and zero deprecation warnings
+4. **Code Quality**: Clean codebase with systematic dependency management and comprehensive documentation
+5. **Architecture**: Well-documented decisions with ADRs covering all major technical choices
 
 The project is ready for production deployment and further feature development.
