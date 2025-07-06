@@ -290,19 +290,33 @@ describe('FeatureFlagService', () => {
 
   describe('Error handling', () => {
     it('should handle KV errors gracefully', async () => {
+      // Suppress console.error for this test
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      
       // Mock KV to throw error
       mockKV.get.mockRejectedValueOnce(new Error('KV error'))
       
       const result = await flagService.isEnabled('error_flag', undefined, true)
       expect(result).toBe(true) // Should return default value
+      
+      // Verify error was logged
+      expect(consoleSpy).toHaveBeenCalledWith('Error getting flag error_flag:', expect.any(Error))
+      consoleSpy.mockRestore()
     })
 
     it('should handle invalid JSON in KV gracefully', async () => {
+      // Suppress console.error for this test
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      
       // Put invalid JSON directly in store
       mockKV.getStore().set('feature:test:invalid_flag', 'invalid json')
       
       const result = await flagService.isEnabled('invalid_flag', undefined, false)
       expect(result).toBe(false) // Should return default value
+      
+      // Verify error was logged
+      expect(consoleSpy).toHaveBeenCalledWith('Error getting flag invalid_flag:', expect.any(SyntaxError))
+      consoleSpy.mockRestore()
     })
   })
 })
