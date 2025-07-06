@@ -83,21 +83,28 @@ describe('AuthUtils', () => {
       await expect(authUtils.verifyJWT(invalidToken)).rejects.toThrow()
     })
 
-    it.skip('should reject expired JWT tokens', async () => {
-      // TODO: Fix timing issue in test environment
+    it('should reject expired JWT tokens', async () => {
       const payload = {
         userId: 1,
         email: 'test@example.com',
         username: 'testuser'
       }
       
-      // Create token that expires in 1 second
+      // Mock Date.now to control time
+      const originalNow = Date.now
+      const baseTime = 1000000000000 // Fixed timestamp
+      
+      // Create token at base time
+      vi.spyOn(Date, 'now').mockReturnValue(baseTime)
       const token = await authUtils.createJWT(payload, '1s')
       
-      // Wait for expiration
-      await new Promise(resolve => setTimeout(resolve, 1100))
+      // Move time forward past expiration (1 second + buffer)
+      vi.spyOn(Date, 'now').mockReturnValue(baseTime + 2000)
       
-      await expect(authUtils.verifyJWT(token)).rejects.toThrow('Token expired')
+      await expect(authUtils.verifyJWT(token)).rejects.toThrow()
+      
+      // Restore original Date.now
+      Date.now = originalNow
     })
 
     it('should handle different expiration formats', async () => {

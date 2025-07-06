@@ -7,6 +7,8 @@ import type {
 } from '../types/auth'
 
 // Get API base URL from environment or default to relative path
+// Note: In React apps, environment variables are injected at build time
+declare const process: { env: { [key: string]: string | undefined } }
 const API_BASE_URL = process.env.REACT_APP_API_URL || '/api'
 
 // Create axios instance with default config
