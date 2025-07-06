@@ -34,7 +34,7 @@ const renderWithTheme = (component: React.ReactElement) => {
 }
 
 describe('LoginForm', () => {
-  const mockOnSuccess = jest.fn()
+  const mockOnLoginSuccess = jest.fn()
 
   beforeEach(() => {
     jest.clearAllMocks()
@@ -42,7 +42,7 @@ describe('LoginForm', () => {
   })
 
   it('should render login form', () => {
-    renderWithTheme(<LoginForm onSuccess={mockOnSuccess} />)
+    renderWithTheme(<LoginForm onLoginSuccess={mockOnLoginSuccess} />)
 
     expect(screen.getByLabelText(/email or username/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument()
@@ -52,7 +52,7 @@ describe('LoginForm', () => {
   it('should handle form submission with valid data', async () => {
     mockLogin.mockResolvedValue(undefined)
 
-    renderWithTheme(<LoginForm onSuccess={mockOnSuccess} />)
+    renderWithTheme(<LoginForm onLoginSuccess={mockOnLoginSuccess} />)
 
     const emailInput = screen.getByLabelText(/email or username/i)
     const passwordInput = screen.getByLabelText(/^password$/i)
@@ -68,14 +68,14 @@ describe('LoginForm', () => {
       expect(mockLogin).toHaveBeenCalledWith('test@example.com', 'password123')
     })
 
-    expect(mockOnSuccess).toHaveBeenCalled()
+    expect(mockOnLoginSuccess).toHaveBeenCalled()
   })
 
   it('should display error message on login failure', async () => {
     const errorMessage = 'Invalid credentials'
     mockLogin.mockRejectedValue(new Error(errorMessage))
 
-    renderWithTheme(<LoginForm onSuccess={mockOnSuccess} />)
+    renderWithTheme(<LoginForm onLoginSuccess={mockOnLoginSuccess} />)
 
     const emailInput = screen.getByLabelText(/email or username/i)
     const passwordInput = screen.getByLabelText(/^password$/i)
@@ -91,11 +91,11 @@ describe('LoginForm', () => {
       expect(screen.getByText(errorMessage)).toBeInTheDocument()
     })
 
-    expect(mockOnSuccess).not.toHaveBeenCalled()
+    expect(mockOnLoginSuccess).not.toHaveBeenCalled()
   })
 
   it('should require email/username field', async () => {
-    renderWithTheme(<LoginForm onSuccess={mockOnSuccess} />)
+    renderWithTheme(<LoginForm onLoginSuccess={mockOnLoginSuccess} />)
 
     const passwordInput = screen.getByLabelText(/^password$/i)
     const submitButton = screen.getByRole('button', { name: /sign in/i })
@@ -107,11 +107,11 @@ describe('LoginForm', () => {
 
     // Form should not submit without email/username
     expect(mockLogin).not.toHaveBeenCalled()
-    expect(mockOnSuccess).not.toHaveBeenCalled()
+    expect(mockOnLoginSuccess).not.toHaveBeenCalled()
   })
 
   it('should require password field', async () => {
-    renderWithTheme(<LoginForm onSuccess={mockOnSuccess} />)
+    renderWithTheme(<LoginForm onLoginSuccess={mockOnLoginSuccess} />)
 
     const emailInput = screen.getByLabelText(/email or username/i)
     const submitButton = screen.getByRole('button', { name: /sign in/i })
@@ -123,11 +123,11 @@ describe('LoginForm', () => {
 
     // Form should not submit without password
     expect(mockLogin).not.toHaveBeenCalled()
-    expect(mockOnSuccess).not.toHaveBeenCalled()
+    expect(mockOnLoginSuccess).not.toHaveBeenCalled()
   })
 
   it('should handle keyboard navigation', async () => {
-    renderWithTheme(<LoginForm onSuccess={mockOnSuccess} />)
+    renderWithTheme(<LoginForm onLoginSuccess={mockOnLoginSuccess} />)
 
     const emailInput = screen.getByLabelText(/email or username/i)
     const passwordInput = screen.getByLabelText(/^password$/i)
@@ -139,6 +139,13 @@ describe('LoginForm', () => {
     })
     expect(passwordInput).toHaveFocus()
 
+    // Tab again - should focus on password visibility toggle button, then submit button
+    await act(async () => {
+      await userEvent.tab()
+    })
+    // The password field has a visibility toggle button, so that gets focus first
+    expect(screen.getByLabelText(/toggle password visibility/i)).toHaveFocus()
+    
     await act(async () => {
       await userEvent.tab()
     })
@@ -148,7 +155,7 @@ describe('LoginForm', () => {
   it('should submit form on Enter key press', async () => {
     mockLogin.mockResolvedValue(undefined)
 
-    renderWithTheme(<LoginForm onSuccess={mockOnSuccess} />)
+    renderWithTheme(<LoginForm onLoginSuccess={mockOnLoginSuccess} />)
 
     const emailInput = screen.getByLabelText(/email or username/i)
     const passwordInput = screen.getByLabelText(/^password$/i)
@@ -163,6 +170,6 @@ describe('LoginForm', () => {
       expect(mockLogin).toHaveBeenCalledWith('test@example.com', 'password123')
     })
 
-    expect(mockOnSuccess).toHaveBeenCalled()
+    expect(mockOnLoginSuccess).toHaveBeenCalled()
   })
 })

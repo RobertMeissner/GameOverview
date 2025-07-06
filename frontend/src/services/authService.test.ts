@@ -1,15 +1,28 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals'
 
-// Mock axios before importing AuthService
+// Mock axios module first
 jest.mock('axios')
 
+// Import axios and setup mocks
 import axios from 'axios'
-import AuthService from './authService'
-
 const mockedAxios = axios as jest.Mocked<typeof axios>
-const mockAxiosInstance = mockedAxios.create() as any
-const mockPost = mockAxiosInstance.post
-const mockGet = mockAxiosInstance.get
+
+// Create mock functions
+const mockPost = jest.fn()
+const mockGet = jest.fn()
+
+// Setup axios.create to return our mocked instance BEFORE importing AuthService
+mockedAxios.create.mockReturnValue({
+  post: mockPost,
+  get: mockGet,
+  interceptors: {
+    request: { use: jest.fn() },
+    response: { use: jest.fn() }
+  }
+} as any)
+
+// Now import AuthService after the mock is set up
+import AuthService from './authService'
 
 // Mock localStorage
 const localStorageMock = {

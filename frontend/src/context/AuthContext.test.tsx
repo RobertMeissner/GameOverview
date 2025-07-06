@@ -27,8 +27,8 @@ const TestComponent = () => {
     try {
       await auth.login('test@example.com', 'password')
     } catch (error) {
-      // Re-throw to be caught by test
-      throw error
+      // Don't re-throw, let the AuthContext handle the error
+      console.log('Login failed:', error)
     }
   }
 
@@ -167,7 +167,11 @@ describe('AuthContext', () => {
   it('should handle failed login', async () => {
     localStorageMock.getItem.mockReturnValue(null)
     mockedAuthService.getToken.mockReturnValue(null)
-    mockedAuthService.login.mockRejectedValue(new Error('Login failed. Please check your credentials.'))
+    
+    // Set up the login mock to reject
+    mockedAuthService.login.mockImplementation(() => {
+      return Promise.reject(new Error('Login failed. Please check your credentials.'))
+    })
 
     render(
       <AuthProvider>
@@ -185,12 +189,14 @@ describe('AuthContext', () => {
       screen.getByText('Login').click()
     })
 
-    // Check that login failed and state is correct
+    // Wait for the login attempt to complete and state to update
     await waitFor(() => {
-      expect(screen.getByTestId('authenticated')).toHaveTextContent('not-authenticated')
+      expect(mockedAuthService.login).toHaveBeenCalledWith('test@example.com', 'password')
     })
+
+    // Check that login failed and state is correct
+    expect(screen.getByTestId('authenticated')).toHaveTextContent('not-authenticated')
     expect(screen.getByTestId('user')).toHaveTextContent('no-user')
-    expect(mockedAuthService.login).toHaveBeenCalledWith('test@example.com', 'password')
   })
 
   it('should handle successful registration', async () => {

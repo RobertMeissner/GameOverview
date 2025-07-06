@@ -109,7 +109,7 @@ export class AuthUtils {
   private parseExpiration(expiresIn: string | number): number {
     if (typeof expiresIn === 'number') return expiresIn
     
-    const match = expiresIn.match(/^(\d+)([smhd])$/)
+    const match = expiresIn.match(/^(-?\d+)([smhd])$/)
     if (!match) throw new Error('Invalid expiration format')
     
     const value = parseInt(match[1])
