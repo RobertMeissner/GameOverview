@@ -1,28 +1,11 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals'
 
-// Mock axios module first
-jest.mock('axios')
-
-// Import axios and setup mocks
-import axios from 'axios'
-const mockedAxios = axios as jest.Mocked<typeof axios>
-
-// Create mock functions
-const mockPost = jest.fn()
-const mockGet = jest.fn()
-
-// Setup axios.create to return our mocked instance BEFORE importing AuthService
-mockedAxios.create.mockReturnValue({
-  post: mockPost,
-  get: mockGet,
-  interceptors: {
-    request: { use: jest.fn() },
-    response: { use: jest.fn() }
-  }
-} as any)
-
-// Now import AuthService after the mock is set up
+// Import AuthService - axios is already mocked in setupTests.js
 import AuthService from './authService'
+
+// Get the mock functions from global setup
+const mockPost = (global as any).mockAxios.post
+const mockGet = (global as any).mockAxios.get
 
 // Mock localStorage
 const localStorageMock = {
@@ -74,14 +57,8 @@ describe('AuthService', () => {
       }
 
       mockPost.mockResolvedValue(mockResponse)
-      
-      // Debug: Check if mock is being called
-      console.log('mockPost calls before:', mockPost.mock.calls.length)
 
       const result = await AuthService.register('test@example.com', 'testuser', 'password123')
-
-      console.log('mockPost calls after:', mockPost.mock.calls.length)
-      console.log('mockPost calls:', mockPost.mock.calls)
 
       expect(mockPost).toHaveBeenCalledWith('/auth/register', {
         email: 'test@example.com',

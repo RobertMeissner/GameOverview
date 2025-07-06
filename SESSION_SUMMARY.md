@@ -86,14 +86,14 @@ cd worker && RUN_INTEGRATION_TESTS=true npm test
 - `src/utils/featureFlags.test.ts` (22 tests) - Feature flag service
 - `src/routes/auth.test.ts` (6 tests) - Authentication routes
 
-### Frontend Tests - Status: ❌ FAILING
-**Failed Tests (7 total):**
+### Frontend Tests - Status: ⚠️ PARTIALLY FIXED
+**Failed Tests (6 remaining, 1 fixed):**
 
 #### AuthService Tests (`src/services/authService.test.ts`)
-1. **AuthService › register › should register user successfully**
-   - Issue: Mock axios instance not being called
-   - Error: "Registration failed. Please try again."
-   - Root cause: Test mocking axios incorrectly, not using existing `__mocks__/axios.ts`
+1. **✅ FIXED: AuthService › register › should register user successfully**
+   - **Solution**: Used global mock functions from setupTests.js
+   - **Root cause**: Axios instance created at module load time, needed shared mock functions
+   - **Fix**: Modified setupTests.js to export global mockAxios functions
 
 2. **AuthService › register › should handle registration errors**
    - Issue: Expected "Email already exists", got "Registration failed. Please try again."

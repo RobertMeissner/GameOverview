@@ -4,20 +4,34 @@
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
 
+// Create shared mock functions
+const mockPost = jest.fn()
+const mockGet = jest.fn()
+const mockPut = jest.fn()
+const mockDelete = jest.fn()
+
 // Mock axios to avoid ES module issues
 jest.mock('axios', () => ({
   create: jest.fn(() => ({
-    get: jest.fn(),
-    post: jest.fn(),
-    put: jest.fn(),
-    delete: jest.fn(),
+    get: mockGet,
+    post: mockPost,
+    put: mockPut,
+    delete: mockDelete,
     interceptors: {
       request: { use: jest.fn() },
       response: { use: jest.fn() },
     },
   })),
-  get: jest.fn(),
-  post: jest.fn(),
-  put: jest.fn(),
-  delete: jest.fn(),
-}));
+  get: mockGet,
+  post: mockPost,
+  put: mockPut,
+  delete: mockDelete,
+}))
+
+// Export mock functions for use in tests
+global.mockAxios = {
+  post: mockPost,
+  get: mockGet,
+  put: mockPut,
+  delete: mockDelete
+}
