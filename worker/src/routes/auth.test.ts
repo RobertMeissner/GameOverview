@@ -11,10 +11,19 @@ const createMockEnv = (): Env => {
     first: vi.fn(),
   }
   
+  const mockKV = {
+    get: vi.fn(),
+    put: vi.fn(),
+    delete: vi.fn(),
+    list: vi.fn()
+  }
+
   return {
     JWT_SECRET: 'test-secret-key-for-testing',
     DB: mockDB as unknown as D1Database,
     ASSETS: {} as Fetcher,
+    FEATURE_FLAGS: mockKV as unknown as KVNamespace,
+    ENVIRONMENT: 'test'
   }
 }
 

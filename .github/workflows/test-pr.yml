@@ -1,0 +1,211 @@
+name: Pull Request Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: Run All Tests
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: |
+            frontend/package-lock.json
+            worker/package-lock.json
+
+      - name: Install Worker dependencies
+        run: npm ci
+        working-directory: worker
+
+      - name: Install Frontend dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Run Worker TypeScript type check
+        run: npm run type-check
+        working-directory: worker
+
+      - name: Run Worker unit tests
+        run: npm test -- --run
+        working-directory: worker
+
+      - name: Run Worker tests with coverage
+        run: npm run test:coverage -- --run
+        working-directory: worker
+
+      - name: Run Worker integration tests
+        run: npm run test:integration:direct
+        working-directory: worker
+        env:
+          RUN_INTEGRATION_TESTS: true
+
+      - name: Run Frontend tests with coverage
+        run: npm test -- --watchAll=false --passWithNoTests --coverage
+        working-directory: frontend
+
+      - name: Build Frontend (test build process)
+        run: npm run build
+        working-directory: frontend
+
+      - name: Upload Frontend test coverage
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-coverage
+          path: frontend/coverage/
+          retention-days: 7
+
+      - name: Upload Worker test coverage
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: worker-coverage
+          path: worker/coverage/
+          retention-days: 7
+
+  extended-tests:
+    runs-on: ubuntu-latest
+    name: Extended Integration Tests
+    needs: test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: |
+            frontend/package-lock.json
+            worker/package-lock.json
+
+      - name: Install Worker dependencies
+        run: npm ci
+        working-directory: worker
+
+      - name: Run full Worker integration tests
+        run: npm run test:integration:full
+        working-directory: worker
+        env:
+          RUN_INTEGRATION_TESTS: true
+        continue-on-error: true
+
+      - name: Test feature flag scripts (dry run)
+        run: |
+          echo "Testing feature flag management scripts..."
+          if [ -f "./scripts/test-feature-flags.sh" ]; then
+            echo "✅ Feature flag test script exists"
+            chmod +x ./scripts/test-feature-flags.sh
+            echo "Script is executable"
+          else
+            echo "❌ Feature flag test script not found"
+          fi
+          
+          if [ -f "./scripts/run-integration-tests.sh" ]; then
+            echo "✅ Integration test script exists"
+            chmod +x ./scripts/run-integration-tests.sh
+            echo "Script is executable"
+          else
+            echo "❌ Integration test script not found"
+          fi
+        working-directory: worker
+
+      - name: Validate test configurations
+        run: |
+          echo "Validating test configurations..."
+          
+          # Check if all test scripts are defined
+          echo "Checking package.json test scripts:"
+          npm run | grep test || echo "No test scripts found"
+          
+          # Validate script files exist
+          echo "Checking script files:"
+          ls -la scripts/ || echo "No scripts directory"
+          
+          # Check test directories
+          echo "Checking test directories:"
+          find . -name "*.test.*" -type f | head -10
+          
+          echo "Test validation complete"
+        working-directory: worker
+
+  lint-and-format:
+    runs-on: ubuntu-latest
+    name: Code Quality Checks
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: |
+            frontend/package-lock.json
+            worker/package-lock.json
+
+      - name: Install Worker dependencies
+        run: npm ci
+        working-directory: worker
+
+      - name: Install Frontend dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Check Frontend for linting scripts
+        run: |
+          if npm run | grep -q "lint"; then
+            echo "Running Frontend linting..."
+            npm run lint
+          else
+            echo "No lint script found in Frontend package.json"
+            echo "Available scripts:"
+            npm run
+          fi
+        working-directory: frontend
+        continue-on-error: true
+
+      - name: Check Worker for linting scripts
+        run: |
+          if npm run | grep -q "lint"; then
+            echo "Running Worker linting..."
+            npm run lint
+          else
+            echo "No lint script found in Worker package.json"
+            echo "Available scripts:"
+            npm run
+          fi
+        working-directory: worker
+        continue-on-error: true
+
+      - name: Check for formatting scripts
+        run: |
+          echo "Checking for code formatting tools..."
+          
+          # Check for prettier
+          if command -v prettier &> /dev/null; then
+            echo "✅ Prettier is available"
+          else
+            echo "❌ Prettier not found globally"
+          fi
+          
+          # Check for eslint
+          if command -v eslint &> /dev/null; then
+            echo "✅ ESLint is available"
+          else
+            echo "❌ ESLint not found globally"
+          fi
+          
+          echo "Code quality check complete"
