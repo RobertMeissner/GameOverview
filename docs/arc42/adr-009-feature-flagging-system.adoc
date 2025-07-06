@@ -1,0 +1,216 @@
+= ADR-009: Feature Flagging System with Cloudflare KV
+
+**Status**: Implemented +
+**Date**: 2025-01-06 +
+**Deciders**: Development Team
+
+== Context
+
+The GameOverview application requires a feature flagging system to safely deploy and test new features, particularly the recently implemented authentication system. The application runs on Cloudflare Workers with strict performance requirements and minimal external dependencies.
+
+=== Requirements
+* Toggle features on/off without deployments
+* Support for gradual rollouts (percentage-based)
+* User-specific feature targeting
+* Multi-environment support (dev, staging, prod)
+* Runtime configuration changes
+* Minimal latency impact on requests
+* Integration with existing Cloudflare Workers architecture
+
+=== Constraints
+* Cloudflare Workers runtime limitations
+* No external service dependencies preferred
+* Must work with existing KV namespace infrastructure
+* Performance-critical - sub-millisecond flag evaluation
+* Cost-effective solution
+
+== Decision
+
+We will implement a **Cloudflare KV-based feature flagging system** with enhanced capabilities for user targeting and gradual rollouts.
+
+=== Technical Implementation
+* **Storage**: Cloudflare KV for flag configuration and state
+* **Evaluation**: Local evaluation with KV caching
+* **Targeting**: User ID hashing for consistent percentage rollouts
+* **Environment Support**: Environment-prefixed keys in KV
+* **API**: Simple TypeScript class with async/await interface
+
+=== Feature Flag Structure
+```typescript
+interface FeatureFlag {
+  enabled: boolean
+  rolloutPercentage?: number
+  userWhitelist?: string[]
+  userBlacklist?: string[]
+  environments?: string[]
+}
+```
+
+=== KV Key Structure
+* `feature:{env}:{flagName}` - Flag configuration
+* `feature:{env}:{flagName}:users:{userId}` - User-specific overrides
+* `feature:{env}:global:rollout_salt` - Consistent hashing salt
+
+== Consequences
+
+=== Positive
+* ✅ **Zero Latency**: KV reads are cached at edge locations
+* ✅ **No External Dependencies**: Uses existing Cloudflare infrastructure
+* ✅ **Cost Effective**: KV operations are very cheap
+* ✅ **Simple Implementation**: Minimal code complexity
+* ✅ **Environment Isolation**: Clean separation between dev/staging/prod
+* ✅ **Gradual Rollouts**: Percentage-based user targeting
+* ✅ **Runtime Changes**: Update flags without deployments
+* ✅ **Consistent Evaluation**: Same user always gets same result
+
+=== Negative
+* ❌ **Limited UI**: No built-in dashboard (manual KV management)
+* ❌ **Basic Targeting**: Simple percentage/whitelist only
+* ❌ **Manual Management**: Requires custom tooling for flag management
+* ❌ **KV Propagation**: Changes take ~60 seconds to propagate globally
+* ❌ **No Analytics**: No built-in flag usage analytics
+
+=== Mitigations
+* Build simple CLI tools for flag management
+* Use Wrangler CLI for KV operations during development
+* Implement logging for flag evaluations
+* Consider migration to dedicated service if needs grow complex
+* Document flag management procedures clearly
+
+== Implementation Details
+
+=== Core Feature Flag Class
+```typescript
+export class FeatureFlagService {
+  constructor(
+    private kv: KVNamespace,
+    private environment: string = 'prod'
+  ) {}
+
+  async isEnabled(
+    flagName: string,
+    userId?: string,
+    defaultValue: boolean = false
+  ): Promise<boolean>
+
+  async getVariant(
+    flagName: string,
+    userId?: string,
+    defaultVariant: string = 'default'
+  ): Promise<string>
+}
+```
+
+=== Environment Configuration
+* **Development**: `ENVIRONMENT=dev` - All flags default enabled for testing
+* **Staging**: `ENVIRONMENT=staging` - Production-like flag evaluation
+* **Production**: `ENVIRONMENT=prod` - Conservative flag evaluation
+
+=== Flag Management
+* **Wrangler CLI**: `wrangler kv:key put --binding=FEATURE_FLAGS "feature:prod:authentication" '{"enabled":true,"rolloutPercentage":50}'`
+* **API Endpoints**: Future implementation for dashboard management
+* **Environment Variables**: `ENVIRONMENT` variable controls flag key prefixes
+
+== Alternatives Considered
+
+=== Unleash (Open Source)
+**Rejected**: Requires separate service deployment, adds network latency and complexity
+
+=== Flagsmith (Open Source)
+**Rejected**: External API dependency, potential rate limiting, network latency
+
+=== GrowthBook (Open Source)
+**Rejected**: Overkill for current needs, requires data warehouse integration
+
+=== PostHog Feature Flags
+**Rejected**: Heavy analytics focus, external dependency, cost concerns
+
+== Migration Path
+
+=== Phase 1: Basic Implementation (Current)
+* Simple boolean flags with KV storage
+* Environment-aware flag evaluation
+* User percentage rollouts
+
+=== Phase 2: Enhanced Features (Future)
+* Web dashboard for flag management
+* Flag usage analytics and monitoring
+* Advanced targeting rules (geo, device, etc.)
+
+=== Phase 3: Advanced Features (If Needed)
+* A/B testing integration
+* Flag dependency management
+* Automated rollback on errors
+
+== Usage Examples
+
+=== Authentication Feature Toggle
+```typescript
+const flags = new FeatureFlagService(env.FEATURE_FLAGS, env.ENVIRONMENT)
+const authEnabled = await flags.isEnabled('authentication', userId)
+
+if (authEnabled && url.pathname.startsWith('/api/auth/')) {
+  return handleAuthRoutes(request, env, ctx)
+}
+```
+
+=== Gradual Feature Rollout
+```typescript
+// Roll out new dashboard to 25% of users
+const newDashboard = await flags.isEnabled('new_dashboard', userId)
+if (newDashboard) {
+  return serveNewDashboard(request)
+} else {
+  return serveLegacyDashboard(request)
+}
+```
+
+=== Environment-Specific Features
+```typescript
+// Enable debug features only in development
+const debugMode = await flags.isEnabled('debug_mode', userId)
+if (debugMode && env.ENVIRONMENT === 'dev') {
+  response.headers.set('X-Debug-Info', debugData)
+}
+```
+
+== Monitoring and Observability
+
+=== Metrics to Track
+* Flag evaluation latency
+* Flag evaluation frequency
+* User distribution across flag variants
+* KV operation success/failure rates
+
+=== Logging Strategy
+* Log flag evaluations in development
+* Track flag usage patterns
+* Monitor KV performance metrics
+* Alert on flag evaluation failures
+
+== Security Considerations
+
+=== Access Control
+* KV namespace access restricted to Workers
+* Environment-based key isolation
+* No sensitive data in flag configurations
+
+=== Data Privacy
+* User IDs hashed for rollout calculations
+* No PII stored in flag configurations
+* GDPR-compliant flag evaluation
+
+== Future Enhancements
+
+=== Planned Improvements
+1. **Management Dashboard**: Web UI for flag management
+2. **CLI Tools**: Command-line flag management utilities
+3. **Analytics Integration**: Flag usage tracking and reporting
+4. **Advanced Targeting**: Geographic, device, and custom attribute targeting
+5. **Flag Dependencies**: Hierarchical flag relationships
+
+=== Migration Considerations
+* Design allows for future migration to dedicated service
+* Flag evaluation interface remains consistent
+* KV data can be exported for migration
+* Gradual migration path to more advanced solutions

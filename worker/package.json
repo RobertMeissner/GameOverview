@@ -11,7 +11,10 @@
     "dev": "wrangler dev",
     "type-check": "tsc --noEmit",
     "test": "vitest",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "flags": "node scripts/manage-flags.js",
+    "flags:list": "node scripts/manage-flags.js list",
+    "flags:help": "node scripts/manage-flags.js help"
   },
   "dependencies": {
     "@cloudflare/kv-asset-handler": "^0.3.0"
