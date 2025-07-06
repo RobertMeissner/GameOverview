@@ -23,13 +23,31 @@ Object.defineProperty(window, 'localStorage', {
 const TestComponent = () => {
   const auth = useAuth()
   
+  const handleLogin = async () => {
+    try {
+      await auth.login('test@example.com', 'password')
+    } catch (error) {
+      // Re-throw to be caught by test
+      throw error
+    }
+  }
+
+  const handleRegister = async () => {
+    try {
+      await auth.register('test@example.com', 'testuser', 'password')
+    } catch (error) {
+      // Re-throw to be caught by test
+      throw error
+    }
+  }
+  
   return (
     <div>
       <div data-testid="loading">{auth.isLoading ? 'loading' : 'not-loading'}</div>
       <div data-testid="authenticated">{auth.isAuthenticated ? 'authenticated' : 'not-authenticated'}</div>
       <div data-testid="user">{auth.user ? auth.user.email : 'no-user'}</div>
-      <button onClick={() => auth.login('test@example.com', 'password')}>Login</button>
-      <button onClick={() => auth.register('test@example.com', 'testuser', 'password')}>Register</button>
+      <button onClick={handleLogin}>Login</button>
+      <button onClick={handleRegister}>Register</button>
       <button onClick={() => auth.logout()}>Logout</button>
     </div>
   )
@@ -149,7 +167,7 @@ describe('AuthContext', () => {
   it('should handle failed login', async () => {
     localStorageMock.getItem.mockReturnValue(null)
     mockedAuthService.getToken.mockReturnValue(null)
-    mockedAuthService.login.mockRejectedValue(new Error('Invalid credentials'))
+    mockedAuthService.login.mockRejectedValue(new Error('Login failed. Please check your credentials.'))
 
     render(
       <AuthProvider>
@@ -162,17 +180,17 @@ describe('AuthContext', () => {
       expect(screen.getByTestId('loading')).toHaveTextContent('not-loading')
     })
 
-    // Perform login
+    // Perform login - expect it to fail
     await act(async () => {
-      try {
-        screen.getByText('Login').click()
-      } catch (error) {
-        // Expected to throw
-      }
+      screen.getByText('Login').click()
     })
 
-    expect(screen.getByTestId('authenticated')).toHaveTextContent('not-authenticated')
+    // Check that login failed and state is correct
+    await waitFor(() => {
+      expect(screen.getByTestId('authenticated')).toHaveTextContent('not-authenticated')
+    })
     expect(screen.getByTestId('user')).toHaveTextContent('no-user')
+    expect(mockedAuthService.login).toHaveBeenCalledWith('test@example.com', 'password')
   })
 
   it('should handle successful registration', async () => {
@@ -255,7 +273,7 @@ describe('AuthContext', () => {
 
   it('should throw error when useAuth is used outside AuthProvider', () => {
     // Suppress console.error for this test
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
 
     expect(() => {
       render(<TestComponent />)

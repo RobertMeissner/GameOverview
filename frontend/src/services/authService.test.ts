@@ -1,10 +1,15 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals'
+
+// Mock axios before importing AuthService
+jest.mock('axios')
+
 import axios from 'axios'
 import AuthService from './authService'
 
-// Mock axios
-jest.mock('axios')
 const mockedAxios = axios as jest.Mocked<typeof axios>
+const mockAxiosInstance = mockedAxios.create() as any
+const mockPost = mockAxiosInstance.post
+const mockGet = mockAxiosInstance.get
 
 // Mock localStorage
 const localStorageMock = {
@@ -32,6 +37,8 @@ describe('AuthService', () => {
     localStorageMock.getItem.mockClear()
     localStorageMock.setItem.mockClear()
     localStorageMock.removeItem.mockClear()
+    mockPost.mockClear()
+    mockGet.mockClear()
   })
 
   afterEach(() => {
@@ -53,11 +60,17 @@ describe('AuthService', () => {
         }
       }
 
-      mockedAxios.post.mockResolvedValue(mockResponse)
+      mockPost.mockResolvedValue(mockResponse)
+      
+      // Debug: Check if mock is being called
+      console.log('mockPost calls before:', mockPost.mock.calls.length)
 
       const result = await AuthService.register('test@example.com', 'testuser', 'password123')
 
-      expect(mockedAxios.post).toHaveBeenCalledWith('/auth/register', {
+      console.log('mockPost calls after:', mockPost.mock.calls.length)
+      console.log('mockPost calls:', mockPost.mock.calls)
+
+      expect(mockPost).toHaveBeenCalledWith('/auth/register', {
         email: 'test@example.com',
         username: 'testuser',
         password: 'password123'
@@ -76,14 +89,14 @@ describe('AuthService', () => {
         }
       }
 
-      mockedAxios.post.mockRejectedValue(mockError)
+      mockPost.mockRejectedValue(mockError)
 
       await expect(AuthService.register('test@example.com', 'testuser', 'password123'))
         .rejects.toThrow('Email already exists')
     })
 
     it('should handle network errors', async () => {
-      mockedAxios.post.mockRejectedValue(new Error('Network error'))
+      mockPost.mockRejectedValue(new Error('Network error'))
 
       await expect(AuthService.register('test@example.com', 'testuser', 'password123'))
         .rejects.toThrow('Registration failed. Please try again.')
@@ -105,11 +118,11 @@ describe('AuthService', () => {
         }
       }
 
-      mockedAxios.post.mockResolvedValue(mockResponse)
+      mockPost.mockResolvedValue(mockResponse)
 
       const result = await AuthService.login('test@example.com', 'password123')
 
-      expect(mockedAxios.post).toHaveBeenCalledWith('/auth/login', {
+      expect(mockPost).toHaveBeenCalledWith('/auth/login', {
         emailOrUsername: 'test@example.com',
         password: 'password123'
       })
@@ -127,7 +140,7 @@ describe('AuthService', () => {
         }
       }
 
-      mockedAxios.post.mockRejectedValue(mockError)
+      mockPost.mockRejectedValue(mockError)
 
       await expect(AuthService.login('test@example.com', 'wrongpassword'))
         .rejects.toThrow('Invalid credentials')
@@ -136,16 +149,16 @@ describe('AuthService', () => {
 
   describe('logout', () => {
     it('should logout successfully', async () => {
-      mockedAxios.post.mockResolvedValue({ data: { success: true } })
+      mockPost.mockResolvedValue({ data: { success: true } })
 
       await AuthService.logout()
 
-      expect(mockedAxios.post).toHaveBeenCalledWith('/auth/logout')
+      expect(mockPost).toHaveBeenCalledWith('/auth/logout')
       expect(localStorageMock.removeItem).toHaveBeenCalledWith('auth_token')
     })
 
     it('should clear localStorage even if API call fails', async () => {
-      mockedAxios.post.mockRejectedValue(new Error('Network error'))
+      mockPost.mockRejectedValue(new Error('Network error'))
 
       await AuthService.logout()
 
@@ -167,11 +180,11 @@ describe('AuthService', () => {
         }
       }
 
-      mockedAxios.get.mockResolvedValue(mockResponse)
+      mockGet.mockResolvedValue(mockResponse)
 
       const result = await AuthService.getCurrentUser()
 
-      expect(mockedAxios.get).toHaveBeenCalledWith('/auth/me')
+      expect(mockGet).toHaveBeenCalledWith('/auth/me')
       expect(result).toEqual(mockResponse.data.user)
     })
 
@@ -184,7 +197,7 @@ describe('AuthService', () => {
         }
       }
 
-      mockedAxios.get.mockRejectedValue(mockError)
+      mockGet.mockRejectedValue(mockError)
 
       await expect(AuthService.getCurrentUser())
         .rejects.toThrow('Invalid token')
