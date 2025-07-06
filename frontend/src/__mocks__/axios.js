@@ -10,10 +10,13 @@ const mockAxiosInstance = {
   }
 }
 
-export default {
-  create: jest.fn(() => mockAxiosInstance),
-  post: mockPost,
-  get: mockGet
+module.exports = {
+  default: {
+    create: jest.fn(() => mockAxiosInstance),
+    post: mockPost,
+    get: mockGet
+  },
+  mockPost,
+  mockGet,
+  mockAxiosInstance
 }
-
-export { mockPost, mockGet, mockAxiosInstance }
