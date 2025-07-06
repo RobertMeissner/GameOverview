@@ -12,9 +12,17 @@
     "type-check": "tsc --noEmit",
     "test": "vitest",
     "test:coverage": "vitest --coverage",
+    "test:integration": "./scripts/run-integration-tests.sh",
+    "test:integration:direct": "RUN_INTEGRATION_TESTS=true vitest run src/integration/featureFlags.simple.test.ts",
+    "test:integration:full": "RUN_INTEGRATION_TESTS=true vitest run src/integration/",
+    "test:e2e": "npx playwright test",
+    "test:load": "npx artillery run tests/load/feature-flags-load.yml",
+    "test:flags": "./scripts/test-feature-flags.sh",
     "flags": "node scripts/manage-flags.js",
     "flags:list": "node scripts/manage-flags.js list",
-    "flags:help": "node scripts/manage-flags.js help"
+    "flags:help": "node scripts/manage-flags.js help",
+    "flags:monitor": "node scripts/monitor-flags.js",
+    "flags:health": "node scripts/monitor-flags.js prod health"
   },
   "dependencies": {
     "@cloudflare/kv-asset-handler": "^0.3.0"
