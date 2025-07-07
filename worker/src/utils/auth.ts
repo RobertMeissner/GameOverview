@@ -1,4 +1,5 @@
 import type { User, UserWithPassword, JWTPayload, Env } from '../types/index.js'
+import { generateUUID } from './uuid.js'
 
 /**
  * Authentication utilities for JWT handling and password hashing
@@ -154,15 +155,16 @@ export class UserService {
   // Create new user
   async createUser(email: string, username: string, password: string, authUtils: AuthUtils): Promise<User> {
     const passwordHash = await authUtils.hashPassword(password)
+    const userId = generateUUID()
     
     try {
-      const result = await this.db.prepare(`
-        INSERT INTO users (email, username, password_hash)
-        VALUES (?, ?, ?)
-      `).bind(email, username, passwordHash).run()
+      await this.db.prepare(`
+        INSERT INTO users (id, email, username, password_hash)
+        VALUES (?, ?, ?, ?)
+      `).bind(userId, email, username, passwordHash).run()
       
       return {
-        id: result.meta.last_row_id!,
+        id: userId,
         email,
         username,
         created_at: new Date().toISOString()
@@ -198,7 +200,7 @@ export class UserService {
   }
 
   // Find user by ID
-  async findUserById(id: number): Promise<User | null> {
+  async findUserById(id: string): Promise<User | null> {
     const result = await this.db.prepare(`
       SELECT id, email, username, created_at
       FROM users

@@ -9,7 +9,7 @@ export interface Env {
 
 // User types
 export interface User {
-  id: number
+  id: string // UUID
   email: string
   username: string
   created_at: string
@@ -39,7 +39,7 @@ export interface AuthResponse {
 // Game types
 export interface Game {
   id: number
-  user_id: number
+  user_id: string // UUID
   name: string
   app_id: string | null
   store: GameStore
@@ -50,6 +50,17 @@ export interface Game {
   last_played: string | null
   playtime_hours: number
   status: GameStatus
+  // Enhanced fields for frontend compatibility
+  game_hash: string
+  found_game_name: string | null
+  review_score: number
+  metacritic_score: number
+  reviews_rating: number
+  store_link: string | null
+  corrected_app_id: string | null
+  played: boolean
+  hide: boolean
+  later: boolean
 }
 
 export type GameStore = 'steam' | 'gog' | 'epic' | 'other'
@@ -62,6 +73,10 @@ export interface CreateGameRequest {
   rating?: number
   notes?: string
   status?: GameStatus
+  // Enhanced fields
+  played?: boolean
+  hide?: boolean
+  later?: boolean
 }
 
 export interface UpdateGameRequest {
@@ -70,6 +85,13 @@ export interface UpdateGameRequest {
   notes?: string
   status?: GameStatus
   playtime_hours?: number
+  // Enhanced fields
+  played?: boolean
+  hide?: boolean
+  later?: boolean
+  review_score?: number
+  metacritic_score?: number
+  corrected_app_id?: string
 }
 
 export interface GameResponse {
@@ -84,7 +106,7 @@ export interface GamesResponse {
 
 // JWT types
 export interface JWTPayload {
-  userId: number
+  userId: string // UUID
   email: string
   username: string
   iat: number

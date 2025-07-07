@@ -47,7 +47,7 @@ describe('AuthService', () => {
         data: {
           success: true,
           user: {
-            id: 1,
+            id: '550e8400-e29b-41d4-a716-446655440001',
             email: 'test@example.com',
             username: 'testuser',
             created_at: '2023-01-01T00:00:00Z'
@@ -99,7 +99,7 @@ describe('AuthService', () => {
         data: {
           success: true,
           user: {
-            id: 1,
+            id: '550e8400-e29b-41d4-a716-446655440001',
             email: 'test@example.com',
             username: 'testuser',
             created_at: '2023-01-01T00:00:00Z'
@@ -162,7 +162,7 @@ describe('AuthService', () => {
         data: {
           success: true,
           user: {
-            id: 1,
+            id: '550e8400-e29b-41d4-a716-446655440001',
             email: 'test@example.com',
             username: 'testuser',
             created_at: '2023-01-01T00:00:00Z'

@@ -54,7 +54,7 @@ describe.skipIf(!runIntegrationTests)('Feature Flags Simple Integration Tests', 
   describe('Authentication Token Generation', () => {
     it('should generate valid JWT tokens', async () => {
       const payload = {
-        userId: 1,
+        userId: '1',
         email: 'test@example.com',
         username: 'testuser'
       }
@@ -67,7 +67,7 @@ describe.skipIf(!runIntegrationTests)('Feature Flags Simple Integration Tests', 
       // Verify token can be decoded
       const decoded = await authUtils.verifyJWT(token)
       expect(decoded).toBeTruthy()
-      expect(decoded?.userId).toBe(1)
+      expect(decoded?.userId).toBe('1')
       expect(decoded?.email).toBe('test@example.com')
       expect(decoded?.username).toBe('testuser')
     })
@@ -85,7 +85,7 @@ describe.skipIf(!runIntegrationTests)('Feature Flags Simple Integration Tests', 
 
     it('should handle expired tokens', async () => {
       const payload = {
-        userId: 1,
+        userId: '1',
         email: 'test@example.com',
         username: 'testuser'
       }

@@ -1,0 +1,186 @@
+= ADR-012: Staging Deployment Strategy
+
+== Status
+
+Accepted
+
+== Context
+
+The GameOverview project currently deploys directly to production on every push to the main branch. To improve development workflow and reduce production risks, we need a staging environment where changes can be tested before production deployment.
+
+Key requirements:
+- Easy to trigger staging deployments
+- Isolated staging environment with separate resources
+- Clear promotion path from staging to production
+- Minimal complexity and maintenance overhead
+- Support for testing new features before production release
+
+== Decision Drivers
+
+* **Developer Experience**: Should be easy to deploy to staging without complex procedures
+* **Risk Mitigation**: Staging should catch issues before they reach production
+* **Resource Management**: Staging resources should be separate but cost-effective
+* **Automation**: Minimize manual steps while maintaining control
+* **Rollback Capability**: Easy to revert staging deployments if needed
+* **Integration**: Should work well with existing GitHub Actions workflow
+
+== Considered Options
+
+=== Option 1: Git Tag-Based Deployment
+**Trigger**: Git tags with pattern `staging-*` or `v*-staging`
+
+**Pros**:
+- Explicit versioning and release control
+- Easy rollback by referencing specific tags
+- Clear audit trail of staging deployments
+- Integrates well with semantic versioning
+- No additional branch management
+
+**Cons**:
+- Requires manual tagging step
+- Additional workflow complexity
+- Developers need to remember tagging conventions
+
+**Implementation**:
+```yaml
+on:
+  push:
+    tags:
+      - 'staging-*'
+      - 'v*-staging'
+```
+
+=== Option 2: Branch-Based Deployment
+**Trigger**: Pushes to dedicated `staging` branch
+
+**Pros**:
+- Automatic deployment on push
+- Clear separation of staging vs production code
+- Familiar Git workflow
+- Easy to see what's in staging
+
+**Cons**:
+- Branch management overhead
+- Potential merge conflicts between staging and main
+- Need to maintain separate branch
+- Risk of staging branch diverging from main
+
+**Implementation**:
+```yaml
+on:
+  push:
+    branches:
+      - main      # production
+      - staging   # staging
+```
+
+=== Option 3: Workflow Dispatch with Environment Selection
+**Trigger**: Manual GitHub Actions workflow dispatch
+
+**Pros**:
+- Maximum flexibility and control
+- Single workflow for both environments
+- On-demand deployment
+- Can deploy any commit to staging
+
+**Cons**:
+- Manual process requiring GitHub UI access
+- No automatic staging deployments
+- Requires remembering to deploy to staging
+- Less integrated with development workflow
+
+**Implementation**:
+```yaml
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+```
+
+=== Option 4: Pull Request Preview Deployments
+**Trigger**: Pull request creation/updates
+
+**Pros**:
+- Isolated testing per feature
+- Automatic cleanup
+- Great for code review
+- No conflicts between features
+
+**Cons**:
+- Complex setup and resource management
+- Higher costs (multiple environments)
+- Requires dynamic environment creation
+- Overkill for current project size
+
+== Decision
+
+**Chosen Option: Git Tag-Based Deployment (Option 1)**
+
+=== Rationale
+
+Git tag-based deployment provides the best balance of control, simplicity, and developer experience for our current needs:
+
+1. **Explicit Control**: Developers can choose exactly when to deploy to staging by creating a tag
+2. **Version Management**: Tags provide clear versioning and audit trail
+3. **Rollback Capability**: Easy to redeploy previous versions by referencing tags
+4. **No Branch Overhead**: Avoids the complexity of maintaining separate branches
+5. **Flexible Timing**: Can deploy to staging at any point in development cycle
+6. **Production Safety**: Staging deployments don't interfere with production workflow
+
+=== Implementation Strategy
+
+1. **Tag Convention**: Use `staging-YYYY-MM-DD-HH-MM` or `v*-staging` patterns
+2. **Separate Environments**: Staging uses separate Cloudflare resources
+3. **Environment Variables**: Different configuration for staging vs production
+4. **Database Isolation**: Separate D1 database for staging
+5. **Automated Testing**: Run full test suite before staging deployment
+
+== Consequences
+
+=== Positive
+- Clear separation between staging and production deployments
+- Explicit versioning and release control
+- Easy rollback and redeployment capabilities
+- Minimal impact on existing production workflow
+- Good developer experience with simple tagging
+
+=== Negative
+- Requires developers to remember tagging conventions
+- Additional step in deployment process
+- Need to manage separate staging resources
+- Slightly more complex CI/CD configuration
+
+=== Neutral
+- Staging deployments are intentional rather than automatic
+- Requires documentation of tagging conventions
+- Need to monitor staging resource usage
+
+== Implementation Plan
+
+1. Create staging environment configuration in `wrangler.toml`
+2. Set up separate Cloudflare resources (D1 database, KV namespace)
+3. Update GitHub Actions workflow to handle tag-based deployments
+4. Configure environment-specific variables
+5. Document tagging conventions for developers
+6. Test staging deployment process
+
+== Monitoring and Review
+
+- Monitor staging deployment frequency and success rate
+- Gather developer feedback on tagging workflow
+- Review staging resource costs monthly
+- Evaluate promotion process from staging to production
+- Consider automation improvements based on usage patterns
+
+== Related ADRs
+
+- ADR-006: Deployment Strategy (superseded for staging aspects)
+- ADR-001: Unified Cloudflare Worker Architecture
+- ADR-007: JWT Authentication (staging environment considerations)
