@@ -10,7 +10,7 @@ The application consists of a Python backend and React frontend that need to be 
 We will use containerized deployment with Docker for both frontend and backend components.
 
 == Rationale
-[Add your reasoning here]
+Standard
 
 == Consequences
 === Positive

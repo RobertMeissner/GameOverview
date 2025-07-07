@@ -10,7 +10,7 @@ The application requires a modern frontend framework for building the game overv
 We will use React with TypeScript for the frontend implementation.
 
 == Rationale
-[Add your reasoning here]
+Cloudflare requires Typescript. Python is in Beta.
 
 == Consequences
 === Positive
@@ -21,6 +21,7 @@ We will use React with TypeScript for the frontend implementation.
 === Negative
 * Bundle size considerations
 * Learning curve for team members
+* No chance to learn Django
 
 == Notes
 [Add any additional notes here]

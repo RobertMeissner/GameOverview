@@ -2,18 +2,38 @@
   "name": "nextbestgame-worker",
   "version": "1.0.0",
   "description": "Unified Cloudflare Worker for frontend and API",
-  "main": "src/index.js",
+  "main": "src/index.ts",
   "scripts": {
     "build": "npm run build:frontend && npm run copy:assets",
     "build:frontend": "cd ../frontend && npm install && npm run build",
     "copy:assets": "mkdir -p ./static && cp -r ../frontend/build/* ./static/",
     "deploy": "wrangler deploy",
-    "dev": "wrangler dev"
+    "dev": "wrangler dev",
+    "type-check": "tsc --noEmit",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "test:integration": "./scripts/run-integration-tests.sh",
+    "test:integration:direct": "RUN_INTEGRATION_TESTS=true vitest run src/integration/featureFlags.simple.test.ts",
+    "test:integration:full": "RUN_INTEGRATION_TESTS=true vitest run src/integration/",
+    "test:e2e": "npx playwright test",
+    "test:load": "npx artillery run tests/load/feature-flags-load.yml",
+    "test:flags": "./scripts/test-feature-flags.sh",
+    "flags": "node scripts/manage-flags.js",
+    "flags:list": "node scripts/manage-flags.js list",
+    "flags:help": "node scripts/manage-flags.js help",
+    "flags:monitor": "node scripts/monitor-flags.js",
+    "flags:health": "node scripts/monitor-flags.js prod health"
   },
   "dependencies": {
     "@cloudflare/kv-asset-handler": "^0.3.0"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241127.0",
+    "@types/node": "^20.0.0",
+    "@vitest/coverage-v8": "^2.1.9",
+    "miniflare": "^3.20250408.2",
+    "typescript": "^5.0.0",
+    "vitest": "^2.1.9",
     "wrangler": "^3.0.0"
   }
 }

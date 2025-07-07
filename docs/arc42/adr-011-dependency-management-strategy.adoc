@@ -1,0 +1,159 @@
+= ADR-011: Dependency Management Strategy
+
+== Status
+
+Implemented
+
+== Context
+
+The GameOverview project had accumulated significant dependency bloat over time, with numerous unused packages that were:
+
+* **Increasing bundle size** and build times unnecessarily
+* **Creating security vulnerabilities** through unused but outdated packages
+* **Complicating dependency management** with potential version conflicts
+* **Reducing developer productivity** with slower installs and builds
+* **Masking real dependencies** in the noise of unused packages
+
+Analysis revealed:
+* **Frontend**: 24+ unused dependencies including legacy data processing libraries (parquetjs, ajv), unused UI libraries (react-table), and Node.js polyfills (buffer, util, assert)
+* **Worker**: Unused testing infrastructure (vitest-environment-miniflare) and legacy asset handlers
+* **Mixed usage**: Some dependencies appeared unused but were actually required by build tools or had indirect usage
+
+The project needed a systematic approach to dependency management that would:
+* Remove genuinely unused dependencies safely
+* Establish criteria for future dependency additions
+* Maintain build tool requirements and indirect dependencies
+* Provide a process for regular dependency auditing
+
+== Decision
+
+We will implement a systematic dependency management strategy with clear criteria and regular auditing:
+
+=== Dependency Classification System
+* **Core Dependencies**: Essential for application functionality (React, axios, Material-UI)
+* **Build Dependencies**: Required by build tools even if not directly imported (TypeScript, Babel plugins)
+* **Development Dependencies**: Testing, linting, and development tools (Vitest, testing libraries)
+* **Legacy Dependencies**: Outdated packages that should be removed or replaced
+
+=== Removal Criteria
+Dependencies will be removed if they meet ALL of the following:
+1. **No direct imports** found in source code via static analysis
+2. **No build tool requirements** (not referenced in package.json scripts or config files)
+3. **No peer dependency requirements** from other packages
+4. **No runtime polyfills** required for target environments
+
+=== Retention Criteria
+Dependencies will be retained if they meet ANY of the following:
+1. **Direct source code usage** found via grep/search
+2. **Build script dependencies** referenced in package.json scripts
+3. **Configuration requirements** needed by bundlers, test runners, or other tools
+4. **Peer dependencies** required by other packages we use
+
+=== Regular Auditing Process
+* **Monthly dependency audits** using automated tools (depcheck, npm audit)
+* **Pre-release dependency review** before major version releases
+* **Security vulnerability monitoring** with immediate response for high-severity issues
+* **Version update strategy** prioritizing security patches and bug fixes over feature updates
+
+== Consequences
+
+=== Positive
+* ✅ **Reduced Bundle Size**: Removed 24+ unused frontend dependencies, reducing install size
+* ✅ **Faster Builds**: Fewer dependencies to process during build and install
+* ✅ **Improved Security**: Eliminated unused packages that could introduce vulnerabilities
+* ✅ **Cleaner Dependencies**: package.json files now clearly show actual project requirements
+* ✅ **Better Maintainability**: Easier to understand and manage actual dependencies
+* ✅ **Reduced Conflicts**: Fewer packages means fewer potential version conflicts
+
+=== Negative
+* ❌ **Initial Effort**: Required careful analysis to avoid removing required dependencies
+* ❌ **Risk of Breakage**: Potential for removing dependencies that have indirect usage
+* ❌ **Ongoing Maintenance**: Requires regular auditing to prevent future bloat
+
+=== Neutral
+* 🔄 **Functionality Preserved**: All application features continue to work as expected
+* 🔄 **Development Workflow**: No changes to day-to-day development processes
+
+== Implementation Details
+
+=== Dependencies Removed
+
+==== Frontend (24+ packages)
+```bash
+# Data processing libraries (legacy from previous architecture)
+ajv ajv-keywords parquetjs parquetjs-lite
+
+# Node.js polyfills (not needed in modern React)
+assert buffer util readable-stream
+
+# Unused UI libraries
+react-table
+
+# Babel plugins (removed then reinstalled as actually required)
+@babel/plugin-proposal-private-property-in-object
+```
+
+==== Worker (1 package)
+```bash
+# Testing infrastructure not actually used
+vitest-environment-miniflare
+```
+
+=== Dependencies Retained (Despite appearing unused)
+* **wrangler**: Used in package.json scripts for deployment
+* **typescript**: Required for TypeScript compilation even if not directly imported
+* **@vitest/coverage-v8**: Used by vitest --coverage command
+* **@cloudflare/kv-asset-handler**: May be used in future asset handling (kept for now)
+
+=== Auditing Tools Used
+```bash
+# Primary tool for unused dependency detection
+npx depcheck --skip-missing
+
+# Security vulnerability scanning
+npm audit
+
+# Manual verification
+grep -r "package-name" src/
+```
+
+=== Process Documentation
+1. **Run depcheck** to identify potentially unused dependencies
+2. **Manual verification** using grep to search for actual usage
+3. **Check package.json scripts** for build tool requirements
+4. **Review configuration files** for indirect dependencies
+5. **Test removal** in isolated branch before committing
+6. **Verify all tests pass** after dependency removal
+
+== Alternatives Considered
+
+=== Keep All Dependencies "Just in Case"
+* **Rejected**: Continues to accumulate technical debt and security vulnerabilities
+* **Risk**: Bundle bloat and potential conflicts as dependencies become more outdated
+
+=== Aggressive Removal Without Analysis
+* **Rejected**: High risk of breaking builds or functionality
+* **Risk**: Could remove dependencies that have indirect or build-time requirements
+
+=== Automated Dependency Management Tools
+* **Considered**: Tools like Renovate or Dependabot for automatic updates
+* **Deferred**: Will implement after establishing baseline with manual process
+* **Future**: May adopt automated tools for ongoing maintenance
+
+== Related ADRs
+
+* ADR-010: Test Infrastructure Modernization - Established modern testing dependencies that this ADR maintains
+* ADR-008: TypeScript Migration - TypeScript dependencies are core to the architecture
+* ADR-006: Deployment Strategy - Wrangler and deployment dependencies are essential
+
+== Notes
+
+This ADR establishes a foundation for ongoing dependency hygiene. The initial cleanup removed obvious unused dependencies, but the real value is in the process and criteria established for future dependency management.
+
+The decision to be conservative in removal (keeping dependencies when in doubt) reflects the principle that a working system with some extra dependencies is better than a broken system with minimal dependencies.
+
+Future iterations of this process should consider:
+* Automated dependency update tools
+* Bundle size monitoring and alerts
+* Dependency license compliance checking
+* Regular security scanning integration

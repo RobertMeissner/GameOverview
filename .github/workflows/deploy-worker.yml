@@ -7,9 +7,61 @@ on:
   workflow_dispatch:
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: Run Tests
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: |
+            frontend/package-lock.json
+            worker/package-lock.json
+
+      - name: Install Worker dependencies
+        run: npm ci
+        working-directory: worker
+
+      - name: Install Frontend dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Run Worker TypeScript type check
+        run: npm run type-check
+        working-directory: worker
+
+      - name: Run Worker unit tests
+        run: npm test -- --run
+        working-directory: worker
+
+      - name: Run Worker tests with coverage
+        run: npm run test:coverage -- --run
+        working-directory: worker
+
+      - name: Run Worker integration tests (simple)
+        run: npm run test:integration:direct
+        working-directory: worker
+        env:
+          RUN_INTEGRATION_TESTS: true
+
+      - name: Run Frontend tests
+        run: npm test -- --watchAll=false --passWithNoTests
+        working-directory: frontend
+
+      - name: Build Frontend (test build process)
+        run: npm run build
+        working-directory: frontend
+
   deploy:
     runs-on: ubuntu-latest
     name: Deploy to Cloudflare Workers
+    needs: [test]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
         uses: actions/checkout@v4

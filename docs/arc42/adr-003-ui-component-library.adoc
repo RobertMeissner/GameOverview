@@ -10,7 +10,7 @@ The frontend requires a consistent design system and pre-built components for ra
 We will use Material-UI (MUI) as the primary UI component library.
 
 == Rationale
-[Add your reasoning here]
+Simple, known, standard.
 
 == Consequences
 === Positive

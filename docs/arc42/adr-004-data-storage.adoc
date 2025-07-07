@@ -1,7 +1,7 @@
 = ADR-004: Data Storage Strategy
 
 == Status
-Accepted
+Superseded by adr-007 and Cloudflare Choice.
 
 == Context
 The application needs to store and manage game data from multiple sources with different update frequencies.
@@ -10,7 +10,7 @@ The application needs to store and manage game data from multiple sources with d
 We will use file-based storage with structured data formats for game information.
 
 == Rationale
-[Add your reasoning here]
+Sufficient for local PoC
 
 == Consequences
 === Positive

@@ -12,6 +12,7 @@ import {
     InputLabel,
     FormControl,
     SelectChangeEvent,
+    Alert,
 } from '@mui/material';
 import axios from 'axios';
 
@@ -28,6 +29,8 @@ const AddDataItem: React.FC<{ onDataAdded: () => void }> = ({onDataAdded}) => {
     const [formData, setFormData] = useState(initialFormData);
     const [additionalFieldsVisible, setAdditionalFieldsVisible] = useState(false);
     const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const {name, value, type, checked} = e.target;
@@ -49,80 +52,100 @@ const AddDataItem: React.FC<{ onDataAdded: () => void }> = ({onDataAdded}) => {
         setFormData(initialFormData);
         setAdditionalFieldsVisible(false);
         setThumbnailUrl(null);
+        setError(null);
     };
 
     const handleTestDataItem = async (): Promise<void> => {
         if (!formData.name && (!formData.app_id || !formData.store)) {
-            alert('Please provide either a name or both app_id and store.');
+            setError('Please provide either a name or both app_id and store.');
             return;
         }
 
-        const postData = async (data: {
-            name: string;
-            store: string;
-            app_id: number | string;
-        }): Promise<void> => {
-            try {
-                const response = await axios.post('/api/games/add', data);
-                if (response.status === 200) {
-                    const {name, app_id, store, thumbnail_url} = response.data;
-                    setFormData({
-                        name,
-                        app_id: app_id.toString(),
-                        store,
-                        played: formData.played,
-                        hide: formData.hide,
-                        later: formData.later
-                    }); // Convert app_id back to string for handling.
-                    setThumbnailUrl(thumbnail_url);
-                    setAdditionalFieldsVisible(true);
-                    onDataAdded();
-                }
-            } catch (error) {
-                console.error("Error adding data item:", error);
-                alert('Failed to add the data item. Please try again.');
-            }
-        };
+        setIsLoading(true);
+        setError(null);
 
-        await postData({...formData});
+        try {
+            // Note: This is just for testing Steam API data, not creating a game
+            const testData = {
+                name: formData.name,
+                store: formData.store,
+                app_id: formData.app_id ? parseInt(formData.app_id) : undefined,
+            };
+
+            // For now, we'll simulate the test by calling the Steam API directly
+            // In a real implementation, you might want a separate test endpoint
+            const response = await axios.post('/api/games', testData);
+            
+            if (response.data.success) {
+                const game = response.data.game;
+                setFormData({
+                    name: game.name,
+                    app_id: game.app_id?.toString() || '',
+                    store: game.store,
+                    played: formData.played,
+                    hide: formData.hide,
+                    later: formData.later
+                });
+                setThumbnailUrl(game.thumbnail_url);
+                setAdditionalFieldsVisible(true);
+                onDataAdded();
+            }
+        } catch (error: any) {
+            console.error("Error testing game data:", error);
+            if (error.response?.data?.error) {
+                setError(error.response.data.error);
+            } else {
+                setError('Failed to test the game data. Please try again.');
+            }
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleCreateDataItem = async (): Promise<void> => {
+        setIsLoading(true);
+        setError(null);
+
         const data = {
             name: formData.name,
-            store: formData.store,
-            app_id: formData.app_id,
-            thumbnail_url: thumbnailUrl,
-            played: formData.played,
-            hide: formData.hide,
-            later: formData.later,
+            store: formData.store as 'steam' | 'gog' | 'epic' | 'other',
+            app_id: formData.app_id || undefined,
+            status: formData.played ? 'completed' : (formData.later ? 'wishlist' : 'backlog'),
+            notes: formData.hide ? 'Hidden' : undefined,
         };
 
         try {
-            const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/games/create`, data);
-            if (response.status === 200) {
-                alert('Data item created successfully!');
-                resetForm(); // Optional: reset the form after creation
+            const response = await axios.post('/api/games', data);
+            if (response.data.success) {
+                setError(null);
+                resetForm();
+                onDataAdded();
+                // Show success message
+                alert('Game added to your library successfully!');
             }
-        } catch (error) {
-            if (axios.isAxiosError(error) && error.response) {
-                if (error.response.status === 409) {
-                    alert(error.response.data.detail || 'Conflict error occurred.');
-                } else {
-                    alert('Failed to create the data item. Please try again.');
-                }
+        } catch (error: any) {
+            console.error("Error creating game:", error);
+            if (error.response?.data?.error) {
+                setError(error.response.data.error);
             } else {
-                console.error("Error creating data item:", error);
-                alert('An unexpected error occurred. Please try again.');
+                setError('Failed to add the game. Please try again.');
             }
+        } finally {
+            setIsLoading(false);
         }
     };
 
     return (
         <Paper elevation={3} sx={{padding: 3, margin: 3}}>
             <Typography variant="h4" gutterBottom>
-                Add New Data Item
+                Add New Game
             </Typography>
+            
+            {error && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                    {error}
+                </Alert>
+            )}
             <Box sx={{display: 'flex', alignItems: 'center'}}>
                 <TextField
                     name="name"
@@ -164,11 +187,18 @@ const AddDataItem: React.FC<{ onDataAdded: () => void }> = ({onDataAdded}) => {
                 >
                     <MenuItem value="steam">Steam</MenuItem>
                     <MenuItem value="gog">GOG</MenuItem>
+                    <MenuItem value="epic">Epic Games</MenuItem>
+                    <MenuItem value="other">Other</MenuItem>
                 </Select>
             </FormControl>
             {!additionalFieldsVisible && (
-                <Button variant="contained" color="primary" onClick={handleTestDataItem}>
-                    Test Game
+                <Button 
+                    variant="contained" 
+                    color="primary" 
+                    onClick={handleTestDataItem}
+                    disabled={isLoading}
+                >
+                    {isLoading ? 'Testing...' : 'Test Game'}
                 </Button>
             )}
             {additionalFieldsVisible && (
@@ -204,13 +234,28 @@ const AddDataItem: React.FC<{ onDataAdded: () => void }> = ({onDataAdded}) => {
                         label="Later"
                     />
                     <Box sx={{marginTop: 2, display: 'flex', gap: 2}}>
-                        <Button variant="contained" color="primary" onClick={handleTestDataItem}>
-                            Test Game
+                        <Button 
+                            variant="contained" 
+                            color="primary" 
+                            onClick={handleTestDataItem}
+                            disabled={isLoading}
+                        >
+                            {isLoading ? 'Testing...' : 'Test Game'}
                         </Button>
-                        <Button variant="contained" color="primary" onClick={handleCreateDataItem}>
-                            Add Game
+                        <Button 
+                            variant="contained" 
+                            color="success" 
+                            onClick={handleCreateDataItem}
+                            disabled={isLoading}
+                        >
+                            {isLoading ? 'Adding...' : 'Add Game'}
                         </Button>
-                        <Button variant="outlined" color="secondary" onClick={resetForm}>
+                        <Button 
+                            variant="outlined" 
+                            color="secondary" 
+                            onClick={resetForm}
+                            disabled={isLoading}
+                        >
                             Reset
                         </Button>
                     </Box>

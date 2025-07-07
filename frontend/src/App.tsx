@@ -7,8 +7,12 @@ import FilterControls from './components/FilterControls';
 import DataTable from './components/DataTable';
 import TopThreeListItem from './components/TopThreeListItem';
 import {ThumbnailProvider} from './context/ThumbnailContext';
+import {AuthProvider} from './context/AuthContext';
 import AddDataItem from "./components/AddDataItem";
 import ExportData from "./components/ExportData";
+import AuthPage from './components/auth/AuthPage';
+import ProtectedRoute from './components/auth/ProtectedRoute';
+import UserMenu from './components/auth/UserMenu';
 
 export interface DataItem {
     game_hash: string;
@@ -120,104 +124,118 @@ const App: React.FC = () => {
 
     return (
         <Router>
-            <ThumbnailProvider>
-                <Box sx={{display: 'flex', flexDirection: 'column', height: '100vh'}}>
-                    <AppBar position="fixed" sx={{zIndex: 'drawer', height: APPBAR_HEIGHT}}>
-                        <Toolbar>
-                            <Typography variant="h6" noWrap component="div" sx={{flexGrow: 1}}>
-                                Game Overview
-                            </Typography>
-                        </Toolbar>
-                    </AppBar>
-                    <Toolbar/> {/* Add this for AppBar space compensation */}
-                    <Box sx={{display: 'flex', flexDirection: 'row', flexGrow: 1}}>
-                        <Box
-                            sx={{
-                                width: SIDEBAR_WIDTH,
-                                flexShrink: 0,
-                                bgcolor: 'background.paper',
-                                position: 'fixed',
-                                top: APPBAR_HEIGHT,
-                                bottom: 0, // Ensure it stretches full height
-                                overflowY: 'auto', // Enable scrolling
-                                paddingTop: 2,
-                            }}
-                        >
-                            <List>
-                                <ListItemButton component={Link} to="/overview">
-                                    <ListItemText primary="Overview"/>
-                                </ListItemButton>
-                                <ListItemButton component={Link} to="/">
-                                    <ListItemText primary="Top Three"/>
-                                </ListItemButton>
-                                <ListItemButton component={Link} to="/addDataItem">
-                                    <ListItemText primary="Add new game"/>
-                                </ListItemButton>
-                                <ListItemButton component={Link} to="/export">
-                                    <ListItemText primary="Export" />
-                                </ListItemButton>
-                            </List>
-                            <Divider sx={{marginY: 1}}/>
-                            <FilterControls
-                                playedFilter={playedFilter}
-                                setPlayedFilter={setPlayedFilter}
-                                hideFilter={hideFilter}
-                                setHideFilter={setHideFilter}
-                                filterZeroIds={filterZeroIds}
-                                setFilterZeroIds={setFilterZeroIds}
-                                searchQuery={searchQuery}
-                                setSearchQuery={setSearchQuery}
-                                laterFilter={laterFilter}
-                                setLaterFilter={setLaterFilter}
-                                ratingReviewFilter={ratingReviewFilter}
-                                setRatingReviewFilter={setRatingReviewFilter}
-                            />
-                        </Box>
-                        <Box
-                            sx={{
-                                flexGrow: 1,
-                                marginLeft: `${SIDEBAR_WIDTH}px`,
-                                padding: 3,
-                                display: 'flex',
-                                flexDirection: 'column',
-                                overflowY: 'auto', // Enable scrolling for main content
-                            }}
-                        >
-                            <Routes>
-                                <Route path="/overview" element={
-                                    <Box sx={{flexGrow: 1, display: 'flex', flexDirection: 'column'}}>
-                                        <Typography variant="h4">Overview</Typography>
-                                        <DataTable
-                                            data={filteredData}
-                                            onDataChange={handleDataChange}
-                                            columnWhitelist={columnWhitelist}
-                                        />
+            <AuthProvider>
+                <ThumbnailProvider>
+                    <Routes>
+                        {/* Public routes */}
+                        <Route path="/login" element={<AuthPage initialMode="login" />} />
+                        <Route path="/register" element={<AuthPage initialMode="register" />} />
+                        
+                        {/* Protected routes */}
+                        <Route path="/*" element={
+                            <ProtectedRoute>
+                                <Box sx={{display: 'flex', flexDirection: 'column', height: '100vh'}}>
+                                    <AppBar position="fixed" sx={{zIndex: 'drawer', height: APPBAR_HEIGHT}}>
+                                        <Toolbar>
+                                            <Typography variant="h6" noWrap component="div" sx={{flexGrow: 1}}>
+                                                Game Overview
+                                            </Typography>
+                                            <UserMenu />
+                                        </Toolbar>
+                                    </AppBar>
+                                    <Toolbar/> {/* Add this for AppBar space compensation */}
+                                    <Box sx={{display: 'flex', flexDirection: 'row', flexGrow: 1}}>
+                                        <Box
+                                            sx={{
+                                                width: SIDEBAR_WIDTH,
+                                                flexShrink: 0,
+                                                bgcolor: 'background.paper',
+                                                position: 'fixed',
+                                                top: APPBAR_HEIGHT,
+                                                bottom: 0, // Ensure it stretches full height
+                                                overflowY: 'auto', // Enable scrolling
+                                                paddingTop: 2,
+                                            }}
+                                        >
+                                            <List>
+                                                <ListItemButton component={Link} to="/overview">
+                                                    <ListItemText primary="Overview"/>
+                                                </ListItemButton>
+                                                <ListItemButton component={Link} to="/">
+                                                    <ListItemText primary="Top Three"/>
+                                                </ListItemButton>
+                                                <ListItemButton component={Link} to="/addDataItem">
+                                                    <ListItemText primary="Add new game"/>
+                                                </ListItemButton>
+                                                <ListItemButton component={Link} to="/export">
+                                                    <ListItemText primary="Export" />
+                                                </ListItemButton>
+                                            </List>
+                                            <Divider sx={{marginY: 1}}/>
+                                            <FilterControls
+                                                playedFilter={playedFilter}
+                                                setPlayedFilter={setPlayedFilter}
+                                                hideFilter={hideFilter}
+                                                setHideFilter={setHideFilter}
+                                                filterZeroIds={filterZeroIds}
+                                                setFilterZeroIds={setFilterZeroIds}
+                                                searchQuery={searchQuery}
+                                                setSearchQuery={setSearchQuery}
+                                                laterFilter={laterFilter}
+                                                setLaterFilter={setLaterFilter}
+                                                ratingReviewFilter={ratingReviewFilter}
+                                                setRatingReviewFilter={setRatingReviewFilter}
+                                            />
+                                        </Box>
+                                        <Box
+                                            sx={{
+                                                flexGrow: 1,
+                                                marginLeft: `${SIDEBAR_WIDTH}px`,
+                                                padding: 3,
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                overflowY: 'auto', // Enable scrolling for main content
+                                            }}
+                                        >
+                                            <Routes>
+                                                <Route path="/overview" element={
+                                                    <Box sx={{flexGrow: 1, display: 'flex', flexDirection: 'column'}}>
+                                                        <Typography variant="h4">Overview</Typography>
+                                                        <DataTable
+                                                            data={filteredData}
+                                                            onDataChange={handleDataChange}
+                                                            columnWhitelist={columnWhitelist}
+                                                        />
+                                                    </Box>
+                                                }/>
+                                                <Route path="/" element={
+                                                    <Box sx={{flexGrow: 1, display: 'flex', flexDirection: 'column'}}>
+                                                        <Typography variant="h4">Top Three Rated Titles</Typography>
+                                                        <TileGrid sx={{flexGrow: 1}}>
+                                                            {topThreeGames.map(item => (
+                                                                <TopThreeListItem
+                                                                    key={item.game_hash}
+                                                                    item={item}
+                                                                    onDataChange={handleDataChange}
+                                                                    showTitle={false}
+                                                                />
+                                                            ))}
+                                                        </TileGrid>
+                                                    </Box>
+                                                } />
+                                                <Route path="/addDataItem" element={
+                                                    <AddDataItem onDataAdded={handleDataAdded} />
+                                                } />
+                                                <Route path="/export" element={<ExportData />} />
+                                            </Routes>
+                                        </Box>
                                     </Box>
-                                }/>
-                                <Route path="/" element={
-                                    <Box sx={{flexGrow: 1, display: 'flex', flexDirection: 'column'}}>
-                                        <Typography variant="h4">Top Three Rated Titles</Typography>
-                                        <TileGrid sx={{flexGrow: 1}}>
-                                            {topThreeGames.map(item => (
-                                                <TopThreeListItem
-                                                    key={item.game_hash}
-                                                    item={item}
-                                                    onDataChange={handleDataChange}
-                                                    showTitle={false}
-                                                />
-                                            ))}
-                                        </TileGrid>
-                                    </Box>
-                                } />
-                                <Route path="/addDataItem" element={
-                                    <AddDataItem onDataAdded={handleDataAdded} />
-                                } />
-                                <Route path="/export" element={<ExportData />} />
-                            </Routes>
-                        </Box>
-                    </Box>
-                </Box>
-            </ThumbnailProvider>
+                                </Box>
+                            </ProtectedRoute>
+                        } />
+                    </Routes>
+                </ThumbnailProvider>
+            </AuthProvider>
         </Router>
     );
 };
