@@ -5,6 +5,7 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     include: ['src/**/*.test.ts'],
+    setupFiles: ['./src/integration/test-setup.ts'],
     coverage: {
       reporter: ['text', 'json', 'html'],
       exclude: [

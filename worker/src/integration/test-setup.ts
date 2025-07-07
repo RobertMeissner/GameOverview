@@ -5,9 +5,15 @@
  * Cloudflare Workers environment, authentication, and KV namespace.
  */
 
+import { webcrypto } from 'node:crypto'
 import { Miniflare } from 'miniflare'
 import { AuthUtils } from '../utils/auth.js'
 import type { Env } from '../types/index.js'
+
+// Polyfill crypto global for Node.js test environment
+if (!(globalThis as any).crypto) {
+  (globalThis as any).crypto = webcrypto
+}
 
 export interface TestEnvironment {
   mf: Miniflare
@@ -65,25 +71,10 @@ export async function createTestEnvironment(): Promise<TestEnvironment> {
  */
 async function setupTestDatabase(db: D1Database): Promise<void> {
   // Create users table
-  await db.exec(`CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    email TEXT UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
-    username TEXT UNIQUE NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )`)
+  await db.exec(`CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, username TEXT UNIQUE NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)`)
 
   // Create games table
-  await db.exec(`CREATE TABLE IF NOT EXISTS games (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    title TEXT NOT NULL,
-    platform TEXT,
-    status TEXT DEFAULT 'backlog',
-    rating INTEGER,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users (id)
-  )`)
+  await db.exec(`CREATE TABLE IF NOT EXISTS games (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, title TEXT NOT NULL, platform TEXT, status TEXT DEFAULT 'backlog', rating INTEGER, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES users (id))`)
 
   // Create indexes
   await db.exec(`CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)`)
