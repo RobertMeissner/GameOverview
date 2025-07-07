@@ -67,7 +67,7 @@ describe.skipIf(!runIntegrationTests)('Feature Flags Simple Integration Tests', 
       // Verify token can be decoded
       const decoded = await authUtils.verifyJWT(token)
       expect(decoded).toBeTruthy()
-      expect(decoded?.userId).toBe(1)
+      expect(decoded?.userId).toBe('1')
       expect(decoded?.email).toBe('test@example.com')
       expect(decoded?.username).toBe('testuser')
     })
