@@ -104,13 +104,13 @@ async function setupTestAuth(env: Env): Promise<{ authToken: string; adminToken:
 
   // Generate JWT tokens
   const authToken = await authUtils.createJWT({
-    userId: 1,
+    userId: '1',
     email: 'test@example.com',
     username: 'testuser'
   }, '24h')
 
   const adminToken = await authUtils.createJWT({
-    userId: 2,
+    userId: '2',
     email: 'admin@example.com',
     username: 'adminuser'
   }, '24h')

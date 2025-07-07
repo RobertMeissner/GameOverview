@@ -51,7 +51,7 @@ describe('AuthUtils', () => {
   describe('JWT Token Management', () => {
     it('should create valid JWT tokens', async () => {
       const payload = {
-        userId: 1,
+        userId: '1',
         email: 'test@example.com',
         username: 'testuser'
       }
@@ -62,7 +62,7 @@ describe('AuthUtils', () => {
 
     it('should verify valid JWT tokens', async () => {
       const payload = {
-        userId: 1,
+        userId: '1',
         email: 'test@example.com',
         username: 'testuser'
       }
@@ -85,7 +85,7 @@ describe('AuthUtils', () => {
 
     it('should reject expired JWT tokens', async () => {
       const payload = {
-        userId: 1,
+        userId: '1',
         email: 'test@example.com',
         username: 'testuser'
       }
@@ -109,7 +109,7 @@ describe('AuthUtils', () => {
 
     it('should handle different expiration formats', async () => {
       const payload = {
-        userId: 1,
+        userId: '1',
         email: 'test@example.com',
         username: 'testuser'
       }
@@ -230,7 +230,7 @@ describe('UserService', () => {
 
   describe('User Lookup', () => {
     const mockUser: UserWithPassword = {
-      id: 1,
+      id: '1',
       email: 'test@example.com',
       username: 'testuser',
       password_hash: 'hashed_password',
