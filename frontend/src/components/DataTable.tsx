@@ -99,10 +99,17 @@ const DataTable: React.FC<DataTableProps> = ({data, onDataChange, columnWhitelis
 
     const sortedData = useMemo(() => {
         return [...data].sort((a, b) => {
-            if (a[orderBy] < b[orderBy]) {
+            const aValue = a[orderBy];
+            const bValue = b[orderBy];
+            
+            if (aValue === undefined || bValue === undefined) {
+                return 0;
+            }
+            
+            if (aValue < bValue) {
                 return order === 'asc' ? -1 : 1;
             }
-            if (a[orderBy] > b[orderBy]) {
+            if (aValue > bValue) {
                 return order === 'asc' ? 1 : -1;
             }
             return 0;

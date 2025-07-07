@@ -1,7 +1,7 @@
 = ADR-002: Backend Language Selection
 
 == Status
-Accepted
+Superseded by adr-007, adr-008 and Cloudflare choice.
 
 == Context
 The backend needs to handle API integrations with multiple gaming platforms (Steam, Epic, GOG) and provide data processing capabilities.

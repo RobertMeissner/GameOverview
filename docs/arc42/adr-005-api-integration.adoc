@@ -10,7 +10,7 @@ The application integrates with multiple gaming platform APIs (Steam, Epic Games
 We will implement separate parser modules for each platform with a unified interface.
 
 == Rationale
-[Add your reasoning here]
+Raw data first hand is needed, e.g., to facilitate players adding new games.
 
 == Consequences
 === Positive
