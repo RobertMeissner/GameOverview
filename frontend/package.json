@@ -14,7 +14,7 @@
     "ajv": "^8.17.1",
     "ajv-keywords": "^5.1.0",
     "assert": "^2.1.0",
-    "axios": "^1.7.7",
+    "axios": "^1.8.2",
     "browserify-zlib": "^0.2.0",
     "buffer": "^6.0.3",
     "parquetjs": "^0.11.2",
