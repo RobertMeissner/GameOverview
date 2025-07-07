@@ -12,8 +12,8 @@ database_id = "bd0ef27f-3efe-4f32-99ec-020a245d0223"
 
 [[kv_namespaces]]
 binding = "FEATURE_FLAGS"
-id = "feature-flags-namespace"
-preview_id = "feature-flags-preview"
+id = "ddb3f38ae0704a52a59f36b288879cc8"
+preview_id = "558e5336b0ab49a18e0ff3f4af345a5a"
 
 [vars]
 JWT_SECRET = "dev-secret-change-in-production"

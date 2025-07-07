@@ -101,26 +101,6 @@ jobs:
           RUN_INTEGRATION_TESTS: true
         continue-on-error: true
 
-      - name: Test feature flag scripts (dry run)
-        run: |
-          echo "Testing feature flag management scripts..."
-          if [ -f "./scripts/test-feature-flags.sh" ]; then
-            echo "✅ Feature flag test script exists"
-            chmod +x ./scripts/test-feature-flags.sh
-            echo "Script is executable"
-          else
-            echo "❌ Feature flag test script not found"
-          fi
-          
-          if [ -f "./scripts/run-integration-tests.sh" ]; then
-            echo "✅ Integration test script exists"
-            chmod +x ./scripts/run-integration-tests.sh
-            echo "Script is executable"
-          else
-            echo "❌ Integration test script not found"
-          fi
-        working-directory: worker
-
       - name: Validate test configurations
         run: |
           echo "Validating test configurations..."
@@ -189,23 +169,3 @@ jobs:
           fi
         working-directory: worker
         continue-on-error: true
-
-      - name: Check for formatting scripts
-        run: |
-          echo "Checking for code formatting tools..."
-          
-          # Check for prettier
-          if command -v prettier &> /dev/null; then
-            echo "✅ Prettier is available"
-          else
-            echo "❌ Prettier not found globally"
-          fi
-          
-          # Check for eslint
-          if command -v eslint &> /dev/null; then
-            echo "✅ ESLint is available"
-          else
-            echo "❌ ESLint not found globally"
-          fi
-          
-          echo "Code quality check complete"

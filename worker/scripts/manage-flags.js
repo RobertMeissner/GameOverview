@@ -27,7 +27,9 @@ function getKVBinding(env) {
 
 function runWranglerCommand(command) {
   try {
-    const result = execSync(command, { encoding: 'utf8', stdio: 'pipe' })
+..    // Use npx to run wrangler
+    const npxCommand = command.replace(/^wrangler/, 'npx wrangler')
+    const result = execSync(npxCommand, { encoding: 'utf8', stdio: 'pipe' })
     return result.trim()
   } catch (error) {
     console.error('Error running command:', error.message)
@@ -42,7 +44,7 @@ function listFlags(env = DEFAULT_ENV) {
   console.log('=' .repeat(50))
   
   try {
-    const result = runWranglerCommand(`wrangler kv:key list --binding=${getKVBinding(env)} --prefix="feature:${env}:"`)
+    const result = runWranglerCommand(`wrangler kv:key list --binding=${getKVBinding(env)} --prefix="feature:${env}:" --preview false`)
     const keys = JSON.parse(result || '[]')
     
     if (keys.length === 0) {
@@ -53,7 +55,7 @@ function listFlags(env = DEFAULT_ENV) {
     keys.forEach(key => {
       const flagName = key.name.replace(`feature:${env}:`, '')
       if (!flagName.includes(':users:') && !flagName.includes(':global:')) {
-        const value = runWranglerCommand(`wrangler kv:key get "${key.name}" --binding=${getKVBinding(env)}`)
+        const value = runWranglerCommand(`wrangler kv:key get "${key.name}" --binding=${getKVBinding(env)} --preview false`)
         try {
           const config = JSON.parse(value)
           console.log(`\n🏁 ${flagName}`)
@@ -86,7 +88,7 @@ function enableFlag(flagName, env = DEFAULT_ENV, rolloutPercentage) {
   }
   
   const key = `feature:${env}:${flagName}`
-  runWranglerCommand(`wrangler kv:key put "${key}" '${JSON.stringify(config)}' --binding=${getKVBinding(env)}`)
+  runWranglerCommand(`wrangler kv:key put "${key}" '${JSON.stringify(config)}' --binding=${getKVBinding(env)} --preview false`)
   
   console.log(`✅ Flag "${flagName}" enabled in ${env}`)
   if (rolloutPercentage) {
@@ -99,7 +101,7 @@ function disableFlag(flagName, env = DEFAULT_ENV) {
   
   const config = { enabled: false }
   const key = `feature:${env}:${flagName}`
-  runWranglerCommand(`wrangler kv:key put "${key}" '${JSON.stringify(config)}' --binding=${getKVBinding(env)}`)
+  runWranglerCommand(`wrangler kv:key put "${key}" '${JSON.stringify(config)}' --binding=${getKVBinding(env)} --preview false`)
   
   console.log(`❌ Flag "${flagName}" disabled in ${env}`)
 }
@@ -109,9 +111,8 @@ function setFlag(flagName, configJson, env = DEFAULT_ENV) {
   
   try {
     const config = JSON.parse(configJson)
-    const key = `feature:${env}:${flagName}`
-    runWranglerCommand(`wrangler kv:key put "${key}" '${JSON.stringify(config)}' --binding=${getKVBinding(env)}`)
-    
+  const key = `feature:${env}:${flagName}`
+  runWranglerCommand(`wrangler kv:key put "${key}" '${JSON.stringify(config)}' --binding=${getKVBinding(env)} --preview false`)    
     console.log(`✅ Flag "${flagName}" updated in ${env}`)
     console.log(`   Configuration: ${JSON.stringify(config, null, 2)}`)
   } catch (error) {
@@ -125,7 +126,7 @@ function setUserOverride(flagName, userId, enabled, env = DEFAULT_ENV) {
   
   const key = `feature:${env}:${flagName}:users:${userId}`
   const value = enabled === 'true' ? 'true' : 'false'
-  runWranglerCommand(`wrangler kv:key put "${key}" "${value}" --binding=${getKVBinding(env)}`)
+  runWranglerCommand(`wrangler kv:key put "${key}" "${value}" --binding=${getKVBinding(env)} --preview false`)
   
   console.log(`✅ User override set for "${flagName}" in ${env}`)
   console.log(`   User: ${userId}`)
