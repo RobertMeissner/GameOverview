@@ -14,7 +14,7 @@ import {
     SelectChangeEvent,
     Alert,
 } from '@mui/material';
-import axios from 'axios';
+import { GameService } from '../services/gameService';
 
 const AddDataItem: React.FC<{ onDataAdded: () => void }> = ({onDataAdded}) => {
     const initialFormData = {
@@ -65,38 +65,43 @@ const AddDataItem: React.FC<{ onDataAdded: () => void }> = ({onDataAdded}) => {
         setError(null);
 
         try {
-            // Note: This is just for testing Steam API data, not creating a game
+            // Create a temporary game to test Steam API data
             const testData = {
                 name: formData.name,
-                store: formData.store,
-                app_id: formData.app_id ? parseInt(formData.app_id) : undefined,
+                store: formData.store as 'steam' | 'gog' | 'epic' | 'other',
+                app_id: formData.app_id || undefined,
+                status: 'backlog' as const, // Temporary status for testing
             };
 
-            // For now, we'll simulate the test by calling the Steam API directly
-            // In a real implementation, you might want a separate test endpoint
-            const response = await axios.post('/api/games', testData);
+            const response = await GameService.addGame(testData);
             
-            if (response.data.success) {
-                const game = response.data.game;
+            if (response.success) {
+                const game = response.game;
                 setFormData({
-                    name: game.name,
-                    app_id: game.app_id?.toString() || '',
-                    store: game.store,
+                    name: game.name || formData.name,
+                    app_id: game.app_id?.toString() || formData.app_id,
+                    store: game.store || formData.store,
                     played: formData.played,
                     hide: formData.hide,
                     later: formData.later
                 });
                 setThumbnailUrl(game.thumbnail_url);
                 setAdditionalFieldsVisible(true);
+                
+                // Delete the temporary game since this was just a test
+                if (game.id) {
+                    try {
+                        await GameService.deleteGame(game.id);
+                    } catch (deleteError) {
+                        console.warn('Failed to delete temporary test game:', deleteError);
+                    }
+                }
+                
                 onDataAdded();
             }
         } catch (error: any) {
             console.error("Error testing game data:", error);
-            if (error.response?.data?.error) {
-                setError(error.response.data.error);
-            } else {
-                setError('Failed to test the game data. Please try again.');
-            }
+            setError(error.message || 'Failed to test the game data. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -110,13 +115,16 @@ const AddDataItem: React.FC<{ onDataAdded: () => void }> = ({onDataAdded}) => {
             name: formData.name,
             store: formData.store as 'steam' | 'gog' | 'epic' | 'other',
             app_id: formData.app_id || undefined,
-            status: formData.played ? 'completed' : (formData.later ? 'wishlist' : 'backlog'),
+            status: (formData.played ? 'completed' : (formData.later ? 'wishlist' : 'backlog')) as 'backlog' | 'playing' | 'completed' | 'dropped' | 'wishlist',
             notes: formData.hide ? 'Hidden' : undefined,
+            played: formData.played,
+            hide: formData.hide,
+            later: formData.later,
         };
 
         try {
-            const response = await axios.post('/api/games', data);
-            if (response.data.success) {
+            const response = await GameService.addGame(data);
+            if (response.success) {
                 setError(null);
                 resetForm();
                 onDataAdded();
@@ -125,11 +133,7 @@ const AddDataItem: React.FC<{ onDataAdded: () => void }> = ({onDataAdded}) => {
             }
         } catch (error: any) {
             console.error("Error creating game:", error);
-            if (error.response?.data?.error) {
-                setError(error.response.data.error);
-            } else {
-                setError('Failed to add the game. Please try again.');
-            }
+            setError(error.message || 'Failed to add the game. Please try again.');
         } finally {
             setIsLoading(false);
         }

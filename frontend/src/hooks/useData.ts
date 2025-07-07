@@ -1,7 +1,7 @@
 // src/hooks/useData.ts
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { DataItem } from '../App';
+import { GameService } from '../services/gameService';
 
 const useData = (): [DataItem[], boolean, React.Dispatch<React.SetStateAction<DataItem[]>>] => {
     const [data, setData] = useState<DataItem[]>([]);
@@ -10,14 +10,17 @@ const useData = (): [DataItem[], boolean, React.Dispatch<React.SetStateAction<Da
     useEffect(() => {
         const loadData = async () => {
             try {
-                const response = await axios.get<DataItem[]>('http://localhost:8000/data/data.parquet');
-                if (Array.isArray(response.data)) {
-                    setData(response.data);
+                // Use the new API to fetch games in legacy format for compatibility
+                const games = await GameService.getLegacyGames();
+                if (Array.isArray(games)) {
+                    setData(games);
                 } else {
-                    console.error("Expected response to be an array but received:", response.data);
+                    console.error("Expected response to be an array but received:", games);
                 }
             } catch (error) {
                 console.error("Error loading data:", error);
+                // If user is not authenticated, the interceptor will redirect to login
+                // For other errors, we'll just log them and show empty data
             } finally {
                 setLoading(false);
             }

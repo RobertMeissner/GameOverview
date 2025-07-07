@@ -1,7 +1,6 @@
 import React, {useCallback, useState, useEffect} from 'react';
 import {BrowserRouter as Router, Route, Routes, Link} from 'react-router-dom';
 import {Box, AppBar, Divider, List, ListItemButton, ListItemText, Toolbar, Typography, styled} from '@mui/material';
-import axios from 'axios';
 import useData from './hooks/useData';
 import FilterControls from './components/FilterControls';
 import DataTable from './components/DataTable';
@@ -13,8 +12,10 @@ import ExportData from "./components/ExportData";
 import AuthPage from './components/auth/AuthPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import UserMenu from './components/auth/UserMenu';
+import { GameService } from './services/gameService';
 
 export interface DataItem {
+    id?: number; // Add ID for API operations
     game_hash: string;
     name: string;
     rating: number;
@@ -30,7 +31,7 @@ export interface DataItem {
     later: boolean;
     metacritic_score: number;
 
-    [key: string]: string | number | boolean;
+    [key: string]: string | number | boolean | undefined;
 }
 
 const TileGrid = styled(Box)`
@@ -78,36 +79,56 @@ const App: React.FC = () => {
     }, [loading, data, updateTopThreeGames]);
 
 
-    const handleDataAdded = () => {
-        // Refresh or refetch the data after a new DataItem is added
-        // e.g., you can call setData or trigger a fetch function
+    const handleDataAdded = async () => {
+        // Refresh the data after a new DataItem is added
+        try {
+            const games = await GameService.getLegacyGames();
+            if (Array.isArray(games)) {
+                setData(games);
+                updateTopThreeGames();
+            }
+        } catch (error) {
+            console.error("Error refreshing data:", error);
+        }
     };
 
-    const handleDataChange = useCallback((hash: string, columnName: keyof DataItem, value: any) => {
+    const handleDataChange = useCallback(async (hash: string, columnName: keyof DataItem, value: any) => {
+        // Find the game by hash to get its ID
+        const game = data.find(item => item.game_hash === hash);
+        if (!game || !game.id) {
+            console.error("Game not found or missing ID:", hash);
+            return;
+        }
+
+        // Optimistically update the UI
         setData(prevData =>
             prevData.map(item => {
                 if (item.game_hash === hash) {
-                    const updatedItem = {...item, [columnName]: value};
-
-                    // Make an asynchronous call to update the backend
-                    axios.post(`http://localhost:8000/data/data.parquet/update`, {
-                        column: columnName,
-                        index: prevData.findIndex(i => i.game_hash === hash),
-                        value: value,
-                    }).catch(error => {
-                        console.error("Error updating column value:", error);
-                        // If there's an error, revert the change in the state
-                        setData(currentData =>
-                            currentData.map(d => d.game_hash === hash ? item : d)
-                        );
-                    });
-
-                    return updatedItem;
+                    return {...item, [columnName]: value};
                 }
                 return item;
             })
         );
-    }, [setData]);
+
+        try {
+            // Update the backend
+            const updateData: any = {};
+            updateData[columnName] = value;
+            
+            await GameService.updateGame(game.id, updateData);
+        } catch (error) {
+            console.error("Error updating game:", error);
+            // Revert the optimistic update on error
+            setData(prevData =>
+                prevData.map(item => {
+                    if (item.game_hash === hash) {
+                        return {...item, [columnName]: game[columnName]};
+                    }
+                    return item;
+                })
+            );
+        }
+    }, [data, setData]);
 
     const filteredData = data.filter(item => {
         const ratingReviewCriteria = ratingReviewFilter ? (item.rating > 0.8 && item.metacritic_score >= 8) : true; // New filter logic for ratings & scores
