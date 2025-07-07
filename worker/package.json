@@ -33,10 +33,10 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20241127.0",
     "@types/node": "^20.0.0",
-    "@vitest/coverage-v8": "^2.1.9",
+    "@vitest/coverage-v8": "^3.2.4",
     "miniflare": "^3.20250408.2",
     "typescript": "^5.0.0",
-    "vitest": "^2.1.9",
-    "wrangler": "^3.0.0"
+    "vitest": "^3.2.4",
+    "wrangler": "^4.23.0"
   }
 }
