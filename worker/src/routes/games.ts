@@ -80,6 +80,7 @@ export async function handleGamesRoutes(request: Request, env: Env, ctx: Executi
         const response: GamesResponse = {
           success: true,
           games: games
+
         }
 
         return new Response(JSON.stringify(response), {
@@ -87,6 +88,7 @@ export async function handleGamesRoutes(request: Request, env: Env, ctx: Executi
           headers: { 'Content-Type': 'application/json', ...corsHeaders }
         })
       } catch (error: any) {
+
         console.error('Service error:', error)
         const errorResponse: ApiError = { 
           error: 'Failed to fetch games' 

@@ -125,6 +125,7 @@ const AddDataItem: React.FC<{ onDataAdded: () => void }> = ({onDataAdded}) => {
         try {
             const response = await GameService.addGame(data);
             if (response.success) {
+
                 setError(null);
                 resetForm();
                 onDataAdded();
@@ -134,6 +135,7 @@ const AddDataItem: React.FC<{ onDataAdded: () => void }> = ({onDataAdded}) => {
         } catch (error: any) {
             console.error("Error creating game:", error);
             setError(error.message || 'Failed to add the game. Please try again.');
+
         } finally {
             setIsLoading(false);
         }
