@@ -25,10 +25,11 @@ dependencies = [
     "pytest<9.0.0,>=8.3.2",
     "fastapi<1.0.0,>=0.114.0",
     "uvicorn<1.0.0,>=0.30.6",
-    "pandas<2.0.0,>=1.5.2",
+    "pandas>=2.0.0",
     "numpy==1.26.3",
     "bs4<1.0.0,>=0.0.2",
     "pyarrow<18.0.0,>=17.0.0",
+    "howlongtobeatpy>=1.0.18",
 ]
 name = "Game_Overview"
 version = "0.1.0"
