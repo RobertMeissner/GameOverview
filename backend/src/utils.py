@@ -1,7 +1,12 @@
 import hashlib
 
 import pandas as pd
-from constants import METACRITIC_GAME_NAME, METACRITIC_SCORE
+from constants import (
+    HLTB_MAIN_STORY,
+    MC_HLTB_RATIO,
+    METACRITIC_GAME_NAME,
+    METACRITIC_SCORE,
+)
 from src.constants import (
     APP_ID,
     CORRECTED_APP_ID,
@@ -75,11 +80,12 @@ EXPECTED_DF_COLUMNS = {
     THUMBNAIL_URL: pd.StringDtype(),
     METACRITIC_SCORE: pd.Int64Dtype(),
     METACRITIC_GAME_NAME: pd.StringDtype(),
-    "hltb_main_story": pd.Int64Dtype(),
+    HLTB_MAIN_STORY: pd.Float64Dtype(),
     "hltb_main_extra": pd.Int64Dtype(),
     "hltb_completionist": pd.Int64Dtype(),
     "hltb_game_id": pd.Int64Dtype(),
     "hltb_similarity": pd.Int64Dtype(),
+    MC_HLTB_RATIO: pd.Float64Dtype(),
 }
 
 
@@ -121,6 +127,8 @@ def process_data(df: pd.DataFrame) -> pd.DataFrame:
         "gog_id",
         "reviewsRating",
         METACRITIC_SCORE,
+        HLTB_MAIN_STORY,
+        MC_HLTB_RATIO,
     ]
     df[columns_to_fill_with_zero] = df[columns_to_fill_with_zero].fillna(0)
 
