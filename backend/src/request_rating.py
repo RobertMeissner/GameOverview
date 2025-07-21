@@ -42,10 +42,10 @@ def request_rating(df: pd.Series) -> pd.Series:
             # FIXME: Inline change of df
             steam_rating(df[APP_ID], df)
     except Exception as e:
-        logging.exception(f"An error occurred: {e!s} for {df[game_name]} ")
+        logging.error(f"An error occurred: {str(e)} for {df[game_name]} ")
         logging.error("Exception information:", exc_info=True)
         tb = traceback.format_exc()
-        logging.exception("Full traceback:\n" + tb)
+        logging.error("Full traceback:\n" + tb)
         raise e
 
     return df
@@ -88,7 +88,7 @@ def steam_app_ids_matched(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def app_id_matched_by_catalog(name: str, catalog: dict) -> int:
-    if name in catalog:
+    if name in catalog.keys():
         return catalog[name]
     return 0
 
@@ -101,18 +101,14 @@ def restructure_data(data: dict) -> dict:
 def load_catalog() -> dict:
     data = {}
     if os.path.exists(steam_catalog_file):
-        # TODO: Loading fails partially?
-        # File Access -> file must be in proper shape
+        # TODO: Loading fails partially
         with open(steam_catalog_file, encoding="utf-8") as file:
-            # basically ORM/mapping
             data = restructure_data(json.load(file))
 
     if not data:
-        # HTTP request
         response = requests.get(steam_catalog_url)
 
         if response.status_code == 200:
-            # basically ORM/mapping
             data = restructure_data(response.json())
 
             with open(steam_catalog_file, "w", encoding="utf-8") as file:
@@ -159,7 +155,8 @@ def game_by_app_id(app_id: int):
             thumbnail_url = game_data.get("header_image", "")  # Get thumbnail URL
 
             return {game_name: name, "thumbnail_url": thumbnail_url}
-        return {"error": "Game not found"}
+        else:
+            return {"error": "Game not found"}
 
     except requests.RequestException as e:
         print(f"An error occurred: {e}")
