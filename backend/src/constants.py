@@ -26,6 +26,8 @@ HASH = "game_hash"
 THUMBNAIL_URL = "thumbnail_url"
 METACRITIC_SCORE = "metacritic_score"
 METACRITIC_GAME_NAME = "metacritic_game_name"
+HLTB_MAIN_STORY = "hltb_main_story"
+MC_HLTB_RATIO = "mc_hltb_ratio"
 
 
 MINIMUM_RATING = 0.8
