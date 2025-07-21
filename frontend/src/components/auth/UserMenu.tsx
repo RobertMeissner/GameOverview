@@ -57,7 +57,7 @@ export default function UserMenu() {
           {getAvatarText(user.username)}
         </Avatar>
       </IconButton>
-      
+
       <Menu
         anchorEl={anchorEl}
         id="user-menu"
@@ -102,25 +102,25 @@ export default function UserMenu() {
             {user.email}
           </Typography>
         </Box>
-        
+
         <Divider />
-        
+
         <MenuItem onClick={handleClose}>
           <ListItemIcon>
             <AccountCircle fontSize="small" />
           </ListItemIcon>
           Profile
         </MenuItem>
-        
+
         <MenuItem onClick={handleClose}>
           <ListItemIcon>
             <Settings fontSize="small" />
           </ListItemIcon>
           Settings
         </MenuItem>
-        
+
         <Divider />
-        
+
         <MenuItem onClick={handleLogout}>
           <ListItemIcon>
             <Logout fontSize="small" />

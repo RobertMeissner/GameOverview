@@ -63,7 +63,7 @@ cd worker && npm run build && npm run deploy
 cd worker && npm test
 cd worker && npm run test:coverage
 
-# Frontend tests  
+# Frontend tests
 cd frontend && npm test
 cd frontend && npm test -- --coverage --run
 
@@ -74,19 +74,19 @@ cd worker && npm run type-check
 ## Architectural Decision Records
 
 ### ADR-001: Unified Cloudflare Worker Architecture
-**Status**: Implemented  
-**Context**: Originally deployed as separate Cloudflare Pages (frontend) and Workers (API)  
-**Decision**: Consolidate to single Worker handling both static assets and API endpoints  
+**Status**: Implemented
+**Context**: Originally deployed as separate Cloudflare Pages (frontend) and Workers (API)
+**Decision**: Consolidate to single Worker handling both static assets and API endpoints
 **Consequences**:
 - ✅ Simplified deployment pipeline (one service vs two)
-- ✅ Reduced CORS complexity and routing issues  
+- ✅ Reduced CORS complexity and routing issues
 - ✅ Lower operational costs and unified monitoring
 - ❌ Slightly more complex Worker code structure
 
 ### ADR-002: Build Artifacts Excluded from Version Control
-**Status**: Implemented  
-**Context**: Build outputs (`build/`, `static/`) were being committed to repository  
-**Decision**: Generate all build artifacts during CI/CD, exclude from git  
+**Status**: Implemented
+**Context**: Build outputs (`build/`, `static/`) were being committed to repository
+**Decision**: Generate all build artifacts during CI/CD, exclude from git
 **Consequences**:
 - ✅ Cleaner repository without binary artifacts
 - ✅ Eliminates merge conflicts on generated files
@@ -94,9 +94,9 @@ cd worker && npm run type-check
 - ❌ Requires reliable CI/CD for all deployments
 
 ### ADR-003: Environment-Driven Configuration
-**Status**: Implemented  
-**Context**: Hard-coded URLs and configuration scattered throughout codebase  
-**Decision**: Centralize all configuration in environment variables  
+**Status**: Implemented
+**Context**: Hard-coded URLs and configuration scattered throughout codebase
+**Decision**: Centralize all configuration in environment variables
 **Consequences**:
 - ✅ Easy environment promotion (dev → staging → prod)
 - ✅ Secrets management through platform-native tools
@@ -104,9 +104,9 @@ cd worker && npm run type-check
 - ❌ Additional complexity in local development setup
 
 ### ADR-004: Incremental Backend Migration Strategy
-**Status**: Superseded by ADR-008  
-**Context**: Large Python FastAPI backend with file system dependencies  
-**Decision**: Migrate endpoints individually, starting with stateless operations  
+**Status**: Superseded by ADR-008
+**Context**: Large Python FastAPI backend with file system dependencies
+**Decision**: Migrate endpoints individually, starting with stateless operations
 **Consequences**:
 - ✅ Reduced risk of breaking existing functionality
 - ✅ Ability to validate each migration independently
@@ -114,9 +114,9 @@ cd worker && npm run type-check
 - ❌ Temporary complexity of running dual systems
 
 ### ADR-005: Strict Code Quality Enforcement
-**Status**: Implemented  
-**Context**: Inconsistent code style and potential runtime errors from linting warnings  
-**Decision**: Treat all ESLint warnings as build failures in CI/CD  
+**Status**: Implemented
+**Context**: Inconsistent code style and potential runtime errors from linting warnings
+**Decision**: Treat all ESLint warnings as build failures in CI/CD
 **Consequences**:
 - ✅ Consistent code style across the project
 - ✅ Early detection of potential runtime issues
@@ -124,9 +124,9 @@ cd worker && npm run type-check
 - ❌ Stricter development workflow requirements
 
 ### ADR-006: Modern Assets API Migration
-**Status**: Implemented  
-**Context**: Legacy `[site]` configuration with KV asset handler was failing  
-**Decision**: Migrate to modern `[assets]` configuration with `env.ASSETS.fetch()`  
+**Status**: Implemented
+**Context**: Legacy `[site]` configuration with KV asset handler was failing
+**Decision**: Migrate to modern `[assets]` configuration with `env.ASSETS.fetch()`
 **Consequences**:
 - ✅ Reliable asset serving and uploads
 - ✅ Better integration with Wrangler v4
@@ -134,9 +134,9 @@ cd worker && npm run type-check
 - ❌ Breaking change requiring code updates
 
 ### ADR-007: JWT-Based Authentication with Cloudflare D1
-**Status**: Implemented  
-**Context**: Need for user authentication and personalized game libraries  
-**Decision**: Implement JWT authentication with Cloudflare D1 database  
+**Status**: Implemented
+**Context**: Need for user authentication and personalized game libraries
+**Decision**: Implement JWT authentication with Cloudflare D1 database
 **Consequences**:
 - ✅ Stateless authentication perfect for serverless environment
 - ✅ Secure implementation with Web Crypto API
@@ -146,9 +146,9 @@ cd worker && npm run type-check
 - ❌ JWT tokens larger than session IDs
 
 ### ADR-008: TypeScript Migration for Backend
-**Status**: Implemented  
-**Context**: JavaScript backend causing type-related runtime errors  
-**Decision**: Migrate Cloudflare Worker backend to TypeScript with strict configuration  
+**Status**: Implemented
+**Context**: JavaScript backend causing type-related runtime errors
+**Decision**: Migrate Cloudflare Worker backend to TypeScript with strict configuration
 **Consequences**:
 - ✅ Compile-time error detection prevents runtime issues
 - ✅ Better developer experience with IDE support

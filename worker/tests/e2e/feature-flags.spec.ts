@@ -1,9 +1,9 @@
 /**
  * End-to-End tests for Feature Flagging System
- * 
+ *
  * These tests verify the feature flagging system works correctly
  * in a real browser environment with actual user interactions.
- * 
+ *
  * Run with: npx playwright test
  */
 
@@ -87,7 +87,7 @@ test.describe('Feature Flags E2E Tests', () => {
 
     // Test multiple users to verify variant distribution
     const variants = new Set()
-    
+
     for (let i = 0; i < 20; i++) {
       const response = await page.request.get(`${BASE_URL}/api/flags/checkout_test?userId=e2e_user_${i}`)
       const result = await response.json()
@@ -102,7 +102,7 @@ test.describe('Feature Flags E2E Tests', () => {
   test('should gracefully handle flag service errors', async ({ page }) => {
     // Test behavior when flag service is unavailable
     // This might involve mocking network failures or KV unavailability
-    
+
     await page.route('**/api/flags/**', route => {
       route.abort('failed')
     })

@@ -62,7 +62,7 @@ export async function handleFeatureFlagRoutes(request: Request, env: Env, ctx: E
 
       const userId = url.searchParams.get('userId') || undefined
       const result = await flagService.evaluateFlag(flagName, userId)
-      
+
       return new Response(JSON.stringify(result), {
         status: 200,
         headers: { 'Content-Type': 'application/json', ...corsHeaders }
@@ -133,7 +133,7 @@ export async function handleFeatureFlagRoutes(request: Request, env: Env, ctx: E
       const pathParts = url.pathname.split('/')
       const flagName = pathParts[3]
       const userId = pathParts[5]
-      
+
       if (!flagName || !userId) {
         const errorResponse: ApiError = { error: 'Flag name and user ID required' }
         return new Response(JSON.stringify(errorResponse), {
@@ -156,7 +156,7 @@ export async function handleFeatureFlagRoutes(request: Request, env: Env, ctx: E
       const pathParts = url.pathname.split('/')
       const flagName = pathParts[3]
       const userId = pathParts[5]
-      
+
       if (!flagName || !userId) {
         const errorResponse: ApiError = { error: 'Flag name and user ID required' }
         return new Response(JSON.stringify(errorResponse), {
@@ -177,8 +177,8 @@ export async function handleFeatureFlagRoutes(request: Request, env: Env, ctx: E
 
   } catch (error) {
     console.error('Feature flag route error:', error)
-    const errorResponse: ApiError = { 
-      error: 'Internal server error' 
+    const errorResponse: ApiError = {
+      error: 'Internal server error'
     }
     return new Response(JSON.stringify(errorResponse), {
       status: 500,

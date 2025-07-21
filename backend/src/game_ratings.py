@@ -65,9 +65,7 @@ def game_ratings():
 
         # Get Metacritic score
         if row[METACRITIC_SCORE] == 0:
-            metacritic_game_name, metacritic_score = get_metacritic_score(
-                row[game_name]
-            )
+            metacritic_game_name, metacritic_score = get_metacritic_score(row[game_name])
             df.at[index, METACRITIC_SCORE] = metacritic_score
             df.at[index, METACRITIC_GAME_NAME] = metacritic_game_name
 

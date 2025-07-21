@@ -134,7 +134,7 @@ export class FeatureFlagService {
       if (userId && flag.rolloutPercentage !== undefined) {
         const userHash = await this.getUserHash(userId, flagName)
         const isInRollout = userHash < flag.rolloutPercentage
-        
+
         if (isInRollout) {
           const variant = await this.selectVariant(flag, userId)
           return {
@@ -304,13 +304,13 @@ export class FeatureFlagService {
   private async getUserHash(userId: string, context: string): Promise<number> {
     const salt = await this.getRolloutSalt()
     const input = `${userId}:${context}:${salt}`
-    
+
     // Use Web Crypto API for consistent hashing
     const encoder = new TextEncoder()
     const data = encoder.encode(input)
     const hashBuffer = await crypto.subtle.digest('SHA-256', data)
     const hashArray = new Uint8Array(hashBuffer)
-    
+
     // Convert first 4 bytes to number and mod 100
     const hash = (hashArray[0] << 24) | (hashArray[1] << 16) | (hashArray[2] << 8) | hashArray[3]
     return Math.abs(hash) % 100
@@ -326,7 +326,7 @@ export class FeatureFlagService {
 
     const key = `feature:${this.environment}:global:rollout_salt`
     let salt = await this.kv.get(key)
-    
+
     if (!salt) {
       // Generate new salt
       salt = crypto.randomUUID()

@@ -2,7 +2,7 @@
 
 /**
  * Feature Flag Monitoring Script
- * 
+ *
  * This script monitors feature flag performance and usage patterns
  * to ensure the system is working correctly in production.
  */
@@ -26,7 +26,7 @@ class FlagMonitor {
 
   async start() {
     console.log(`🔍 Starting flag monitoring for ${this.environment}...`)
-    
+
     setInterval(() => {
       this.collectMetrics()
       this.reportMetrics()
@@ -41,7 +41,7 @@ class FlagMonitor {
     try {
       // Collect flag usage from KV
       const flags = await this.listActiveFlags()
-      
+
       // Simulate metrics collection (in real implementation, this would
       // come from Cloudflare Analytics, logs, or custom metrics)
       for (const flag of flags) {
@@ -50,7 +50,7 @@ class FlagMonitor {
 
       // Check flag health
       await this.healthCheck()
-      
+
     } catch (error) {
       console.error('❌ Error collecting metrics:', error.message)
       this.metrics.errors++
@@ -63,7 +63,7 @@ class FlagMonitor {
         `wrangler kv:key list --binding=FEATURE_FLAGS --prefix="feature:${this.environment}:"`,
         { encoding: 'utf8' }
       )
-      
+
       const keys = JSON.parse(result || '[]')
       return keys
         .map(key => key.name.replace(`feature:${this.environment}:`, ''))
@@ -82,7 +82,7 @@ class FlagMonitor {
 
       // Simulate evaluation metrics
       const evaluations = Math.floor(Math.random() * 1000) + 100
-      const enabledCount = config.enabled ? 
+      const enabledCount = config.enabled ?
         Math.floor(evaluations * (config.rolloutPercentage || 100) / 100) : 0
 
       this.metrics.flagDistribution[flagName] = {
@@ -113,7 +113,7 @@ class FlagMonitor {
 
   async healthCheck() {
     const startTime = Date.now()
-    
+
     try {
       // Test flag evaluation performance
       const testResults = await Promise.all([
@@ -226,18 +226,18 @@ switch (command) {
   case 'monitor':
     monitor.start()
     break
-    
+
   case 'report':
     monitor.collectMetrics().then(() => monitor.generateReport())
     break
-    
+
   case 'health':
     monitor.healthCheck().then(() => {
       console.log(`✅ Health check completed for ${environment}`)
       console.log(`Average response time: ${monitor.metrics.avgResponseTime.toFixed(2)}ms`)
     })
     break
-    
+
   default:
     console.log(`
 🔍 Feature Flag Monitor

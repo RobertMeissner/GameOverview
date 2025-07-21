@@ -13,9 +13,7 @@ from backend.src.utils import coerce_dataframe_types, init_df
 
 def assert_dataframe_structure(df: pd.DataFrame, expected_structure: dict):
     expected_columns = list(expected_structure.keys())
-    assert (
-        list(df.columns) == expected_columns
-    ), f"Expected columns {expected_columns}, but got {list(df.columns)}"
+    assert list(df.columns) == expected_columns, f"Expected columns {expected_columns}, but got {list(df.columns)}"
 
     actual_dtypes = df.dtypes.to_dict()
     for col, expected_dtype in expected_structure.items():
@@ -84,12 +82,8 @@ expected_structure = {
 class TestConcatIfNew(unittest.TestCase):
     def setUp(self):
         # Common setup for all tests
-        self.df1 = pd.DataFrame(
-            {"name": ["Game A", "Game B", "Game C"], "other_info": [1, 2, 3]}
-        )
-        self.df2 = pd.DataFrame(
-            {"name": ["Game B", "Game C", "Game D"], "other_info": [2, 3, 4]}
-        )
+        self.df1 = pd.DataFrame({"name": ["Game A", "Game B", "Game C"], "other_info": [1, 2, 3]})
+        self.df2 = pd.DataFrame({"name": ["Game B", "Game C", "Game D"], "other_info": [2, 3, 4]})
 
     def test_concat_if_new_basic(self):
         # Test basic functionality
@@ -130,14 +124,10 @@ class TestConcatIfNew(unittest.TestCase):
 
     def test_concat_if_new_empty_df1(self):
         # Test when df1 is empty
-        df6 = pd.DataFrame({"name": ["Game E", "Game F"], "other_info": [5, 6]}).astype(
-            self.df1.dtypes.to_dict()
-        )
+        df6 = pd.DataFrame({"name": ["Game E", "Game F"], "other_info": [5, 6]}).astype(self.df1.dtypes.to_dict())
 
         # Create an empty DataFrame with the same dtypes as df1
-        empty_df1 = pd.DataFrame(columns=self.df1.columns).astype(
-            self.df1.dtypes.to_dict()
-        )
+        empty_df1 = pd.DataFrame(columns=self.df1.columns).astype(self.df1.dtypes.to_dict())
 
         result_df = concat_if_new(empty_df1, df6)
         expected_df = df6  # All entries from df2 should be added
@@ -190,9 +180,7 @@ class TestConcatIfNew(unittest.TestCase):
         df = pd.DataFrame({"game_hash": ["hash2"], "data": ["data_new_2"]})
         result = merged_data_sources(df, df_loaded)
         self.assertEqual(len(result), 2)
-        self.assertTrue(
-            result[result["game_hash"] == "hash2"]["data"].values[0] == "data_loaded_2"
-        )
+        self.assertTrue(result[result["game_hash"] == "hash2"]["data"].values[0] == "data_loaded_2")
 
     def test_no_unique_rows_lost(self):
         df_loaded = pd.DataFrame(
@@ -215,9 +203,7 @@ class TestConcatIfNew(unittest.TestCase):
                 "data": ["data_loaded_1", "data_loaded_3"],
             }
         )
-        df = pd.DataFrame(
-            {"game_hash": ["hash2", "hash3"], "data": ["data_new_2", "data_new_3"]}
-        )
+        df = pd.DataFrame({"game_hash": ["hash2", "hash3"], "data": ["data_new_2", "data_new_3"]})
         result = merged_data_sources(df, df_loaded)
         self.assertEqual(len(result), 3)
 

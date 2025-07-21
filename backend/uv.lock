@@ -288,6 +288,19 @@ wheels = [
 ]
 
 [[package]]
+name = "detect-secrets"
+version = "1.5.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pyyaml", marker = "python_full_version < '3.13'" },
+    { name = "requests", marker = "python_full_version < '3.13'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/69/67/382a863fff94eae5a0cf05542179169a1c49a4c8784a9480621e2066ca7d/detect_secrets-1.5.0.tar.gz", hash = "sha256:6bb46dcc553c10df51475641bb30fd69d25645cc12339e46c824c1e0c388898a", size = 97351 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/4e/5e/4f5fe4b89fde1dc3ed0eb51bd4ce4c0bca406246673d370ea2ad0c58d747/detect_secrets-1.5.0-py3-none-any.whl", hash = "sha256:e24e7b9b5a35048c313e983f76c4bd09dad89f045ff059e354f9943bf45aa060", size = 120341 },
+]
+
+[[package]]
 name = "distlib"
 version = "0.3.9"
 source = { registry = "https://pypi.org/simple" }
@@ -375,6 +388,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "bs4", marker = "python_full_version < '3.13'" },
+    { name = "detect-secrets", marker = "python_full_version < '3.13'" },
     { name = "fastapi", marker = "python_full_version < '3.13'" },
     { name = "httpx", marker = "python_full_version < '3.13'" },
     { name = "matplotlib", marker = "python_full_version < '3.13'" },
@@ -394,6 +408,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "bs4", specifier = ">=0.0.2,<1.0.0" },
+    { name = "detect-secrets", specifier = ">=1.5.0" },
     { name = "fastapi", specifier = ">=0.114.0,<1.0.0" },
     { name = "httpx", specifier = ">=0.27.2,<1.0.0" },
     { name = "matplotlib", specifier = ">=3.6.2,<4.0.0" },

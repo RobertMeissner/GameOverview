@@ -19,10 +19,10 @@ They can include many different topics, such as
 
 
 .Motivation
-Concepts form the basis for _conceptual integrity_ (consistency, homogeneity) of the architecture. 
+Concepts form the basis for _conceptual integrity_ (consistency, homogeneity) of the architecture.
 Thus, they are an important contribution to achieve inner qualities of your system.
 
-Some of these concepts cannot be assigned to individual building blocks, e.g. security or safety. 
+Some of these concepts cannot be assigned to individual building blocks, e.g. security or safety.
 
 
 .Form

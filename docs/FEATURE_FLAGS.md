@@ -164,7 +164,7 @@ npm run flags list [env]
 # Enable a flag
 npm run flags enable authentication dev 50
 
-# Disable a flag  
+# Disable a flag
 npm run flags disable new_feature prod
 
 # Set complex configuration
@@ -286,7 +286,7 @@ const flags = await Promise.all([
 
 ### Metrics to Track
 - Flag evaluation latency
-- Flag evaluation frequency  
+- Flag evaluation frequency
 - User distribution across variants
 - Error rates by flag status
 

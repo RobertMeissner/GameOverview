@@ -5,7 +5,7 @@ module.exports = {
   generateRandomFlag: function(context, events, done) {
     const flags = [
       'authentication',
-      'new_dashboard', 
+      'new_dashboard',
       'checkout_flow',
       'mobile_app',
       'beta_features',
@@ -13,7 +13,7 @@ module.exports = {
       'advanced_search',
       'social_features'
     ]
-    
+
     context.vars.randomFlag = flags[Math.floor(Math.random() * flags.length)]
     return done()
   },
@@ -42,26 +42,26 @@ module.exports = {
     if (response.statusCode === 200 && response.body) {
       try {
         const result = JSON.parse(response.body)
-        
+
         // Track flag evaluation reasons
         events.emit('counter', `flag.reason.${result.reason}`, 1)
-        
+
         // Track enabled vs disabled
         events.emit('counter', `flag.enabled.${result.enabled}`, 1)
-        
+
         // Track variants
         if (result.variant) {
           events.emit('counter', `flag.variant.${result.variant}`, 1)
         }
-        
+
         // Track response time by flag
         events.emit('histogram', `flag.response_time.${context.vars.randomFlag}`, response.timings.response)
-        
+
       } catch (e) {
         events.emit('counter', 'flag.parse_error', 1)
       }
     }
-    
+
     return done()
   }
 }

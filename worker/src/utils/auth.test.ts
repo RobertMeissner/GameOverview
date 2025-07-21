@@ -15,7 +15,7 @@ describe('AuthUtils', () => {
       const password = 'testPassword123'
       const hash1 = await authUtils.hashPassword(password)
       const hash2 = await authUtils.hashPassword(password)
-      
+
       expect(hash1).toBe(hash2)
       expect(hash1).toHaveLength(64) // SHA-256 produces 64 character hex string
     })
@@ -23,17 +23,17 @@ describe('AuthUtils', () => {
     it('should produce different hashes for different passwords', async () => {
       const password1 = 'password1'
       const password2 = 'password2'
-      
+
       const hash1 = await authUtils.hashPassword(password1)
       const hash2 = await authUtils.hashPassword(password2)
-      
+
       expect(hash1).not.toBe(hash2)
     })
 
     it('should verify correct passwords', async () => {
       const password = 'testPassword123'
       const hash = await authUtils.hashPassword(password)
-      
+
       const isValid = await authUtils.verifyPassword(password, hash)
       expect(isValid).toBe(true)
     })
@@ -42,7 +42,7 @@ describe('AuthUtils', () => {
       const password = 'testPassword123'
       const wrongPassword = 'wrongPassword'
       const hash = await authUtils.hashPassword(password)
-      
+
       const isValid = await authUtils.verifyPassword(wrongPassword, hash)
       expect(isValid).toBe(false)
     })
@@ -55,7 +55,7 @@ describe('AuthUtils', () => {
         email: 'test@example.com',
         username: 'testuser'
       }
-      
+
       const token = await authUtils.createJWT(payload)
       expect(token).toMatch(/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/)
     })
@@ -66,10 +66,10 @@ describe('AuthUtils', () => {
         email: 'test@example.com',
         username: 'testuser'
       }
-      
+
       const token = await authUtils.createJWT(payload)
       const decoded = await authUtils.verifyJWT(token)
-      
+
       expect(decoded.userId).toBe(payload.userId)
       expect(decoded.email).toBe(payload.email)
       expect(decoded.username).toBe(payload.username)
@@ -79,7 +79,7 @@ describe('AuthUtils', () => {
 
     it('should reject invalid JWT tokens', async () => {
       const invalidToken = 'invalid.token.here'
-      
+
       await expect(authUtils.verifyJWT(invalidToken)).rejects.toThrow()
     })
 
@@ -89,20 +89,20 @@ describe('AuthUtils', () => {
         email: 'test@example.com',
         username: 'testuser'
       }
-      
+
       // Mock Date.now to control time
       const originalNow = Date.now
       const baseTime = 1000000000000 // Fixed timestamp
-      
+
       // Create token at base time
       vi.spyOn(Date, 'now').mockReturnValue(baseTime)
       const token = await authUtils.createJWT(payload, '1s')
-      
+
       // Move time forward past expiration (1 second + buffer)
       vi.spyOn(Date, 'now').mockReturnValue(baseTime + 2000)
-      
+
       await expect(authUtils.verifyJWT(token)).rejects.toThrow()
-      
+
       // Restore original Date.now
       Date.now = originalNow
     })
@@ -113,16 +113,16 @@ describe('AuthUtils', () => {
         email: 'test@example.com',
         username: 'testuser'
       }
-      
+
       // Test different expiration formats
       const token1h = await authUtils.createJWT(payload, '1h')
       const token60m = await authUtils.createJWT(payload, '60m')
       const token3600s = await authUtils.createJWT(payload, '3600s')
-      
+
       const decoded1h = await authUtils.verifyJWT(token1h)
       const decoded60m = await authUtils.verifyJWT(token60m)
       const decoded3600s = await authUtils.verifyJWT(token3600s)
-      
+
       // All should have similar expiration times (within 1 second)
       expect(Math.abs(decoded1h.exp - decoded60m.exp)).toBeLessThan(1)
       expect(Math.abs(decoded60m.exp - decoded3600s.exp)).toBeLessThan(1)
@@ -133,7 +133,7 @@ describe('AuthUtils', () => {
     it('should extract token from Authorization header', () => {
       const token = 'test-token-123'
       const authHeader = `Bearer ${token}`
-      
+
       const extracted = authUtils.extractTokenFromHeader(authHeader)
       expect(extracted).toBe(token)
     })
@@ -147,7 +147,7 @@ describe('AuthUtils', () => {
     it('should extract token from cookie header', () => {
       const token = 'test-token-123'
       const cookieHeader = `auth_token=${token}; other_cookie=value`
-      
+
       const extracted = authUtils.extractTokenFromCookie(cookieHeader)
       expect(extracted).toBe(token)
     })
@@ -155,14 +155,14 @@ describe('AuthUtils', () => {
     it('should extract token from cookie with custom name', () => {
       const token = 'test-token-123'
       const cookieHeader = `custom_token=${token}; other_cookie=value`
-      
+
       const extracted = authUtils.extractTokenFromCookie(cookieHeader, 'custom_token')
       expect(extracted).toBe(token)
     })
 
     it('should return null for missing cookie', () => {
       const cookieHeader = 'other_cookie=value; another=test'
-      
+
       const extracted = authUtils.extractTokenFromCookie(cookieHeader)
       expect(extracted).toBeNull()
     })
@@ -181,7 +181,7 @@ describe('UserService', () => {
 
   beforeEach(() => {
     authUtils = new AuthUtils('test-secret')
-    
+
     // Mock D1 database
     mockDb = {
       prepare: vi.fn().mockReturnThis(),
@@ -189,7 +189,7 @@ describe('UserService', () => {
       run: vi.fn(),
       first: vi.fn(),
     }
-    
+
     userService = new UserService(mockDb)
   })
 
@@ -198,20 +198,20 @@ describe('UserService', () => {
       const email = 'test@example.com'
       const username = 'testuser'
       const password = 'password123'
-      
+
       mockDb.run.mockResolvedValue({
         meta: { last_row_id: 1 }
       })
-      
+
       const user = await userService.createUser(email, username, password, authUtils)
-      
+
       expect(user).toEqual({
         id: expect.any(String),
         email,
         username,
         created_at: expect.any(String)
       })
-      
+
       expect(mockDb.prepare).toHaveBeenCalledWith(expect.stringContaining('INSERT INTO users'))
       expect(mockDb.bind).toHaveBeenCalledWith(expect.any(String), email, username, expect.any(String))
     })
@@ -220,9 +220,9 @@ describe('UserService', () => {
       const email = 'test@example.com'
       const username = 'testuser'
       const password = 'password123'
-      
+
       mockDb.run.mockRejectedValue(new Error('UNIQUE constraint failed'))
-      
+
       await expect(userService.createUser(email, username, password, authUtils))
         .rejects.toThrow('Email or username already exists')
     })
@@ -239,18 +239,18 @@ describe('UserService', () => {
 
     it('should find user by email', async () => {
       mockDb.first.mockResolvedValue(mockUser)
-      
+
       const user = await userService.findUserByEmail('test@example.com')
-      
+
       expect(user).toEqual(mockUser)
       expect(mockDb.prepare).toHaveBeenCalledWith(expect.stringContaining('WHERE email = ?'))
     })
 
     it('should find user by username', async () => {
       mockDb.first.mockResolvedValue(mockUser)
-      
+
       const user = await userService.findUserByUsername('testuser')
-      
+
       expect(user).toEqual(mockUser)
       expect(mockDb.prepare).toHaveBeenCalledWith(expect.stringContaining('WHERE username = ?'))
     })
@@ -263,20 +263,20 @@ describe('UserService', () => {
         username: 'testuser',
         created_at: '2023-01-01T00:00:00Z'
       }
-      
+
       mockDb.first.mockResolvedValue(userWithoutPassword)
-      
+
       const user = await userService.findUserById(userId)
-      
+
       expect(user).toEqual(userWithoutPassword)
       expect(mockDb.prepare).toHaveBeenCalledWith(expect.stringContaining('WHERE id = ?'))
     })
 
     it('should return null for non-existent user', async () => {
       mockDb.first.mockResolvedValue(null)
-      
+
       const user = await userService.findUserByEmail('nonexistent@example.com')
-      
+
       expect(user).toBeNull()
     })
   })
@@ -297,9 +297,9 @@ describe('UserService', () => {
 
     it('should authenticate user with email and correct password', async () => {
       mockDb.first.mockResolvedValueOnce(mockUser).mockResolvedValueOnce(null)
-      
+
       const user = await userService.authenticateUser('test@example.com', 'password123', authUtils)
-      
+
       expect(user).toEqual({
         id: '550e8400-e29b-41d4-a716-446655440001',
         email: 'test@example.com',
@@ -310,9 +310,9 @@ describe('UserService', () => {
 
     it('should authenticate user with username and correct password', async () => {
       mockDb.first.mockResolvedValueOnce(null).mockResolvedValueOnce(mockUser)
-      
+
       const user = await userService.authenticateUser('testuser', 'password123', authUtils)
-      
+
       expect(user).toEqual({
         id: '550e8400-e29b-41d4-a716-446655440001',
         email: 'test@example.com',
@@ -323,14 +323,14 @@ describe('UserService', () => {
 
     it('should throw error for non-existent user', async () => {
       mockDb.first.mockResolvedValue(null)
-      
+
       await expect(userService.authenticateUser('nonexistent@example.com', 'password123', authUtils))
         .rejects.toThrow('User not found')
     })
 
     it('should throw error for incorrect password', async () => {
       mockDb.first.mockResolvedValueOnce(mockUser).mockResolvedValueOnce(null)
-      
+
       await expect(userService.authenticateUser('test@example.com', 'wrongpassword', authUtils))
         .rejects.toThrow('Invalid password')
     })

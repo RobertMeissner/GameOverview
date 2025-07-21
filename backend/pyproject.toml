@@ -29,6 +29,7 @@ dependencies = [
     "numpy==1.26.3",
     "bs4<1.0.0,>=0.0.2",
     "pyarrow<18.0.0,>=17.0.0",
+    "detect-secrets>=1.5.0",
 ]
 name = "Game_Overview"
 version = "0.1.0"

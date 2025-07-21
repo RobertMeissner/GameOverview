@@ -2,14 +2,14 @@
 
 /**
  * Feature Flag Management CLI
- * 
+ *
  * Usage:
  *   node scripts/manage-flags.js list [env]
  *   node scripts/manage-flags.js enable <flag> [env] [rollout%]
  *   node scripts/manage-flags.js disable <flag> [env]
  *   node scripts/manage-flags.js set <flag> <config> [env]
  *   node scripts/manage-flags.js user <flag> <userId> <enabled> [env]
- * 
+ *
  * Examples:
  *   node scripts/manage-flags.js enable authentication dev 50
  *   node scripts/manage-flags.js disable new_dashboard prod
@@ -42,16 +42,16 @@ function runWranglerCommand(command) {
 function listFlags(env = DEFAULT_ENV) {
   console.log(`\n📋 Feature flags for environment: ${env}`)
   console.log('=' .repeat(50))
-  
+
   try {
     const result = runWranglerCommand(`wrangler kv:key list --binding=${getKVBinding(env)} --prefix="feature:${env}:" --preview false`)
     const keys = JSON.parse(result || '[]')
-    
+
     if (keys.length === 0) {
       console.log('No feature flags found.')
       return
     }
-    
+
     keys.forEach(key => {
       const flagName = key.name.replace(`feature:${env}:`, '')
       if (!flagName.includes(':users:') && !flagName.includes(':global:')) {
@@ -81,15 +81,15 @@ function listFlags(env = DEFAULT_ENV) {
 
 function enableFlag(flagName, env = DEFAULT_ENV, rolloutPercentage) {
   console.log(`\n🚀 Enabling flag "${flagName}" in ${env}...`)
-  
+
   const config = {
     enabled: true,
     ...(rolloutPercentage && { rolloutPercentage: parseInt(rolloutPercentage) })
   }
-  
+
   const key = `feature:${env}:${flagName}`
   runWranglerCommand(`wrangler kv:key put "${key}" '${JSON.stringify(config)}' --binding=${getKVBinding(env)} --preview false`)
-  
+
   console.log(`✅ Flag "${flagName}" enabled in ${env}`)
   if (rolloutPercentage) {
     console.log(`   Rollout percentage: ${rolloutPercentage}%`)
@@ -98,21 +98,21 @@ function enableFlag(flagName, env = DEFAULT_ENV, rolloutPercentage) {
 
 function disableFlag(flagName, env = DEFAULT_ENV) {
   console.log(`\n🛑 Disabling flag "${flagName}" in ${env}...`)
-  
+
   const config = { enabled: false }
   const key = `feature:${env}:${flagName}`
   runWranglerCommand(`wrangler kv:key put "${key}" '${JSON.stringify(config)}' --binding=${getKVBinding(env)} --preview false`)
-  
+
   console.log(`❌ Flag "${flagName}" disabled in ${env}`)
 }
 
 function setFlag(flagName, configJson, env = DEFAULT_ENV) {
   console.log(`\n⚙️  Setting flag "${flagName}" in ${env}...`)
-  
+
   try {
     const config = JSON.parse(configJson)
   const key = `feature:${env}:${flagName}`
-  runWranglerCommand(`wrangler kv:key put "${key}" '${JSON.stringify(config)}' --binding=${getKVBinding(env)} --preview false`)    
+  runWranglerCommand(`wrangler kv:key put "${key}" '${JSON.stringify(config)}' --binding=${getKVBinding(env)} --preview false`)
     console.log(`✅ Flag "${flagName}" updated in ${env}`)
     console.log(`   Configuration: ${JSON.stringify(config, null, 2)}`)
   } catch (error) {
@@ -123,11 +123,11 @@ function setFlag(flagName, configJson, env = DEFAULT_ENV) {
 
 function setUserOverride(flagName, userId, enabled, env = DEFAULT_ENV) {
   console.log(`\n👤 Setting user override for "${flagName}" in ${env}...`)
-  
+
   const key = `feature:${env}:${flagName}:users:${userId}`
   const value = enabled === 'true' ? 'true' : 'false'
   runWranglerCommand(`wrangler kv:key put "${key}" "${value}" --binding=${getKVBinding(env)} --preview false`)
-  
+
   console.log(`✅ User override set for "${flagName}" in ${env}`)
   console.log(`   User: ${userId}`)
   console.log(`   Enabled: ${enabled === 'true' ? '✅' : '❌'}`)
@@ -181,7 +181,7 @@ switch (command) {
   case 'list':
     listFlags(args[1])
     break
-    
+
   case 'enable':
     if (!args[1]) {
       console.error('Error: Flag name required')
@@ -190,7 +190,7 @@ switch (command) {
     }
     enableFlag(args[1], args[2], args[3])
     break
-    
+
   case 'disable':
     if (!args[1]) {
       console.error('Error: Flag name required')
@@ -199,7 +199,7 @@ switch (command) {
     }
     disableFlag(args[1], args[2])
     break
-    
+
   case 'set':
     if (!args[1] || !args[2]) {
       console.error('Error: Flag name and configuration required')
@@ -208,7 +208,7 @@ switch (command) {
     }
     setFlag(args[1], args[2], args[3])
     break
-    
+
   case 'user':
     if (!args[1] || !args[2] || !args[3]) {
       console.error('Error: Flag name, user ID, and enabled status required')
@@ -217,7 +217,7 @@ switch (command) {
     }
     setUserOverride(args[1], args[2], args[3], args[4])
     break
-    
+
   default:
     console.error(`Error: Unknown command "${command}"`)
     showHelp()

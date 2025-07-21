@@ -1,22 +1,22 @@
 /**
  * Integration tests for Feature Flagging System
- * 
+ *
  * These tests use Miniflare to create a real Cloudflare Workers environment
  * with actual KV namespace and D1 database for comprehensive testing.
- * 
+ *
  * To run these tests:
  * npm run test:integration
  */
 
 import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest'
 import { FeatureFlagService } from '../utils/featureFlags.js'
-import { 
-  createTestEnvironment, 
-  makeAuthenticatedRequest, 
+import {
+  createTestEnvironment,
+  makeAuthenticatedRequest,
   waitForKVPropagation,
   assertResponse,
   createTestFlag,
-  type TestEnvironment 
+  type TestEnvironment
 } from './test-setup.js'
 
 // Skip these tests unless explicitly running integration tests
@@ -67,7 +67,7 @@ describe.skipIf(!runIntegrationTests)('Feature Flags Integration Tests', () => {
       })
 
       await flagService.setFlag(flagName, config)
-      
+
       // Wait for KV propagation
       await waitForKVPropagation(100)
 
@@ -100,11 +100,11 @@ describe.skipIf(!runIntegrationTests)('Feature Flags Integration Tests', () => {
       )
 
       const enabledCount = results.filter(Boolean).length
-      
+
       // Should be roughly 50% (allow for variance due to hashing)
       expect(enabledCount).toBeGreaterThan(30)
       expect(enabledCount).toBeLessThan(70)
-      
+
       console.log(`User targeting test: ${enabledCount}/100 users enabled (expected ~50)`)
     })
 
@@ -119,7 +119,7 @@ describe.skipIf(!runIntegrationTests)('Feature Flags Integration Tests', () => {
       await waitForKVPropagation()
 
       const userId = 'consistent_user_123'
-      
+
       // Evaluate the same flag multiple times
       const results = await Promise.all(
         Array.from({ length: 10 }, () => flagService.isEnabled(flagName, userId))
@@ -128,7 +128,7 @@ describe.skipIf(!runIntegrationTests)('Feature Flags Integration Tests', () => {
       // All results should be identical
       const firstResult = results[0]
       expect(results.every(result => result === firstResult)).toBe(true)
-      
+
       console.log(`Consistency test: User ${userId} consistently got ${firstResult}`)
     })
   })
@@ -286,10 +286,10 @@ describe.skipIf(!runIntegrationTests)('Feature Flags Integration Tests', () => {
       await waitForKVPropagation()
 
       const startTime = Date.now()
-      
+
       // Evaluate flag 50 times (reduced for integration test)
       await Promise.all(
-        Array.from({ length: 50 }, (_, i) => 
+        Array.from({ length: 50 }, (_, i) =>
           flagService.isEnabled(flagName, `perf_user_${i}`)
         )
       )
@@ -378,7 +378,7 @@ describe.skipIf(!runIntegrationTests)('Feature Flags Integration Tests', () => {
 
       // Create a different flag service for 'dev' environment
       const devFlagService = new FeatureFlagService(testEnv.env.FEATURE_FLAGS, 'dev')
-      
+
       // Flag should not exist in dev environment
       const devResult = await devFlagService.isEnabled(flagName, undefined, false)
       expect(devResult).toBe(false)
@@ -386,10 +386,10 @@ describe.skipIf(!runIntegrationTests)('Feature Flags Integration Tests', () => {
       // Verify KV keys are properly namespaced
       const integrationKey = `feature:integration-test:${flagName}`
       const devKey = `feature:dev:${flagName}`
-      
+
       const integrationValue = await testEnv.env.FEATURE_FLAGS.get(integrationKey)
       const devValue = await testEnv.env.FEATURE_FLAGS.get(devKey)
-      
+
       expect(integrationValue).toBeTruthy()
       expect(devValue).toBeNull()
     })

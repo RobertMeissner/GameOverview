@@ -79,7 +79,7 @@ export default function RegisterForm({ onSwitchToLogin, onRegisterSuccess }: Reg
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!validateForm()) {
       return
     }
@@ -100,7 +100,7 @@ export default function RegisterForm({ onSwitchToLogin, onRegisterSuccess }: Reg
       ...prev,
       [field]: e.target.value,
     }))
-    
+
     // Clear field error when user starts typing
     if (errors[field as keyof FormErrors]) {
       setErrors(prev => ({
@@ -116,7 +116,7 @@ export default function RegisterForm({ onSwitchToLogin, onRegisterSuccess }: Reg
         <Typography variant="h4" component="h1" gutterBottom align="center">
           Sign Up
         </Typography>
-        
+
         <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 3 }}>
           Create your account to start managing your game library.
         </Typography>

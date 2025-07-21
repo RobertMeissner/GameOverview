@@ -145,7 +145,7 @@ describe('LoginForm', () => {
     })
     // The password field has a visibility toggle button, so that gets focus first
     expect(screen.getByLabelText(/toggle password visibility/i)).toHaveFocus()
-    
+
     await act(async () => {
       await userEvent.tab()
     })

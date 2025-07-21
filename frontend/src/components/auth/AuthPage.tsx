@@ -42,7 +42,7 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps) {
               />
             </Box>
           </Fade>
-          
+
           <Fade in={mode === 'register'} timeout={300}>
             <Box sx={{ display: mode === 'register' ? 'block' : 'none' }}>
               <RegisterForm

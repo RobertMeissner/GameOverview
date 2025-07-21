@@ -10,7 +10,7 @@ const createMockEnv = (): Env => {
     run: vi.fn(),
     first: vi.fn(),
   }
-  
+
   const mockKV = {
     get: vi.fn(),
     put: vi.fn(),
@@ -63,16 +63,16 @@ describe('Authentication Routes', () => {
 
       const response = await handleAuthRoutes(request, mockEnv, mockCtx)
       expect(response).not.toBeNull()
-      
+
       if (response) {
         expect(response.status).toBe(201)
-        
+
         const responseData = await response.json() as any
         expect(responseData.success).toBe(true)
         expect(responseData.user.email).toBe(requestBody.email)
         expect(responseData.user.username).toBe(requestBody.username)
         expect(responseData.token).toBeDefined()
-        
+
         // Check Set-Cookie header
         const setCookieHeader = response.headers.get('Set-Cookie')
         expect(setCookieHeader).toContain('auth_token=')
@@ -95,10 +95,10 @@ describe('Authentication Routes', () => {
 
       const response = await handleAuthRoutes(request, mockEnv, mockCtx)
       expect(response).not.toBeNull()
-      
+
       if (response) {
         expect(response.status).toBe(400)
-        
+
         const responseData = await response.json() as any
         expect(responseData.error).toContain('Email, username, and password are required')
       }
@@ -119,10 +119,10 @@ describe('Authentication Routes', () => {
 
       const response = await handleAuthRoutes(request, mockEnv, mockCtx)
       expect(response).not.toBeNull()
-      
+
       if (response) {
         expect(response.status).toBe(400)
-        
+
         const responseData = await response.json() as any
         expect(responseData.error).toContain('Invalid email format')
       }
@@ -137,14 +137,14 @@ describe('Authentication Routes', () => {
 
       const response = await handleAuthRoutes(request, mockEnv, mockCtx)
       expect(response).not.toBeNull()
-      
+
       if (response) {
         expect(response.status).toBe(200)
-        
+
         const responseData = await response.json() as any
         expect(responseData.success).toBe(true)
         expect(responseData.message).toBe('Logged out successfully')
-        
+
         // Check that cookie is cleared
         const setCookieHeader = response.headers.get('Set-Cookie')
         expect(setCookieHeader).toContain('auth_token=;')
@@ -161,10 +161,10 @@ describe('Authentication Routes', () => {
 
       const response = await handleAuthRoutes(request, mockEnv, mockCtx)
       expect(response).not.toBeNull()
-      
+
       if (response) {
         expect(response.status).toBe(401)
-        
+
         const responseData = await response.json() as any
         expect(responseData.error).toBe('No authentication token provided')
       }
@@ -179,7 +179,7 @@ describe('Authentication Routes', () => {
 
       const response = await handleAuthRoutes(request, mockEnv, mockCtx)
       expect(response).not.toBeNull()
-      
+
       if (response) {
         expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*')
         expect(response.headers.get('Access-Control-Allow-Methods')).toContain('POST')

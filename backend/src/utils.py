@@ -83,9 +83,7 @@ EXPECTED_DF_COLUMNS = {
 }
 
 
-def coerce_dataframe_types(
-    df: pd.DataFrame, expected_columns: dict = None
-) -> pd.DataFrame:
+def coerce_dataframe_types(df: pd.DataFrame, expected_columns: dict = None) -> pd.DataFrame:
     if expected_columns is None:
         expected_columns = EXPECTED_DF_COLUMNS
 
@@ -95,9 +93,7 @@ def coerce_dataframe_types(
 
 
 def init_df():
-    return pd.DataFrame(
-        {col: pd.Series([], dtype=dtype) for col, dtype in EXPECTED_DF_COLUMNS.items()}
-    )
+    return pd.DataFrame({col: pd.Series([], dtype=dtype) for col, dtype in EXPECTED_DF_COLUMNS.items()})
 
 
 def load_data(filename=DATA_FILEPATH) -> pd.DataFrame:
@@ -147,7 +143,7 @@ def process_data(df: pd.DataFrame) -> pd.DataFrame:
 # Function to create a hash
 def create_hash(row: pd.Series) -> str:
     combined = row[game_name] + row[store_name]
-    return hashlib.md5(combined.encode()).hexdigest()
+    return hashlib.md5(combined.encode(), usedforsecurity=False).hexdigest()
 
 
 def game_hash(df: pd.DataFrame) -> pd.DataFrame:

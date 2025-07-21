@@ -38,14 +38,11 @@ editable_columns_to_save = [*editable_columns, HASH, APP_ID, game_name]
 
 def save_editable_data(df):  # df: pd.DataFrame
     save_data(df, filename=EDITABLE_DATA_FILEPATH)
-    st.session_state.df = update_with_edited_data(
-        st.session_state.df.copy(deep=True), df
-    )
+    st.session_state.df = update_with_edited_data(st.session_state.df.copy(deep=True), df)
 
 
 # Create a function to display the DataFrame in Streamlit with filter and sorting options
 def display_dataframe():
-
     df_overview = st.session_state.df[overview_columns]
 
     st.sidebar.write("### Filter rows:")
@@ -64,18 +61,12 @@ def display_dataframe():
 
     # Fetch unique stores for selection
     store_list = df_overview[store_name].unique()
-    selected_stores = st.sidebar.multiselect(
-        "Select Stores:", store_list, default=store_list
-    )
+    selected_stores = st.sidebar.multiselect("Select Stores:", store_list, default=store_list)
     df_overview = df_overview[df_overview[store_name].isin(selected_stores)]
 
-    st.write(
-        f"Number of games: {len(df_overview)}. Hidden: {st.session_state.df[HIDE_FIELD].sum()}"
-    )
+    st.write(f"Number of games: {len(df_overview)}. Hidden: {st.session_state.df[HIDE_FIELD].sum()}")
 
-    df_overview[CUSTOM_RATING] = (
-        df_overview[RATING_FIELD] * df_overview[REVIEW_SCORE_FIELD] / 9
-    )
+    df_overview[CUSTOM_RATING] = df_overview[RATING_FIELD] * df_overview[REVIEW_SCORE_FIELD] / 9
     # sort columns
     df_overview.insert(0, game_name, df_overview.pop(game_name))
     df_overview.insert(1, RATING_FIELD, df_overview.pop(RATING_FIELD))
@@ -112,9 +103,7 @@ def display_dataframe():
     # save_changes(st.session_state.raw_df, edited_df)
 
 
-def update_with_edited_data(
-    df_original: pd.DataFrame, df_edited: pd.DataFrame
-) -> pd.DataFrame:
+def update_with_edited_data(df_original: pd.DataFrame, df_edited: pd.DataFrame) -> pd.DataFrame:
     # FIXME sometimes hash is double, so far only for one epic game
     df_original = df_original.drop_duplicates(subset=HASH)
     df_edited = df_edited.drop_duplicates(subset=HASH)

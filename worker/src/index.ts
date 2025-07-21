@@ -7,7 +7,7 @@ import type { Env, HealthResponse, ApiError } from './types/index.js'
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url)
-    
+
     // Handle CORS preflight requests
     if (request.method === 'OPTIONS') {
       return new Response(null, {
@@ -44,23 +44,23 @@ export default {
 async function handleAPI(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
   const url = new URL(request.url)
   const flagService = createFeatureFlagService(env)
-  
+
   // Authentication routes - protected by feature flag
   if (url.pathname.startsWith('/api/auth/')) {
     const authEnabled = await flagService.isEnabled('authentication', undefined, true)
     if (!authEnabled) {
-      const errorResponse: ApiError = { 
-        error: 'Authentication feature is currently disabled' 
+      const errorResponse: ApiError = {
+        error: 'Authentication feature is currently disabled'
       }
-      return new Response(JSON.stringify(errorResponse), { 
+      return new Response(JSON.stringify(errorResponse), {
         status: 503,
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*'
         }
       })
     }
-    
+
     const response = await handleAuthRoutes(request, env, ctx)
     if (response) return response
   }
@@ -87,20 +87,20 @@ async function handleAPI(request: Request, env: Env, ctx: ExecutionContext): Pro
 
     return new Response(JSON.stringify(healthResponse), {
       status: 200,
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
       }
     })
   }
 
-  const errorResponse: ApiError = { 
-    error: 'API endpoint not found' 
+  const errorResponse: ApiError = {
+    error: 'API endpoint not found'
   }
-  
-  return new Response(JSON.stringify(errorResponse), { 
+
+  return new Response(JSON.stringify(errorResponse), {
     status: 404,
-    headers: { 
+    headers: {
       'Content-Type': 'application/json',
       'Access-Control-Allow-Origin': '*'
     }

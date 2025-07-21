@@ -7,7 +7,7 @@ export async function requireAuth(request: Request, env: Env): Promise<User> {
 
   const authHeader = request.headers.get('Authorization')
   const cookieHeader = request.headers.get('Cookie')
-  
+
   let token = authUtils.extractTokenFromHeader(authHeader)
   if (!token) {
     token = authUtils.extractTokenFromCookie(cookieHeader)
@@ -20,7 +20,7 @@ export async function requireAuth(request: Request, env: Env): Promise<User> {
   try {
     const payload = await authUtils.verifyJWT(token)
     const user = await userService.findUserById(payload.userId)
-    
+
     if (!user) {
       throw new Error('User not found')
     }
@@ -32,16 +32,16 @@ export async function requireAuth(request: Request, env: Env): Promise<User> {
 }
 
 export function createAuthErrorResponse(error: Error, corsHeaders: Record<string, string> = {}): Response {
-  return new Response(JSON.stringify({ 
-    error: error.message 
+  return new Response(JSON.stringify({
+    error: error.message
   }), {
     status: 401,
-    headers: { 
+    headers: {
       'Content-Type': 'application/json',
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      ...corsHeaders 
+      ...corsHeaders
     }
   })
 }

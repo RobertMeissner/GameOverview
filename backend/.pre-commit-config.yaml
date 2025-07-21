@@ -6,12 +6,14 @@ repos:
     rev: v0.6.9
     hooks:
       - id: ruff
+        # TODO: Make include everything
+        files: ^backend/src/(domain|application|infrastructure)/.*\.py$
         args:
           - --line-length=140
           - --fix
           - --select=ALL
           - --ignore=D100,D104,COM812,ISC001,T201,S101
-          - --per-file-ignores=__init__.py:F401,tests/*:S101,PLR0913,PLR2004
+          - --per-file-ignores=__init__.py:F401,tests/*:S101,tests/*:PLR0913,tests/*:PLR2004
       - id: ruff-format
         args: [--line-length=140]
 
@@ -19,28 +21,33 @@ repos:
     rev: v1.11.2
     hooks:
       - id: mypy
+        verbose: true
+        # TODO: Make automatic
+        stages: [manual]
         args: [--strict, --ignore-missing-imports, --show-error-codes]
         additional_dependencies: [types-requests, types-PyYAML]
 
   - repo: https://github.com/PyCQA/bandit
-    rev: 1.7.9
+    rev: 1.8.6
     hooks:
       - id: bandit
-        args: ["-r", ".", "-x", "tests,env,venv", "-ll"]
+        args: ["-ll"]
+        exclude: ^backend/tests/|^env/|^venv/|^frontend/
+        # TODO: Make include everything
+        files: ^backend/src/(domain|application|infrastructure)/.*\.py$
 
-#  - repo: https://github.com/pyupio/safety
-#    rev: 3.2.7
-#    hooks:
-#      - id: safety
-#        args: ["--ignore", "70612"]
-#
-#  # Dead code detection (ruff F401, F841 help but vulture is more thorough)
-#  - repo: https://github.com/jendrikseipp/vulture
-#    rev: 'v2.11'
-#    hooks:
-#      - id: vulture
-#        args: ["backend/src", "--min-confidence", "80"]
-#
+  - repo: https://github.com/pypa/pip-audit
+    rev: v2.7.3
+    hooks:
+      - id: pip-audit
+
+  # Dead code detection (ruff F401, F841 help but vulture is more thorough)
+  - repo: https://github.com/jendrikseipp/vulture
+    rev: 'v2.11'
+    hooks:
+      - id: vulture
+        args: ["backend/src", "--min-confidence", "80"]
+
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
     hooks:
@@ -56,8 +63,34 @@ repos:
         args: ['--maxkb=1000']
       - id: debug-statements
 
-#  - repo: https://github.com/Yelp/detect-secrets
-#    rev: v1.5.0
-#    hooks:
-#      - id: detect-secrets
-#        args: ['--baseline', '.secrets.baseline']
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: package.lock.json
+        # TODO: include
+        stages: [manual]
+
+  - repo: local
+    hooks:
+      - id: radon-cc
+        name: radon complexity check
+        entry: radon cc
+        language: python
+        files: \.py$
+        args: [--min=B, --show-complexity]
+
+      - id: radon-mi
+        name: radon maintainability index
+        entry: radon mi
+        language: python
+        files: \.py$
+        args: [--min=B, --show]
+
+      - id: radon-raw
+        name: radon raw metrics
+        entry: radon raw
+        language: python
+        files: \.py$
+        args: [--summary]

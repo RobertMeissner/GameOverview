@@ -1,6 +1,6 @@
 /**
  * Simplified Integration Tests for Feature Flagging System
- * 
+ *
  * These tests focus on testing the core functionality without
  * requiring complex Miniflare setup. They test the actual
  * business logic and KV operations.
@@ -22,7 +22,7 @@ describe.skipIf(!runIntegrationTests)('Feature Flags Simple Integration Tests', 
   beforeEach(() => {
     // Create a more realistic KV mock that simulates real behavior
     kvStore = new Map()
-    
+
     mockKV = {
       get: vi.fn(async (key: string) => {
         // Simulate KV propagation delay
@@ -92,7 +92,7 @@ describe.skipIf(!runIntegrationTests)('Feature Flags Simple Integration Tests', 
 
       // Create token that expires immediately (negative time)
       const token = await authUtils.createJWT(payload, '-1s')
-      
+
       try {
         const decoded = await authUtils.verifyJWT(token)
         expect(decoded).toBeNull()
@@ -142,7 +142,7 @@ describe.skipIf(!runIntegrationTests)('Feature Flags Simple Integration Tests', 
       // Test flag evaluation with override
       await flagService.setFlag(flagName, { enabled: false })
       const result = await flagService.evaluateFlag(flagName, userId)
-      
+
       expect(result.enabled).toBe(true)
       expect(result.reason).toBe('user_override')
     })
@@ -175,7 +175,7 @@ describe.skipIf(!runIntegrationTests)('Feature Flags Simple Integration Tests', 
       await flagService.isEnabled(flagName, 'dummy_user')
 
       const userId = 'consistent_user'
-      
+
       // Test multiple evaluations sequentially to avoid race conditions
       const results = []
       for (let i = 0; i < 10; i++) {
@@ -206,7 +206,7 @@ describe.skipIf(!runIntegrationTests)('Feature Flags Simple Integration Tests', 
       // Should be roughly 30% (allow for variance due to hashing)
       expect(percentage).toBeGreaterThan(20)
       expect(percentage).toBeLessThan(40)
-      
+
       console.log(`Distribution test: ${enabledCount}/1000 users enabled (${percentage.toFixed(1)}%, expected ~30%)`)
     })
 
@@ -239,13 +239,13 @@ describe.skipIf(!runIntegrationTests)('Feature Flags Simple Integration Tests', 
   describe('Environment Isolation', () => {
     it('should isolate flags by environment', async () => {
       const flagName = 'env_test'
-      
+
       // Create flag in integration-test environment
       await flagService.setFlag(flagName, { enabled: true })
 
       // Create service for different environment
       const prodFlagService = new FeatureFlagService(mockKV, 'prod')
-      
+
       // Flag should not exist in prod environment
       const prodResult = await prodFlagService.isEnabled(flagName, undefined, false)
       expect(prodResult).toBe(false)
@@ -283,7 +283,7 @@ describe.skipIf(!runIntegrationTests)('Feature Flags Simple Integration Tests', 
       await flagService.getVariant(flagName, 'dummy_user')
 
       const userId = 'ab_test_user'
-      
+
       // Get variant multiple times sequentially
       const variants = []
       for (let i = 0; i < 10; i++) {
@@ -314,7 +314,7 @@ describe.skipIf(!runIntegrationTests)('Feature Flags Simple Integration Tests', 
 
       const controlCount = variants.filter(v => v === 'control').length
       const treatmentCount = variants.filter(v => v === 'treatment').length
-      
+
       const controlPercentage = (controlCount / users.length) * 100
       const treatmentPercentage = (treatmentCount / users.length) * 100
 
@@ -370,10 +370,10 @@ describe.skipIf(!runIntegrationTests)('Feature Flags Simple Integration Tests', 
       await flagService.setFlag(flagName, { enabled: true })
 
       const startTime = Date.now()
-      
+
       // Evaluate flag many times
       await Promise.all(
-        Array.from({ length: 100 }, (_, i) => 
+        Array.from({ length: 100 }, (_, i) =>
           flagService.isEnabled(flagName, `perf_user_${i}`)
         )
       )

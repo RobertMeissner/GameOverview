@@ -8,14 +8,13 @@ from backend.src.markdown_parser import played_games
 
 
 class TestParseMarkdownFile(unittest.TestCase):
-
     def test_played_games(self):
         mock_file_content = """# Header 1
             This is line 1.
-            
+
             # Header 2
-            
-            This is line 2 with trailing spaces.   
+
+            This is line 2 with trailing spaces.
             # Header 3
             """
         expected_output = ["This is line 1.", "This is line 2 with trailing spaces."]

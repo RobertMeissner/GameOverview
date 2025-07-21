@@ -24,9 +24,7 @@ class TestRequestRating(unittest.TestCase):
                         "hits": [
                             {
                                 "id": "12345",
-                                "_highlightResult": {
-                                    "name": {"value": "<strong>Cyberpunk</strong> 2077"}
-                                },
+                                "_highlightResult": {"name": {"value": "<strong>Cyberpunk</strong> 2077"}},
                             }
                         ]
                     }
@@ -47,9 +45,7 @@ class TestRequestRating(unittest.TestCase):
         ]
 
         # Create a Pandas Series simulating the database row
-        df = pd.Series(
-            {"name": "Cyberpunk 2077", "corrected_app_id": 0, "app_id": 0, "rating": 0}
-        )
+        df = pd.Series({"name": "Cyberpunk 2077", "corrected_app_id": 0, "app_id": 0, "rating": 0})
         result = request_rating(df)
         # Check the returned dataframe
         self.assertEqual(result["app_id"], "12345")
@@ -120,9 +116,7 @@ class TestRequestRating(unittest.TestCase):
         response = requests.post(url, headers=headers, data=payload)
 
         # Assert that the HTTP status code is 200
-        self.assertEqual(
-            response.status_code, 200, "API did not return a success status code."
-        )
+        self.assertEqual(response.status_code, 200, "API did not return a success status code.")
 
         # Load the JSON data from the response
         data = response.json()

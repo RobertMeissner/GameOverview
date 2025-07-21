@@ -14,9 +14,7 @@ class TestAPI(TestCase):
                 "name": "Example Game",
                 "thumbnail_url": "",
             }
-            response = client.post(
-                "/games/add", json={"name": "", "app_id": 12345, "store": "steam"}
-            )
+            response = client.post("/games/add", json={"name": "", "app_id": 12345, "store": "steam"})
             self.assertEqual(response.status_code, 200)
             response_data = NewItemFoundResponse(**response.json())
             self.assertEqual(response_data.name, "Example Game")
@@ -50,18 +48,12 @@ class TestAPI(TestCase):
             self.assertEqual(response.json(), {"detail": "Store not found"})
 
             # Test case 4: Missing required fields
-            response = client.post(
-                "/games/add", json={"name": "Missing App ID", "store": "steam"}
-            )
-            self.assertEqual(
-                response.status_code, 422
-            )  # Unprocessable Entity due to missing fields
+            response = client.post("/games/add", json={"name": "Missing App ID", "store": "steam"})
+            self.assertEqual(response.status_code, 422)  # Unprocessable Entity due to missing fields
 
     def test_steam_search(self):
         # Test case 1: Valid request to Steam
-        response = client.post(
-            "/games/add", json={"name": "", "app_id": 50, "store": "steam"}
-        )
+        response = client.post("/games/add", json={"name": "", "app_id": 50, "store": "steam"})
         self.assertEqual(response.status_code, 200)
         response_data = NewItemFoundResponse(**response.json())
         self.assertEqual(response_data.name, "Half-Life: Opposing Force")
@@ -69,6 +61,5 @@ class TestAPI(TestCase):
         self.assertEqual(response_data.store, "steam")
         self.assertEqual(
             response_data.thumbnail_url,
-            "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/50"
-            "/header.jpg?t=1721932677",
+            "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/50" "/header.jpg?t=1721932677",
         )  # Assuming the thumbnail is None for this test case

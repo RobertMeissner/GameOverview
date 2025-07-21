@@ -1,12 +1,12 @@
 import { requireAuth, createAuthErrorResponse, createCorsHeaders } from '../middleware/auth.js'
 import { GameService, GameDataMapper } from '../services/gameService.js'
-import type { 
-  Env, 
-  Game, 
-  CreateGameRequest, 
-  UpdateGameRequest, 
-  GameResponse, 
-  GamesResponse, 
+import type {
+  Env,
+  Game,
+  CreateGameRequest,
+  UpdateGameRequest,
+  GameResponse,
+  GamesResponse,
   ApiError,
   GameStore
 } from '../types/index.js'
@@ -27,8 +27,8 @@ export async function handleGamesRoutes(request: Request, env: Env, ctx: Executi
 
       // Validate required fields
       if (!name || !store) {
-        const errorResponse: ApiError = { 
-          error: 'Name and store are required' 
+        const errorResponse: ApiError = {
+          error: 'Name and store are required'
         }
         return new Response(JSON.stringify(errorResponse), {
           status: 400,
@@ -39,8 +39,8 @@ export async function handleGamesRoutes(request: Request, env: Env, ctx: Executi
       // Validate store
       const validStores: GameStore[] = ['steam', 'gog', 'epic', 'other']
       if (!validStores.includes(store)) {
-        const errorResponse: ApiError = { 
-          error: 'Invalid store. Must be one of: ' + validStores.join(', ') 
+        const errorResponse: ApiError = {
+          error: 'Invalid store. Must be one of: ' + validStores.join(', ')
         }
         return new Response(JSON.stringify(errorResponse), {
           status: 400,
@@ -62,8 +62,8 @@ export async function handleGamesRoutes(request: Request, env: Env, ctx: Executi
         })
       } catch (error: any) {
         console.error('Service error:', error)
-        const errorResponse: ApiError = { 
-          error: 'Failed to add game to library' 
+        const errorResponse: ApiError = {
+          error: 'Failed to add game to library'
         }
         return new Response(JSON.stringify(errorResponse), {
           status: 500,
@@ -90,8 +90,8 @@ export async function handleGamesRoutes(request: Request, env: Env, ctx: Executi
       } catch (error: any) {
 
         console.error('Service error:', error)
-        const errorResponse: ApiError = { 
-          error: 'Failed to fetch games' 
+        const errorResponse: ApiError = {
+          error: 'Failed to fetch games'
         }
         return new Response(JSON.stringify(errorResponse), {
           status: 500,
@@ -112,8 +112,8 @@ export async function handleGamesRoutes(request: Request, env: Env, ctx: Executi
         })
       } catch (error: any) {
         console.error('Service error:', error)
-        const errorResponse: ApiError = { 
-          error: 'Failed to fetch games' 
+        const errorResponse: ApiError = {
+          error: 'Failed to fetch games'
         }
         return new Response(JSON.stringify(errorResponse), {
           status: 500,
@@ -132,8 +132,8 @@ export async function handleGamesRoutes(request: Request, env: Env, ctx: Executi
         const updatedGame = await gameService.updateGame(user.id, gameId, body)
 
         if (!updatedGame) {
-          const errorResponse: ApiError = { 
-            error: 'Game not found or access denied' 
+          const errorResponse: ApiError = {
+            error: 'Game not found or access denied'
           }
           return new Response(JSON.stringify(errorResponse), {
             status: 404,
@@ -152,8 +152,8 @@ export async function handleGamesRoutes(request: Request, env: Env, ctx: Executi
         })
       } catch (error: any) {
         console.error('Service error:', error)
-        const errorResponse: ApiError = { 
-          error: error.message || 'Failed to update game' 
+        const errorResponse: ApiError = {
+          error: error.message || 'Failed to update game'
         }
         return new Response(JSON.stringify(errorResponse), {
           status: 400,
@@ -171,8 +171,8 @@ export async function handleGamesRoutes(request: Request, env: Env, ctx: Executi
         const deleted = await gameService.deleteGame(user.id, gameId)
 
         if (!deleted) {
-          const errorResponse: ApiError = { 
-            error: 'Game not found or access denied' 
+          const errorResponse: ApiError = {
+            error: 'Game not found or access denied'
           }
           return new Response(JSON.stringify(errorResponse), {
             status: 404,
@@ -189,8 +189,8 @@ export async function handleGamesRoutes(request: Request, env: Env, ctx: Executi
         })
       } catch (error: any) {
         console.error('Service error:', error)
-        const errorResponse: ApiError = { 
-          error: 'Failed to delete game' 
+        const errorResponse: ApiError = {
+          error: 'Failed to delete game'
         }
         return new Response(JSON.stringify(errorResponse), {
           status: 500,

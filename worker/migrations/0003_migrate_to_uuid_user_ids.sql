@@ -13,8 +13,8 @@ ALTER TABLE games ADD COLUMN user_uuid TEXT;
 -- Step 2: Generate UUIDs for existing users (using a simple UUID v4 format)
 -- Note: In a real migration, you'd want to use proper UUID generation
 -- For this example, we'll create deterministic UUIDs based on existing IDs
-UPDATE users SET uuid_id = 
-  CASE 
+UPDATE users SET uuid_id =
+  CASE
     WHEN id = 1 THEN '550e8400-e29b-41d4-a716-446655440001'
     WHEN id = 2 THEN '550e8400-e29b-41d4-a716-446655440002'
     WHEN id = 3 THEN '550e8400-e29b-41d4-a716-446655440003'
@@ -70,12 +70,12 @@ INSERT INTO users_new (id, email, password_hash, username, created_at, updated_a
 SELECT uuid_id, email, password_hash, username, created_at, updated_at FROM users;
 
 INSERT INTO games_new (
-    id, user_id, name, app_id, store, thumbnail_url, rating, notes, 
-    date_added, last_played, playtime_hours, status, game_hash, 
-    found_game_name, review_score, metacritic_score, reviews_rating, 
+    id, user_id, name, app_id, store, thumbnail_url, rating, notes,
+    date_added, last_played, playtime_hours, status, game_hash,
+    found_game_name, review_score, metacritic_score, reviews_rating,
     store_link, corrected_app_id, played, hide, later
 )
-SELECT 
+SELECT
     id, user_uuid, name, app_id, store, thumbnail_url, rating, notes,
     date_added, last_played, playtime_hours, status, game_hash,
     found_game_name, review_score, metacritic_score, reviews_rating,

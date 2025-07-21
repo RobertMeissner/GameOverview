@@ -8,22 +8,22 @@ const mockEnv: Env = {
   DB: {
     prepare: (query: string) => ({
       bind: (...args: any[]) => ({
-        run: () => Promise.resolve({ 
+        run: () => Promise.resolve({
           meta: { last_row_id: 1, changes: 1 },
-          success: true 
+          success: true
         }),
-        first: () => Promise.resolve({ 
-          id: 1, 
-          user_id: '550e8400-e29b-41d4-a716-446655440001', 
+        first: () => Promise.resolve({
+          id: 1,
+          user_id: '550e8400-e29b-41d4-a716-446655440001',
           name: 'Test Game',
           app_id: '123',
           store: 'steam',
           game_hash: 'test_hash_123'
         }),
-        all: () => Promise.resolve({ 
-          results: [{ 
-            id: 1, 
-            user_id: '550e8400-e29b-41d4-a716-446655440001', 
+        all: () => Promise.resolve({
+          results: [{
+            id: 1,
+            user_id: '550e8400-e29b-41d4-a716-446655440001',
             name: 'Test Game',
             app_id: '123',
             store: 'steam',
@@ -39,7 +39,7 @@ const mockEnv: Env = {
             store_link: '',
             corrected_app_id: '0'
           }],
-          success: true 
+          success: true
         })
       })
     })
@@ -80,7 +80,7 @@ describe('Games Routes', () => {
     const response = await handleGamesRoutes(request, mockEnv, {} as any)
     expect(response).toBeTruthy()
     expect(response!.status).toBe(201)
-    
+
     const data = await response!.json() as any
     expect(data.success).toBe(true)
     expect(data.game.name).toBe('Test Game')
@@ -97,7 +97,7 @@ describe('Games Routes', () => {
     const response = await handleGamesRoutes(request, mockEnv, {} as any)
     expect(response).toBeTruthy()
     expect(response!.status).toBe(200)
-    
+
     const data = await response!.json() as any
     expect(data.success).toBe(true)
     expect(Array.isArray(data.games)).toBe(true)
@@ -114,7 +114,7 @@ describe('Games Routes', () => {
     const response = await handleGamesRoutes(request, mockEnv, {} as any)
     expect(response).toBeTruthy()
     expect(response!.status).toBe(200)
-    
+
     const data = await response!.json() as any[]
     expect(Array.isArray(data)).toBe(true)
     if (data.length > 0) {
@@ -127,7 +127,7 @@ describe('Games Routes', () => {
   it('should require authentication', async () => {
     // Mock auth failure
     vi.spyOn(authMiddleware, 'requireAuth').mockRejectedValue(new Error('Invalid token'))
-    
+
     const request = new Request('http://localhost/api/games', {
       method: 'GET'
     })
@@ -152,7 +152,7 @@ describe('Games Routes', () => {
     const response = await handleGamesRoutes(request, mockEnv, {} as any)
     expect(response).toBeTruthy()
     expect(response!.status).toBe(400)
-    
+
     const data = await response!.json() as any
     expect(data.error).toContain('Name and store are required')
   })

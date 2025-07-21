@@ -16,7 +16,6 @@ def download_thumbnail(app_id):
     path = f"{THUMBNAILS_FILEPATH}/{app_id}.png"
 
     if not os.path.exists(path):
-
         response = requests.get(url, stream=True)
 
         if response.status_code == 200:

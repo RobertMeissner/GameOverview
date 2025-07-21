@@ -173,9 +173,7 @@ def search_game_by_name(props: NewItemRequest) -> NewItemFoundResponse:
     if props.store not in ["gog", "steam"]:
         raise HTTPException(status_code=400, detail="Store not found")
 
-    item = NewItemFoundResponse(
-        name=props.name, app_id=props.app_id, store=props.store, thumbnail_url=""
-    )
+    item = NewItemFoundResponse(name=props.name, app_id=props.app_id, store=props.store, thumbnail_url="")
     # TODO: Decouple this
     if item.app_id != 0:
         if item.store == "gog":
@@ -265,8 +263,7 @@ def get_thumbnail(app_id: int):
     file_path = f"{DATA_FOLDER}/thumbnails/{app_id}.png"
     if app_id != 0 and os.path.isfile(file_path):
         return FileResponse(file_path)
-    else:
-        raise HTTPException(status_code=404, detail="Thumbnail not found")
+    raise HTTPException(status_code=404, detail="Thumbnail not found")
 
 
 if __name__ == "__main__":

@@ -1,8 +1,8 @@
 import axios, { AxiosResponse } from 'axios'
-import type { 
-  User, 
-  LoginRequest, 
-  RegisterRequest, 
+import type {
+  User,
+  LoginRequest,
+  RegisterRequest,
   AuthResponse
 } from '../types/auth'
 
@@ -48,12 +48,12 @@ export class AuthService {
     try {
       const request: RegisterRequest = { email, username, password }
       const response: AxiosResponse<AuthResponse> = await api.post('/auth/register', request)
-      
+
       // Store token in localStorage
       if (response.data.token) {
         localStorage.setItem('auth_token', response.data.token)
       }
-      
+
       return response.data
     } catch (error: any) {
       if (error.response?.data?.error) {
@@ -68,12 +68,12 @@ export class AuthService {
     try {
       const request: LoginRequest = { emailOrUsername, password }
       const response: AxiosResponse<AuthResponse> = await api.post('/auth/login', request)
-      
+
       // Store token in localStorage
       if (response.data.token) {
         localStorage.setItem('auth_token', response.data.token)
       }
-      
+
       return response.data
     } catch (error: any) {
       if (error.response?.data?.error) {

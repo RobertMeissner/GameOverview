@@ -74,7 +74,7 @@ const AddDataItem: React.FC<{ onDataAdded: () => void }> = ({onDataAdded}) => {
             };
 
             const response = await GameService.addGame(testData);
-            
+
             if (response.success) {
                 const game = response.game;
                 setFormData({
@@ -87,7 +87,7 @@ const AddDataItem: React.FC<{ onDataAdded: () => void }> = ({onDataAdded}) => {
                 });
                 setThumbnailUrl(game.thumbnail_url);
                 setAdditionalFieldsVisible(true);
-                
+
                 // Delete the temporary game since this was just a test
                 if (game.id) {
                     try {
@@ -96,7 +96,7 @@ const AddDataItem: React.FC<{ onDataAdded: () => void }> = ({onDataAdded}) => {
                         console.warn('Failed to delete temporary test game:', deleteError);
                     }
                 }
-                
+
                 onDataAdded();
             }
         } catch (error: any) {
@@ -146,7 +146,7 @@ const AddDataItem: React.FC<{ onDataAdded: () => void }> = ({onDataAdded}) => {
             <Typography variant="h4" gutterBottom>
                 Add New Game
             </Typography>
-            
+
             {error && (
                 <Alert severity="error" sx={{ mb: 2 }}>
                     {error}
@@ -198,9 +198,9 @@ const AddDataItem: React.FC<{ onDataAdded: () => void }> = ({onDataAdded}) => {
                 </Select>
             </FormControl>
             {!additionalFieldsVisible && (
-                <Button 
-                    variant="contained" 
-                    color="primary" 
+                <Button
+                    variant="contained"
+                    color="primary"
                     onClick={handleTestDataItem}
                     disabled={isLoading}
                 >
@@ -240,25 +240,25 @@ const AddDataItem: React.FC<{ onDataAdded: () => void }> = ({onDataAdded}) => {
                         label="Later"
                     />
                     <Box sx={{marginTop: 2, display: 'flex', gap: 2}}>
-                        <Button 
-                            variant="contained" 
-                            color="primary" 
+                        <Button
+                            variant="contained"
+                            color="primary"
                             onClick={handleTestDataItem}
                             disabled={isLoading}
                         >
                             {isLoading ? 'Testing...' : 'Test Game'}
                         </Button>
-                        <Button 
-                            variant="contained" 
-                            color="success" 
+                        <Button
+                            variant="contained"
+                            color="success"
                             onClick={handleCreateDataItem}
                             disabled={isLoading}
                         >
                             {isLoading ? 'Adding...' : 'Add Game'}
                         </Button>
-                        <Button 
-                            variant="outlined" 
-                            color="secondary" 
+                        <Button
+                            variant="outlined"
+                            color="secondary"
                             onClick={resetForm}
                             disabled={isLoading}
                         >

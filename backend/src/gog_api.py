@@ -78,9 +78,7 @@ def gog_apps_ids(accessToken):
 
 
 def enrich_games(gog_game_ids: list[int], access_token: str) -> pd.DataFrame:
-    print(
-        "Getting game names from the GOG API. This may take a bit longer, the API is slow..."
-    )
+    print("Getting game names from the GOG API. This may take a bit longer, the API is slow...")
 
     games = pd.DataFrame()
     num_undefined = 0
@@ -145,13 +143,9 @@ def gog_access_token(gog_login_code, gog_refresh_token):
 
     # TODO: handle: {'error': 'invalid_grant', 'error_description': 'The authorization code has expired'}
     if not access_token or not refresh_token:
-        print(
-            "Error: Could not fetch GOG access and/or refresh token. The GOG API returned the following response:"
-        )
+        print("Error: Could not fetch GOG access and/or refresh token. The GOG API returned the following response:")
         print(data)
-        print(
-            "If this keeps happening, try logging in to GOG again and getting a new login code."
-        )
+        print("If this keeps happening, try logging in to GOG again and getting a new login code.")
         exit(1)
 
     return access_token, refresh_token

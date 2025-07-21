@@ -101,11 +101,11 @@ const DataTable: React.FC<DataTableProps> = ({data, onDataChange, columnWhitelis
         return [...data].sort((a, b) => {
             const aValue = a[orderBy];
             const bValue = b[orderBy];
-            
+
             if (aValue === undefined || bValue === undefined) {
                 return 0;
             }
-            
+
             if (aValue < bValue) {
                 return order === 'asc' ? -1 : 1;
             }

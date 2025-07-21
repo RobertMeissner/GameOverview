@@ -87,7 +87,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Check if user is authenticated
   const checkAuth = async () => {
     dispatch({ type: 'SET_LOADING', payload: true })
-    
+
     try {
       const token = AuthService.getToken()
       if (!token) {
@@ -96,9 +96,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       const user = await AuthService.getCurrentUser()
-      dispatch({ 
-        type: 'AUTH_SUCCESS', 
-        payload: { user, token } 
+      dispatch({
+        type: 'AUTH_SUCCESS',
+        payload: { user, token }
       })
     } catch (error) {
       console.error('Auth check failed:', error)
@@ -110,15 +110,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Login function
   const login = async (emailOrUsername: string, password: string) => {
     dispatch({ type: 'AUTH_START' })
-    
+
     try {
       const response = await AuthService.login(emailOrUsername, password)
-      dispatch({ 
-        type: 'AUTH_SUCCESS', 
-        payload: { 
-          user: response.user, 
-          token: response.token 
-        } 
+      dispatch({
+        type: 'AUTH_SUCCESS',
+        payload: {
+          user: response.user,
+          token: response.token
+        }
       })
     } catch (error) {
       dispatch({ type: 'AUTH_FAILURE' })
@@ -129,15 +129,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Register function
   const register = async (email: string, username: string, password: string) => {
     dispatch({ type: 'AUTH_START' })
-    
+
     try {
       const response = await AuthService.register(email, username, password)
-      dispatch({ 
-        type: 'AUTH_SUCCESS', 
-        payload: { 
-          user: response.user, 
-          token: response.token 
-        } 
+      dispatch({
+        type: 'AUTH_SUCCESS',
+        payload: {
+          user: response.user,
+          token: response.token
+        }
       })
     } catch (error) {
       dispatch({ type: 'AUTH_FAILURE' })
@@ -148,7 +148,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Logout function
   const logout = async () => {
     dispatch({ type: 'SET_LOADING', payload: true })
-    
+
     try {
       await AuthService.logout()
     } catch (error) {

@@ -22,7 +22,7 @@ Object.defineProperty(window, 'localStorage', {
 // Test component to access auth context
 const TestComponent = () => {
   const auth = useAuth()
-  
+
   const handleLogin = async () => {
     try {
       await auth.login('test@example.com', 'password')
@@ -40,7 +40,7 @@ const TestComponent = () => {
       throw error
     }
   }
-  
+
   return (
     <div>
       <div data-testid="loading">{auth.isLoading ? 'loading' : 'not-loading'}</div>
@@ -167,7 +167,7 @@ describe('AuthContext', () => {
   it('should handle failed login', async () => {
     localStorageMock.getItem.mockReturnValue(null)
     mockedAuthService.getToken.mockReturnValue(null)
-    
+
     // Set up the login mock to reject
     mockedAuthService.login.mockImplementation(() => {
       return Promise.reject(new Error('Login failed. Please check your credentials.'))

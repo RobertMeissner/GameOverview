@@ -1,7 +1,7 @@
-import type { 
-  Env, 
-  Game, 
-  CreateGameRequest, 
+import type {
+  Env,
+  Game,
+  CreateGameRequest,
   UpdateGameRequest,
   SteamGameData,
   SteamApiResponse,
@@ -15,7 +15,7 @@ export class GameService {
   async createGame(user: User, request: CreateGameRequest): Promise<Game> {
     // Generate unique game hash
     const gameHash = `game_${Date.now()}_${user.id}_${Math.random().toString(36).substr(2, 9)}`
-    
+
     let gameData = {
       name: request.name,
       app_id: request.app_id || null,
@@ -56,7 +56,7 @@ export class GameService {
     const result = await this.env.DB.prepare(`
       INSERT INTO games (
         user_id, name, app_id, store, thumbnail_url, rating, notes, status,
-        game_hash, found_game_name, review_score, metacritic_score, 
+        game_hash, found_game_name, review_score, metacritic_score,
         reviews_rating, store_link, corrected_app_id, played, hide, later
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
@@ -92,12 +92,12 @@ export class GameService {
 
   async getUserGames(userId: string): Promise<Game[]> {
     const result = await this.env.DB.prepare(`
-      SELECT 
+      SELECT
         id, user_id, name, app_id, store, thumbnail_url, rating, notes, status,
         date_added, last_played, playtime_hours, game_hash, found_game_name,
-        review_score, metacritic_score, reviews_rating, store_link, 
+        review_score, metacritic_score, reviews_rating, store_link,
         corrected_app_id, played, hide, later
-      FROM games 
+      FROM games
       WHERE user_id = ?
       ORDER BY date_added DESC
     `).bind(userId).all<Game>()
@@ -118,7 +118,7 @@ export class GameService {
     // Build update query dynamically
     const updates: string[] = []
     const values: any[] = []
-    
+
     if (request.name !== undefined) {
       updates.push('name = ?')
       values.push(request.name)
@@ -171,19 +171,19 @@ export class GameService {
     values.push(gameId, userId)
 
     await this.env.DB.prepare(`
-      UPDATE games 
+      UPDATE games
       SET ${updates.join(', ')}
       WHERE id = ? AND user_id = ?
     `).bind(...values).run()
 
     // Fetch updated game
     const updatedGame = await this.env.DB.prepare(`
-      SELECT 
+      SELECT
         id, user_id, name, app_id, store, thumbnail_url, rating, notes, status,
         date_added, last_played, playtime_hours, game_hash, found_game_name,
-        review_score, metacritic_score, reviews_rating, store_link, 
+        review_score, metacritic_score, reviews_rating, store_link,
         corrected_app_id, played, hide, later
-      FROM games 
+      FROM games
       WHERE id = ? AND user_id = ?
     `).bind(gameId, userId).first<Game>()
 
@@ -200,16 +200,16 @@ export class GameService {
 
   private async fetchSteamGameData(appId: string): Promise<SteamGameData | { error: string }> {
     const url = 'https://store.steampowered.com/api/appdetails'
-    
+
     try {
       const response = await fetch(`${url}?appids=${appId}`)
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
       const data = await response.json() as SteamApiResponse
-      
+
       // Check if the game details are available
       if (data[appId]?.success && data[appId].data) {
         const gameData = data[appId].data!

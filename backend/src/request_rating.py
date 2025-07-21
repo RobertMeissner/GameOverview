@@ -42,10 +42,10 @@ def request_rating(df: pd.Series) -> pd.Series:
             # FIXME: Inline change of df
             steam_rating(df[APP_ID], df)
     except Exception as e:
-        logging.error(f"An error occurred: {str(e)} for {df[game_name]} ")
+        logging.exception(f"An error occurred: {e!s} for {df[game_name]} ")
         logging.error("Exception information:", exc_info=True)
         tb = traceback.format_exc()
-        logging.error("Full traceback:\n" + tb)
+        logging.exception("Full traceback:\n" + tb)
         raise e
 
     return df
@@ -57,10 +57,7 @@ def steam_rating(application_id, df):
     text = json.loads(response.text)
     if "success" in text.keys() and text["success"] == 1:
         if text["query_summary"]["total_reviews"] > 0:
-            rating = (
-                text["query_summary"]["total_positive"]
-                / text["query_summary"]["total_reviews"]
-            )
+            rating = text["query_summary"]["total_positive"] / text["query_summary"]["total_reviews"]
             df[RATING_FIELD] = rating
             for key, value in text["query_summary"].items():
                 df[key] = value
@@ -81,9 +78,7 @@ def update_app_id_and_name(row: pd.Series, catalog: dict) -> pd.Series:
 
 
 def steam_app_ids_matched(df: pd.DataFrame) -> pd.DataFrame:
-    df.loc[df[CORRECTED_APP_ID] != 0, [APP_ID, found_game_name]] = df.loc[
-        df[CORRECTED_APP_ID] != 0, [CORRECTED_APP_ID, game_name]
-    ].values
+    df.loc[df[CORRECTED_APP_ID] != 0, [APP_ID, found_game_name]] = df.loc[df[CORRECTED_APP_ID] != 0, [CORRECTED_APP_ID, game_name]].values
 
     catalog = load_catalog()
     update_func = partial(update_app_id_and_name, catalog=catalog)
@@ -93,7 +88,7 @@ def steam_app_ids_matched(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def app_id_matched_by_catalog(name: str, catalog: dict) -> int:
-    if name in catalog.keys():
+    if name in catalog:
         return catalog[name]
     return 0
 
@@ -164,8 +159,7 @@ def game_by_app_id(app_id: int):
             thumbnail_url = game_data.get("header_image", "")  # Get thumbnail URL
 
             return {game_name: name, "thumbnail_url": thumbnail_url}
-        else:
-            return {"error": "Game not found"}
+        return {"error": "Game not found"}
 
     except requests.RequestException as e:
         print(f"An error occurred: {e}")

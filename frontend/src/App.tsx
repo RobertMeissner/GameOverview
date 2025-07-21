@@ -115,7 +115,7 @@ const AuthenticatedApp: React.FC = () => {
             // Update the backend
             const updateData: any = {};
             updateData[columnName] = value;
-            
+
             await GameService.updateGame(game.id, updateData);
         } catch (error) {
             console.error("Error updating game:", error);
@@ -255,7 +255,7 @@ const App: React.FC = () => {
                         {/* Public routes */}
                         <Route path="/login" element={<AuthPage initialMode="login" />} />
                         <Route path="/register" element={<AuthPage initialMode="register" />} />
-                        
+
                         {/* Protected routes */}
                         <Route path="/*" element={
                             <ProtectedRoute>

@@ -15,9 +15,7 @@ from backend.src.utils import load_data
 # Create a function to display the DataFrame in Streamlit with filter and sorting options
 def display_dataframe():
     df_correction = st.session_state.df_correction
-    mask = (df_correction[game_name] != df_correction[found_game_name]) | (
-        df_correction[APP_ID] == 0
-    )
+    mask = (df_correction[game_name] != df_correction[found_game_name]) | (df_correction[APP_ID] == 0)
     df_correction = df_correction[mask]
 
     columns_to_show = [
@@ -53,11 +51,7 @@ def display_dataframe():
         df_correction[columns_to_show],
         column_config=column_config,
         hide_index=True,
-        disabled=[
-            s
-            for s in columns_to_show
-            if s not in [played_flag, HIDE_FIELD, CORRECTED_APP_ID]
-        ],
+        disabled=[s for s in columns_to_show if s not in [played_flag, HIDE_FIELD, CORRECTED_APP_ID]],
         height=min(max(df_correction.shape[0] * 30, 30), 3000),
     )
 

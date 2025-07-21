@@ -12,9 +12,7 @@ def display_dataframe():
     # Define the bins (excluding 0, as this will be a separate category)
     bins = np.linspace(0.01, 1, 11)  # Starts slightly above 0 to exclude 0
     # Create labels for the bins
-    labels = [
-        f"{round(bins[i], 2)}-{round(bins[i + 1], 2)}" for i in range(len(bins) - 1)
-    ]
+    labels = [f"{round(bins[i], 2)}-{round(bins[i + 1], 2)}" for i in range(len(bins) - 1)]
     labels.insert(0, "0")  # Insert labels for 0 ratings
 
     st.session_state.df_graph["binned"] = pd.cut(

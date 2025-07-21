@@ -38,27 +38,20 @@ no_account_products_data = """
 
 
 class TestParseGoGFile(unittest.TestCase):
-
     def test_valid_data(self):
-        with patch("builtins.open", mock_open(read_data=valid_json_data)), patch(
-            "builtins.print"
-        ):
+        with patch("builtins.open", mock_open(read_data=valid_json_data)), patch("builtins.print"):
             df = parse_gog_file_for_gamelist("fakepath/mockfile.txt")
             self.assertEqual(len(df), 2)  # Expect 2 rows
             self.assertEqual(len(list(df.columns)), 45)
 
     def test_invalid_data(self):
-        with patch("builtins.open", mock_open(read_data=invalid_json_data)), patch(
-            "builtins.print"
-        ) as mocked_print:
+        with patch("builtins.open", mock_open(read_data=invalid_json_data)), patch("builtins.print") as mocked_print:
             df = parse_gog_file_for_gamelist("fakepath/mockfile.txt")
             assert mocked_print.mock_calls[0][1][0] == "Error parsing JSON:"
             self.assertEqual(df.empty, True)
 
     def test_empty_account_products(self):
-        with patch("builtins.open", mock_open(read_data=empty_json_data)), patch(
-            "builtins.print"
-        ):
+        with patch("builtins.open", mock_open(read_data=empty_json_data)), patch("builtins.print"):
             df = parse_gog_file_for_gamelist("fakepath/mockfile.txt")
             self.assertEqual(df.empty, True)
 

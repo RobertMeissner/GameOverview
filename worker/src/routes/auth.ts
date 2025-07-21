@@ -16,8 +16,8 @@ export async function handleAuthRoutes(request: Request, env: Env, ctx: Executio
 
       // Basic validation
       if (!email || !username || !password) {
-        const errorResponse: ApiError = { 
-          error: 'Email, username, and password are required' 
+        const errorResponse: ApiError = {
+          error: 'Email, username, and password are required'
         }
         return new Response(JSON.stringify(errorResponse), {
           status: 400,
@@ -26,8 +26,8 @@ export async function handleAuthRoutes(request: Request, env: Env, ctx: Executio
       }
 
       if (password.length < 6) {
-        const errorResponse: ApiError = { 
-          error: 'Password must be at least 6 characters long' 
+        const errorResponse: ApiError = {
+          error: 'Password must be at least 6 characters long'
         }
         return new Response(JSON.stringify(errorResponse), {
           status: 400,
@@ -38,8 +38,8 @@ export async function handleAuthRoutes(request: Request, env: Env, ctx: Executio
       // Email validation
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
       if (!emailRegex.test(email)) {
-        const errorResponse: ApiError = { 
-          error: 'Invalid email format' 
+        const errorResponse: ApiError = {
+          error: 'Invalid email format'
         }
         return new Response(JSON.stringify(errorResponse), {
           status: 400,
@@ -49,7 +49,7 @@ export async function handleAuthRoutes(request: Request, env: Env, ctx: Executio
 
       try {
         const user = await userService.createUser(email, username, password, authUtils)
-        
+
         // Create JWT token
         const token = await authUtils.createJWT({
           userId: user.id,
@@ -70,15 +70,15 @@ export async function handleAuthRoutes(request: Request, env: Env, ctx: Executio
 
         return new Response(JSON.stringify(response), {
           status: 201,
-          headers: { 
+          headers: {
             'Content-Type': 'application/json',
             'Set-Cookie': `auth_token=${token}; HttpOnly; Secure; SameSite=Strict; Max-Age=86400; Path=/`,
-            ...corsHeaders 
+            ...corsHeaders
           }
         })
       } catch (error: any) {
-        const errorResponse: ApiError = { 
-          error: error.message 
+        const errorResponse: ApiError = {
+          error: error.message
         }
         return new Response(JSON.stringify(errorResponse), {
           status: 400,
@@ -93,8 +93,8 @@ export async function handleAuthRoutes(request: Request, env: Env, ctx: Executio
       const { emailOrUsername, password } = body
 
       if (!emailOrUsername || !password) {
-        const errorResponse: ApiError = { 
-          error: 'Email/username and password are required' 
+        const errorResponse: ApiError = {
+          error: 'Email/username and password are required'
         }
         return new Response(JSON.stringify(errorResponse), {
           status: 400,
@@ -104,7 +104,7 @@ export async function handleAuthRoutes(request: Request, env: Env, ctx: Executio
 
       try {
         const user = await userService.authenticateUser(emailOrUsername, password, authUtils)
-        
+
         // Create JWT token
         const token = await authUtils.createJWT({
           userId: user.id,
@@ -125,15 +125,15 @@ export async function handleAuthRoutes(request: Request, env: Env, ctx: Executio
 
         return new Response(JSON.stringify(response), {
           status: 200,
-          headers: { 
+          headers: {
             'Content-Type': 'application/json',
             'Set-Cookie': `auth_token=${token}; HttpOnly; Secure; SameSite=Strict; Max-Age=86400; Path=/`,
-            ...corsHeaders 
+            ...corsHeaders
           }
         })
       } catch (error: any) {
-        const errorResponse: ApiError = { 
-          error: 'Invalid credentials' 
+        const errorResponse: ApiError = {
+          error: 'Invalid credentials'
         }
         return new Response(JSON.stringify(errorResponse), {
           status: 401,
@@ -149,10 +149,10 @@ export async function handleAuthRoutes(request: Request, env: Env, ctx: Executio
         message: 'Logged out successfully'
       }), {
         status: 200,
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Set-Cookie': `auth_token=; HttpOnly; Secure; SameSite=Strict; Max-Age=0; Path=/`,
-          ...corsHeaders 
+          ...corsHeaders
         }
       })
     }
@@ -161,15 +161,15 @@ export async function handleAuthRoutes(request: Request, env: Env, ctx: Executio
     if (request.method === 'GET' && url.pathname === '/api/auth/me') {
       const authHeader = request.headers.get('Authorization')
       const cookieHeader = request.headers.get('Cookie')
-      
+
       let token = authUtils.extractTokenFromHeader(authHeader)
       if (!token) {
         token = authUtils.extractTokenFromCookie(cookieHeader)
       }
 
       if (!token) {
-        const errorResponse: ApiError = { 
-          error: 'No authentication token provided' 
+        const errorResponse: ApiError = {
+          error: 'No authentication token provided'
         }
         return new Response(JSON.stringify(errorResponse), {
           status: 401,
@@ -180,10 +180,10 @@ export async function handleAuthRoutes(request: Request, env: Env, ctx: Executio
       try {
         const payload = await authUtils.verifyJWT(token)
         const user = await userService.findUserById(payload.userId)
-        
+
         if (!user) {
-          const errorResponse: ApiError = { 
-            error: 'User not found' 
+          const errorResponse: ApiError = {
+            error: 'User not found'
           }
           return new Response(JSON.stringify(errorResponse), {
             status: 404,
@@ -204,8 +204,8 @@ export async function handleAuthRoutes(request: Request, env: Env, ctx: Executio
           headers: { 'Content-Type': 'application/json', ...corsHeaders }
         })
       } catch (error: any) {
-        const errorResponse: ApiError = { 
-          error: 'Invalid or expired token' 
+        const errorResponse: ApiError = {
+          error: 'Invalid or expired token'
         }
         return new Response(JSON.stringify(errorResponse), {
           status: 401,
@@ -217,8 +217,8 @@ export async function handleAuthRoutes(request: Request, env: Env, ctx: Executio
     return null // Route not handled
   } catch (error: any) {
     console.error('Auth route error:', error)
-    const errorResponse: ApiError = { 
-      error: 'Internal server error' 
+    const errorResponse: ApiError = {
+      error: 'Internal server error'
     }
     return new Response(JSON.stringify(errorResponse), {
       status: 500,

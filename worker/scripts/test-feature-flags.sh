@@ -32,9 +32,9 @@ api_call() {
     local endpoint=$2
     local data=$3
     local expected_status=${4:-200}
-    
+
     echo -e "${YELLOW}Testing: $method $endpoint${NC}"
-    
+
     if [ -n "$data" ]; then
         response=$(curl -s -w "\n%{http_code}" -X "$method" \
             -H "Content-Type: application/json" \
@@ -46,10 +46,10 @@ api_call() {
             -H "Authorization: Bearer $AUTH_TOKEN" \
             "$BASE_URL$endpoint")
     fi
-    
+
     body=$(echo "$response" | head -n -1)
     status=$(echo "$response" | tail -n 1)
-    
+
     if [ "$status" = "$expected_status" ]; then
         echo -e "${GREEN}✅ Success ($status)${NC}"
         echo "$body" | jq . 2>/dev/null || echo "$body"
@@ -65,10 +65,10 @@ api_call() {
 cli_test() {
     local command=$1
     local description=$2
-    
+
     echo -e "${YELLOW}Testing CLI: $description${NC}"
     echo "Command: npm run flags $command"
-    
+
     if npm run flags $command; then
         echo -e "${GREEN}✅ CLI command succeeded${NC}"
     else
@@ -83,14 +83,14 @@ test_flag_evaluation() {
     local flag_name=$1
     local user_id=$2
     local expected_enabled=$3
-    
+
     echo -e "${YELLOW}Testing flag evaluation: $flag_name for user $user_id${NC}"
-    
+
     response=$(curl -s "$BASE_URL/api/flags/$flag_name?userId=$user_id" \
         -H "Authorization: Bearer $AUTH_TOKEN")
-    
+
     enabled=$(echo "$response" | jq -r '.enabled' 2>/dev/null || echo "false")
-    
+
     if [ "$enabled" = "$expected_enabled" ]; then
         echo -e "${GREEN}✅ Flag evaluation correct (enabled: $enabled)${NC}"
     else

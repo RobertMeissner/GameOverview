@@ -120,9 +120,7 @@ class GameDataScraper:
             }
 
             # Make the request
-            response = requests.post(
-                self.HLTB_SEARCH_URL, headers=headers, json=payload, timeout=20
-            )
+            response = requests.post(self.HLTB_SEARCH_URL, headers=headers, json=payload, timeout=20)
 
             print(response.status_code)
             if response.status_code == 200:
@@ -134,9 +132,7 @@ class GameDataScraper:
                         "main_extra": game_data.get("comp_plus"),  # Main + Extra
                         "completionist": game_data.get("comp_100"),  # Completionist
                         "game_id": game_data.get("game_id"),
-                        "similarity": self.string_similarity(
-                            game_name, game_data.get("game_name", "")
-                        ),
+                        "similarity": self.string_similarity(game_name, game_data.get("game_name", "")),
                     }
             else:
                 print(f"HowLongToBeat API returned status code: {response.status_code}")
@@ -144,11 +140,11 @@ class GameDataScraper:
             return None
 
         except Exception as e:
-            print(f"Error fetching HowLongToBeat data for {game_name}: {str(e)}")
+            print(f"Error fetching HowLongToBeat data for {game_name}: {e!s}")
             return None
 
         except Exception as e:
-            print(f"Error fetching HowLongToBeat data for {game_name}: {str(e)}")
+            print(f"Error fetching HowLongToBeat data for {game_name}: {e!s}")
             return None
 
 
@@ -183,7 +179,7 @@ def get_metacritic_score(name: str) -> (str, int):
         return name, None
 
     except Exception as e:
-        print(f"Error fetching Metacritic score for {name}: {str(e)}")
+        print(f"Error fetching Metacritic score for {name}: {e!s}")
         return name, None
 
 
@@ -193,7 +189,6 @@ def enrich_game_data(df: pd.DataFrame):
         total=df.shape[0],
         bar_format="{l_bar}{bar}| {percentage:.0f}% | {elapsed}<{remaining} | {n_fmt}/{total_fmt} games processed",
     ):
-
         # Get Metacritic score
         metacritic_game_name, metacritic_score = get_metacritic_score(row[game_name])
         df.at[idx, METACRITIC_SCORE] = metacritic_score

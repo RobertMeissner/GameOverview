@@ -4,7 +4,7 @@ import { FeatureFlagService, type FeatureFlag } from './featureFlags.js'
 // Mock KV namespace
 const createMockKV = () => {
   const store = new Map<string, string>()
-  
+
   return {
     get: vi.fn(async (key: string) => store.get(key) || null),
     put: vi.fn(async (key: string, value: string) => {
@@ -60,7 +60,7 @@ describe('FeatureFlagService', () => {
       }
 
       await flagService.setFlag('complex_flag', config)
-      
+
       // Verify the flag was stored correctly
       const storedValue = mockKV.getStore().get('feature:test:complex_flag')
       expect(storedValue).toBeDefined()
@@ -166,7 +166,7 @@ describe('FeatureFlagService', () => {
 
     it('should enable flag in allowed environments', async () => {
       const prodFlagService = new FeatureFlagService(mockKV as any, 'prod')
-      
+
       const config: FeatureFlag = {
         enabled: true,
         environments: ['prod', 'staging']
@@ -233,7 +233,7 @@ describe('FeatureFlagService', () => {
       await flagService.setFlag('detailed_flag', config)
 
       const result = await flagService.evaluateFlag('detailed_flag', 'test_user')
-      
+
       expect(result).toHaveProperty('enabled')
       expect(result).toHaveProperty('variant')
       expect(result).toHaveProperty('reason')
@@ -267,7 +267,7 @@ describe('FeatureFlagService', () => {
       await flagService.setFlag('flag3', { enabled: true, rolloutPercentage: 25 })
 
       const flags = await flagService.listFlags()
-      
+
       expect(Object.keys(flags)).toHaveLength(3)
       expect(flags).toHaveProperty('flag1')
       expect(flags).toHaveProperty('flag2')
@@ -280,9 +280,9 @@ describe('FeatureFlagService', () => {
     it('should not include user override keys in flag listing', async () => {
       await flagService.setFlag('main_flag', { enabled: true })
       await flagService.setUserOverride('main_flag', 'user1', false)
-      
+
       const flags = await flagService.listFlags()
-      
+
       expect(Object.keys(flags)).toHaveLength(1)
       expect(flags).toHaveProperty('main_flag')
     })
@@ -292,13 +292,13 @@ describe('FeatureFlagService', () => {
     it('should handle KV errors gracefully', async () => {
       // Suppress console.error for this test
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-      
+
       // Mock KV to throw error
       mockKV.get.mockRejectedValueOnce(new Error('KV error'))
-      
+
       const result = await flagService.isEnabled('error_flag', undefined, true)
       expect(result).toBe(true) // Should return default value
-      
+
       // Verify error was logged
       expect(consoleSpy).toHaveBeenCalledWith('Error getting flag error_flag:', expect.any(Error))
       consoleSpy.mockRestore()
@@ -307,13 +307,13 @@ describe('FeatureFlagService', () => {
     it('should handle invalid JSON in KV gracefully', async () => {
       // Suppress console.error for this test
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-      
+
       // Put invalid JSON directly in store
       mockKV.getStore().set('feature:test:invalid_flag', 'invalid json')
-      
+
       const result = await flagService.isEnabled('invalid_flag', undefined, false)
       expect(result).toBe(false) // Should return default value
-      
+
       // Verify error was logged
       expect(consoleSpy).toHaveBeenCalledWith('Error getting flag invalid_flag:', expect.any(SyntaxError))
       consoleSpy.mockRestore()

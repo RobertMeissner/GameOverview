@@ -44,16 +44,16 @@ export class AuthUtils {
 
     const encodedHeader = this.base64UrlEncode(JSON.stringify(header))
     const encodedPayload = this.base64UrlEncode(JSON.stringify(jwtPayload))
-    
+
     const signature = await this.sign(`${encodedHeader}.${encodedPayload}`)
-    
+
     return `${encodedHeader}.${encodedPayload}.${signature}`
   }
 
   // Verify JWT token
   async verifyJWT(token: string): Promise<JWTPayload> {
     const [encodedHeader, encodedPayload, signature] = token.split('.')
-    
+
     if (!encodedHeader || !encodedPayload || !signature) {
       throw new Error('Invalid token format')
     }
@@ -66,7 +66,7 @@ export class AuthUtils {
 
     // Decode payload
     const payload = JSON.parse(this.base64UrlDecode(encodedPayload)) as JWTPayload
-    
+
     // Check expiration
     const now = Math.floor(Date.now() / 1000)
     if (payload.exp && payload.exp < now) {
@@ -86,7 +86,7 @@ export class AuthUtils {
       false,
       ['sign']
     )
-    
+
     const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(data))
     const signatureArray = Array.from(new Uint8Array(signature))
     return this.base64UrlEncode(String.fromCharCode(...signatureArray))
@@ -109,13 +109,13 @@ export class AuthUtils {
   // Parse expiration string to seconds
   private parseExpiration(expiresIn: string | number): number {
     if (typeof expiresIn === 'number') return expiresIn
-    
+
     const match = expiresIn.match(/^(-?\d+)([smhd])$/)
     if (!match) throw new Error('Invalid expiration format')
-    
+
     const value = parseInt(match[1])
     const unit = match[2]
-    
+
     switch (unit) {
       case 's': return value
       case 'm': return value * 60
@@ -136,10 +136,10 @@ export class AuthUtils {
   // Extract token from cookie
   extractTokenFromCookie(cookieHeader: string | null, cookieName: string = 'auth_token'): string | null {
     if (!cookieHeader) return null
-    
+
     const cookies = cookieHeader.split(';').map(c => c.trim())
     const authCookie = cookies.find(c => c.startsWith(`${cookieName}=`))
-    
+
     return authCookie ? authCookie.substring(cookieName.length + 1) : null
   }
 }
@@ -156,13 +156,13 @@ export class UserService {
   async createUser(email: string, username: string, password: string, authUtils: AuthUtils): Promise<User> {
     const passwordHash = await authUtils.hashPassword(password)
     const userId = generateUUID()
-    
+
     try {
       await this.db.prepare(`
         INSERT INTO users (id, email, username, password_hash)
         VALUES (?, ?, ?, ?)
       `).bind(userId, email, username, passwordHash).run()
-      
+
       return {
         id: userId,
         email,
@@ -184,7 +184,7 @@ export class UserService {
       FROM users
       WHERE email = ?
     `).bind(email).first<UserWithPassword>()
-    
+
     return result
   }
 
@@ -195,7 +195,7 @@ export class UserService {
       FROM users
       WHERE username = ?
     `).bind(username).first<UserWithPassword>()
-    
+
     return result
   }
 
@@ -206,7 +206,7 @@ export class UserService {
       FROM users
       WHERE id = ?
     `).bind(id).first<User>()
-    
+
     return result
   }
 
@@ -217,7 +217,7 @@ export class UserService {
     if (!user) {
       user = await this.findUserByUsername(emailOrUsername)
     }
-    
+
     if (!user) {
       throw new Error('User not found')
     }

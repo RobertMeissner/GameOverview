@@ -16,9 +16,7 @@ from game_dashboard import update_with_edited_data
                     "hide": [False, False, False],
                 }
             ),
-            pd.DataFrame(
-                {"game_hash": ["hash2"], "data": ["new_data2"], "hide": [True]}
-            ),
+            pd.DataFrame({"game_hash": ["hash2"], "data": ["new_data2"], "hide": [True]}),
             pd.DataFrame(
                 {
                     "game_hash": ["hash1", "hash2", "hash3"],
@@ -36,9 +34,7 @@ from game_dashboard import update_with_edited_data
                     "hide": [False, False, False],
                 }
             ),
-            pd.DataFrame(
-                {"game_hash": ["hash1"], "data": ["new_data1"], "hide": [True]}
-            ),
+            pd.DataFrame({"game_hash": ["hash1"], "data": ["new_data1"], "hide": [True]}),
             pd.DataFrame(
                 {
                     "game_hash": ["hash1", "hash2"],
@@ -56,9 +52,7 @@ from game_dashboard import update_with_edited_data
                     "hide": [False, False, False],
                 }
             ),
-            pd.DataFrame(
-                {"game_hash": ["hash4"], "data": ["new_data4"], "hide": [True]}
-            ),
+            pd.DataFrame({"game_hash": ["hash4"], "data": ["new_data4"], "hide": [True]}),
             pd.DataFrame(
                 {
                     "game_hash": ["hash1", "hash2", "hash3"],

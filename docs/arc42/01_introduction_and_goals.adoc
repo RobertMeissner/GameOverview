@@ -53,7 +53,7 @@ Consider this overview of potential topics (based upon the ISO 25010 standard):
 image::01_2_iso-25010-topics-EN.drawio.png["Categories of Quality Requirements"]
 
 .Motivation
-You should know the quality goals of your most important stakeholders, since they will influence fundamental architectural decisions. 
+You should know the quality goals of your most important stakeholders, since they will influence fundamental architectural decisions.
 Make sure to be very concrete about these qualities, avoid buzzwords.
 If you as an architect do not know how the quality of your work will be judged...
 
