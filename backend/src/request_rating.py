@@ -106,14 +106,18 @@ def restructure_data(data: dict) -> dict:
 def load_catalog() -> dict:
     data = {}
     if os.path.exists(steam_catalog_file):
-        # TODO: Loading fails partially
+        # TODO: Loading fails partially?
+        # File Access -> file must be in proper shape
         with open(steam_catalog_file, encoding="utf-8") as file:
+            # basically ORM/mapping
             data = restructure_data(json.load(file))
 
     if not data:
+        # HTTP request
         response = requests.get(steam_catalog_url)
 
         if response.status_code == 200:
+            # basically ORM/mapping
             data = restructure_data(response.json())
 
             with open(steam_catalog_file, "w", encoding="utf-8") as file:
