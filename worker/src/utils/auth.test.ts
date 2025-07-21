@@ -51,7 +51,7 @@ describe('AuthUtils', () => {
   describe('JWT Token Management', () => {
     it('should create valid JWT tokens', async () => {
       const payload = {
-        userId: 1,
+        userId: '1',
         email: 'test@example.com',
         username: 'testuser'
       }
@@ -62,7 +62,7 @@ describe('AuthUtils', () => {
 
     it('should verify valid JWT tokens', async () => {
       const payload = {
-        userId: 1,
+        userId: '1',
         email: 'test@example.com',
         username: 'testuser'
       }
@@ -85,7 +85,7 @@ describe('AuthUtils', () => {
 
     it('should reject expired JWT tokens', async () => {
       const payload = {
-        userId: 1,
+        userId: '1',
         email: 'test@example.com',
         username: 'testuser'
       }
@@ -109,7 +109,7 @@ describe('AuthUtils', () => {
 
     it('should handle different expiration formats', async () => {
       const payload = {
-        userId: 1,
+        userId: '1',
         email: 'test@example.com',
         username: 'testuser'
       }
@@ -206,14 +206,14 @@ describe('UserService', () => {
       const user = await userService.createUser(email, username, password, authUtils)
       
       expect(user).toEqual({
-        id: 1,
+        id: expect.any(String),
         email,
         username,
         created_at: expect.any(String)
       })
       
       expect(mockDb.prepare).toHaveBeenCalledWith(expect.stringContaining('INSERT INTO users'))
-      expect(mockDb.bind).toHaveBeenCalledWith(email, username, expect.any(String))
+      expect(mockDb.bind).toHaveBeenCalledWith(expect.any(String), email, username, expect.any(String))
     })
 
     it('should throw error for duplicate email/username', async () => {
@@ -230,7 +230,7 @@ describe('UserService', () => {
 
   describe('User Lookup', () => {
     const mockUser: UserWithPassword = {
-      id: 1,
+      id: '1',
       email: 'test@example.com',
       username: 'testuser',
       password_hash: 'hashed_password',
@@ -256,8 +256,9 @@ describe('UserService', () => {
     })
 
     it('should find user by ID', async () => {
+      const userId = '550e8400-e29b-41d4-a716-446655440001'
       const userWithoutPassword = {
-        id: 1,
+        id: userId,
         email: 'test@example.com',
         username: 'testuser',
         created_at: '2023-01-01T00:00:00Z'
@@ -265,7 +266,7 @@ describe('UserService', () => {
       
       mockDb.first.mockResolvedValue(userWithoutPassword)
       
-      const user = await userService.findUserById(1)
+      const user = await userService.findUserById(userId)
       
       expect(user).toEqual(userWithoutPassword)
       expect(mockDb.prepare).toHaveBeenCalledWith(expect.stringContaining('WHERE id = ?'))
@@ -282,7 +283,7 @@ describe('UserService', () => {
 
   describe('User Authentication', () => {
     const mockUser: UserWithPassword = {
-      id: 1,
+      id: '550e8400-e29b-41d4-a716-446655440001',
       email: 'test@example.com',
       username: 'testuser',
       password_hash: '',
@@ -300,7 +301,7 @@ describe('UserService', () => {
       const user = await userService.authenticateUser('test@example.com', 'password123', authUtils)
       
       expect(user).toEqual({
-        id: 1,
+        id: '550e8400-e29b-41d4-a716-446655440001',
         email: 'test@example.com',
         username: 'testuser',
         created_at: '2023-01-01T00:00:00Z'
@@ -313,7 +314,7 @@ describe('UserService', () => {
       const user = await userService.authenticateUser('testuser', 'password123', authUtils)
       
       expect(user).toEqual({
-        id: 1,
+        id: '550e8400-e29b-41d4-a716-446655440001',
         email: 'test@example.com',
         username: 'testuser',
         created_at: '2023-01-01T00:00:00Z'

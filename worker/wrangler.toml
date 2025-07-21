@@ -5,6 +5,7 @@ compatibility_date = "2024-07-01"
 [assets]
 directory = "./static"
 
+# Production environment (default)
 [[d1_databases]]
 binding = "DB"
 database_name = "gameoverview-db"
@@ -16,5 +17,30 @@ id = "ddb3f38ae0704a52a59f36b288879cc8"
 preview_id = "558e5336b0ab49a18e0ff3f4af345a5a"
 
 [vars]
+JWT_SECRET = "production-secret-change-me"
+ENVIRONMENT = "production"
+
+# Staging environment
+[env.staging]
+name = "nextbestgame-staging"
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "gameoverview-staging-db"
+database_id = "f203a9c6-4aa6-4d82-bfd5-2c816b33c189"
+
+[[env.staging.kv_namespaces]]
+binding = "FEATURE_FLAGS"
+id = "e41f46196cd941029a640e3c1e2c096d"
+
+[env.staging.vars]
+JWT_SECRET = "staging-secret-change-me"
+ENVIRONMENT = "staging"
+
+# Development environment (local)
+[env.dev]
+name = "nextbestgame-dev"
+
+[env.dev.vars]
 JWT_SECRET = "dev-secret-change-in-production"
 ENVIRONMENT = "dev"
