@@ -1,3 +1,5 @@
+[![Maintainability](https://qlty.sh/gh/RobertMeissner/projects/GameOverview/maintainability.svg)](https://qlty.sh/gh/RobertMeissner/projects/GameOverview)
+
 # GameOverview
 
 This is a PoC. Everything is WIP. It is not production-ready. If you see anything of value here, please let me know.
@@ -10,7 +12,8 @@ Parts of the used API are reverse engineered or simply obtained by misusing cert
 
 Combination of scraper and dashboard to find the currently highest ranked game in my library that I did not play yet.
 
-It saves me a lot of time switching between different accounts (Steam, GoG, Epic, potentially more in the future) finding a great game to play.
+It saves me a lot of time switching between different accounts (Steam, GoG, Epic, potentially more in the future)
+finding a great game to play.
 
 ## What is this NOT?
 
@@ -21,7 +24,6 @@ Anything remotely complete or user safe.
 Run `src/main.py` to parse Steam API.
 
 Run `streamlit run game_dashboard.py` to start the streamlit dashboard.
-
 
 # Sources
 
@@ -68,6 +70,7 @@ const fetchGamesList = async (pageToken = '', existingList = []) => {
 }
 fetchGamesList().then(console.log);
 ```
+
 Wait.
 Copy results from the console into `data/epic_console_log.json`
 
