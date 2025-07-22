@@ -11,67 +11,66 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0  # Full history for better analysis
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better analysis
 
-    - name: Install Qlty CLI
-      run: |
-        curl -s https://qlty.sh | bash
-        echo "$HOME/.qlty/bin" >> $GITHUB_PATH
+      - name: Install Qlty CLI
+        run: |
+          curl -s https://qlty.sh | bash
+          echo "$HOME/.qlty/bin" >> $GITHUB_PATH
 
-    - name: Set up Python (if needed for coverage)
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.12'
+      - name: Set up Python (if needed for coverage)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
 
-    - name: Install uv
-      uses: astral-sh/setup-uv@v4
-      with:
-        version: "latest"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
 
-    - name: Install dependencies
-      run: cd backend && uv sync --dev
+      - name: Install dependencies
+        run: cd backend && uv sync --dev
 
-    - name: Run tests with coverage (optional)
-      run: |
-        uv run pytest --cov=. --cov-report=xml --cov-report=term
-      continue-on-error: true  # Don't fail if no tests yet
+      - name: Run tests with coverage (optional)
+        run: |
+          uv run pytest --cov=. --cov-report=xml --cov-report=term
+        continue-on-error: true  # Don't fail if no tests yet
 
-    - name: Run Qlty Check
-      env:
-        QLTY_COVERAGE_TOKEN: ${{ secrets.QLTY_COVERAGE_TOKEN }}
-      run: |
-        qlty check --summary --level medium
+      - name: Run Qlty Check
+        env:
+          QLTY_COVERAGE_TOKEN: ${{ secrets.QLTY_COVERAGE_TOKEN }}
+        run: |
+          qlty check --summary --level medium
 
-    - name: Publish Coverage to Qlty
-      if: always()
-      env:
-        QLTY_COVERAGE_TOKEN: ${{ secrets.QLTY_COVERAGE_TOKEN }}
-      run: |
-        if [ -f coverage.xml ]; then
-          qlty coverage publish coverage.xml
-        else
-          echo "No coverage.xml found, skipping coverage upload"
-        fi
+      - name: Publish Coverage to Qlty
+        if: always()
+        env:
+          QLTY_COVERAGE_TOKEN: ${{ secrets.QLTY_COVERAGE_TOKEN }}
+        run: |
+          if [ -f coverage.xml ]; then
+            qlty coverage publish coverage.xml
+          else
+            echo "## Coverage" >> $GITHUB_STEP_SUMMARY
+            echo "No coverage.xml found, skipping coverage upload" >> $GITHUB_STEP_SUMMARY
+          fi
 
-    - name: Generate SARIF for Security Tab
-      env:
-        QLTY_COVERAGE_TOKEN: ${{ secrets.QLTY_COVERAGE_TOKEN }}
-      run: |
-        echo "## Sarif Result" >> $GITHUB_STEP_SUMMARY
-        qlty check --sarif >> $GITHUB_STEP_SUMMARY 2>&1 || true
+      - name: Generate SARIF for Security Tab
+        env:
+          QLTY_COVERAGE_TOKEN: ${{ secrets.QLTY_COVERAGE_TOKEN }}
+        run: |
+          echo "## Sarif Result" >> $GITHUB_STEP_SUMMARY
+          qlty check --sarif >> $GITHUB_STEP_SUMMARY 2>&1 || true
 
-    - name: Run Qlty Analysis
-      env:
-        QLTY_COVERAGE_TOKEN: ${{ secrets.QLTY_COVERAGE_TOKEN }}
-      run: |
-        echo "## Qlty Code Analysis Results" >> $GITHUB_STEP_SUMMARY
-        qlty check --summary --level medium >> $GITHUB_STEP_SUMMARY 2>&1 || true
+      - name: Run Qlty Analysis
+        env:
+          QLTY_COVERAGE_TOKEN: ${{ secrets.QLTY_COVERAGE_TOKEN }}
+        run: |
+          echo "## Qlty Code Analysis Results" >> $GITHUB_STEP_SUMMARY
+          qlty check --summary --level medium >> $GITHUB_STEP_SUMMARY 2>&1 || true
 
-#    - name: Upload SARIF results
-#      if: always()
-#      uses: github/codeql-action/upload-sarif@v3
-#      with:
-#        sarif_file: qlty-results.sarif
-#
+      - uses: qltysh/qlty-action/coverage@v1
+        with:
+          token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
+          files: reports/lcov.info
