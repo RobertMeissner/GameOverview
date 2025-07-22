@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - uses: actions/checkout@v4
     - name: Install Qlty
       run: |
         curl https://qlty.sh | bash
@@ -62,6 +63,9 @@ jobs:
       run: |
         echo "## Historical Metrics Comparison" >> $GITHUB_STEP_SUMMARY
         uv run wily report . --format=markdown >> $GITHUB_STEP_SUMMARY || true
+
+    - name: Wily Graph
+      run: uv run wily graph . --operators=cyclomatic.complexity --output=markdown
 
     - name: Archive Wily Database
       uses: actions/upload-artifact@v4

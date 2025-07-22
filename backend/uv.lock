@@ -445,8 +445,8 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "radon" },
-    { name = "wily" },
+    { name = "radon", specifier = ">=6.0.1" },
+    { name = "wily", specifier = ">=1.12.2" },
 ]
 
 [[package]]
