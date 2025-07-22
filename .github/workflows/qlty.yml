@@ -1,0 +1,36 @@
+name: Qlty Code Analysis
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  qlty:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Full history for better analysis
+
+    - name: Install Qlty CLI
+      run: |
+        curl -s https://qlty.sh | bash
+        echo "$HOME/.qlty/bin" >> $GITHUB_PATH
+
+    - name: Run Qlty Analysis
+      env:
+        QLTY_COVERAGE_TOKEN: ${{ secrets.QLTY_COVERAGE_SECRET }}
+      run: |
+        qlty check --format=github-actions
+
+    # If you have coverage reports to upload
+    - name: Upload Coverage (optional)
+      if: always()
+      env:
+        QLTY_COVERAGE_TOKEN: ${{ secrets.QLTY_COVERAGE_SECRET }}
+      run: |
+        # Adjust path to your coverage file
+        qlty coverage upload coverage.xml
