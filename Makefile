@@ -11,18 +11,18 @@ metrics:
 	@echo "=== Complexity Report ==="
 	uv run radon cc . --min=C --total-average
 	@echo "\n=== Maintainability Report ==="
-	radon mi . --min=C
+	uv run radon mi . --min=C
 
 # Detailed metrics for code review
 metrics-detailed:
-	radon cc . --min=A --show-complexity --total-average
-	radon mi . --min=A --show
-	radon raw . --summary
+	uv run radon cc . --min=A --show-complexity --total-average
+	uv run radon mi . --min=A --show
+	uv run radon raw . --summary
 
 # Update historical tracking
 wily-update:
-	wily build --metrics=cyclomatic,raw,maintainability
+	uv run wily build --operators=cyclomatic,raw,maintainability
 
 # Focus on complex functions only
 complexity:
-	radon cc . --min=D --show-complexity --total-average
+	uv run radon cc . --min=D --show-complexity --total-average
