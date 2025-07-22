@@ -31,7 +31,7 @@ jobs:
           version: "latest"
 
       - name: Install dependencies
-        run: cd backend && uv sync --dev
+        run: cd backend && uv sync
 
       - name: Run tests with coverage (optional)
         run: |
