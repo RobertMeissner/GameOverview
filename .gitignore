@@ -200,3 +200,6 @@ Thumbs.db
 *.swp
 *.swo
 .vscode/settings.json
+
+.qlty/cache/
+.qlty/tmp/

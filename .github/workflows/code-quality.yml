@@ -54,3 +54,13 @@ jobs:
       with:
         name: wily-database
         path: .wily/
+
+    - name: Install Qlty
+      run: |
+        curl https://qlty.sh | bash
+        echo "$HOME/.qlty/bin" >> $GITHUB_PATH
+
+    - name: Run Qlty Analysis
+      run: |
+        qlty init
+        qlty check --format=github >> $GITHUB_STEP_SUMMARY
