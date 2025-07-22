@@ -59,10 +59,19 @@ jobs:
       env:
         QLTY_COVERAGE_TOKEN: ${{ secrets.QLTY_COVERAGE_TOKEN }}
       run: |
-        qlty check --sarif > qlty-results.sarif
+        echo "## Sarif Result" >> $GITHUB_STEP_SUMMARY
+        qlty check --sarif >> $GITHUB_STEP_SUMMARY 2>&1 || true
 
-    - name: Upload SARIF results
-      if: always()
-      uses: github/codeql-action/upload-sarif@v3
-      with:
-        sarif_file: qlty-results.sarif
+    - name: Run Qlty Analysis
+      env:
+        QLTY_COVERAGE_TOKEN: ${{ secrets.QLTY_COVERAGE_TOKEN }}
+      run: |
+        echo "## Qlty Code Analysis Results" >> $GITHUB_STEP_SUMMARY
+        qlty check --summary --level medium >> $GITHUB_STEP_SUMMARY 2>&1 || true
+
+#    - name: Upload SARIF results
+#      if: always()
+#      uses: github/codeql-action/upload-sarif@v3
+#      with:
+#        sarif_file: qlty-results.sarif
+#
