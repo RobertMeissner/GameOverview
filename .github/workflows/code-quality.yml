@@ -16,33 +16,35 @@ jobs:
         # Fetch full history for wily
         fetch-depth: 0
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
+    - name: Install uv
+      uses: astral-sh/setup-uv@v4
       with:
-        python-version: '3.12'
+        version: "latest"
+
+    - name: Set up Python
+      run: uv python install 3.12
 
     - name: Install dependencies
-      run: |
-        pip install radon wily
+      run: uv sync --dev
 
     - name: Run Radon Complexity Check
       run: |
         echo "## Cyclomatic Complexity Report" >> $GITHUB_STEP_SUMMARY
-        radon cc . --min=C --show-complexity --total-average >> $GITHUB_STEP_SUMMARY || true
+        uv run radon cc . --min=C --show-complexity --total-average >> $GITHUB_STEP_SUMMARY || true
 
     - name: Run Radon Maintainability Index
       run: |
         echo "## Maintainability Index Report" >> $GITHUB_STEP_SUMMARY
-        radon mi . --min=C --show >> $GITHUB_STEP_SUMMARY || true
+        uv run radon mi . --min=C --show >> $GITHUB_STEP_SUMMARY || true
 
     - name: Update Wily Database
       run: |
-        wily build --metrics=cyclomatic,raw,maintainability
+        uv run wily build --operators=cyclomatic,raw,maintainability
 
     - name: Generate Wily Report
       run: |
         echo "## Historical Metrics Comparison" >> $GITHUB_STEP_SUMMARY
-        wily report . --format=markdown >> $GITHUB_STEP_SUMMARY || true
+        uv run wily report . --format=markdown >> $GITHUB_STEP_SUMMARY || true
 
     - name: Archive Wily Database
       uses: actions/upload-artifact@v4
