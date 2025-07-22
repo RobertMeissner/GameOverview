@@ -7,6 +7,20 @@ on:
     branches: [ main ]
 
 jobs:
+  code-climate:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Install Qlty
+      run: |
+        curl https://qlty.sh | bash
+        echo "$HOME/.qlty/bin" >> $GITHUB_PATH
+
+    - name: Run Qlty Analysis
+      run: |
+        qlty init
+        qlty check --format=github >> $GITHUB_STEP_SUMMARY
+
   code-quality:
     runs-on: ubuntu-latest
     defaults:
@@ -54,13 +68,3 @@ jobs:
       with:
         name: wily-database
         path: .wily/
-
-    - name: Install Qlty
-      run: |
-        curl https://qlty.sh | bash
-        echo "$HOME/.qlty/bin" >> $GITHUB_PATH
-
-    - name: Run Qlty Analysis
-      run: |
-        qlty init
-        qlty check --format=github >> $GITHUB_STEP_SUMMARY
