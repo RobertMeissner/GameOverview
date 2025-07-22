@@ -28,9 +28,7 @@ jobs:
       run: uv python install 3.12
 
     - name: Install dependencies
-      run: |
-        cd backend
-        uv sync --dev
+      run: uv sync --dev
 
     - name: Run Radon Complexity Check
       run: |
