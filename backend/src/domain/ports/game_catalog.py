@@ -1,12 +1,22 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-class GameCatalog:
+if TYPE_CHECKING:
+    from domain.entity.game import Game
+
+
+@runtime_checkable
+class GameCatalog(Protocol):
     """Catalog placeholder."""
 
-    def __init__(self, games: dict[str, int]) -> None:
-        """Init."""
+    def game_by_id(self, _game_id: str) -> Game | None:
+        """Get game by id."""
+        ...
 
-    # https://claude.ai/chat/432cf438-cbd5-44d3-b8dc-a8bbbf69eb54
-    def catalog(self) -> None:
-        """Get catalog."""
+    def catalog(self) -> list[Game]:
+        """Get the entire catalog.
+
+        :return:
+        """
+        ...

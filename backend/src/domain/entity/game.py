@@ -15,7 +15,7 @@ class PlayStatus(Enum):
     COMPLETED = "completed"
 
 
-@dataclass
+@dataclass(frozen=True)
 class Game:
     """Main entity."""
 
