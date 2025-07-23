@@ -26,3 +26,6 @@ wily-update:
 # Focus on complex functions only
 complexity:
 	uv run radon cc . --min=D --show-complexity --total-average
+
+pre-commit:
+	cd backend && uv run pre-commit run -a
