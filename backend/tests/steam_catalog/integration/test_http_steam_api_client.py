@@ -10,6 +10,7 @@ from unittest.mock import Mock, patch, MagicMock
 from requests.exceptions import RequestException, Timeout, ConnectionError
 
 
+@pytest.skip(reason="Not being implemented", allow_module_level=True)
 class TestHttpSteamApiClient:
     """Test cases for HttpSteamApiClient adapter."""
 

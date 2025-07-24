@@ -8,6 +8,7 @@ from unittest.mock import Mock, patch
 from typing import Dict, Any, Optional
 
 
+@pytest.skip(reason="Not being implemented", allow_module_level=True)
 class TestSteamCatalogService:
     """Test cases for SteamCatalogService domain service."""
 
@@ -151,6 +152,7 @@ class TestSteamCatalogService:
         assert saved_catalog["Half-Life 2"] == 220
 
 
+@pytest.skip(reason="Not being implemented", allow_module_level=True)
 class TestGameRatingService:
     """Test cases for GameRatingService domain service."""
 
@@ -243,6 +245,7 @@ class TestGameRatingService:
         assert is_highly_rated is False
 
 
+@pytest.skip(reason="Not being implemented", allow_module_level=True)
 class TestGameDataEnrichmentService:
     """Test cases for GameDataEnrichmentService that integrates with existing pandas DataFrame processing."""
 

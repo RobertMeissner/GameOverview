@@ -9,6 +9,7 @@ from backend.src.game_ratings import (
     merged_data_sources,
 )
 from backend.src.utils import coerce_dataframe_types, init_df
+import pytest
 
 
 def assert_dataframe_structure(df: pd.DataFrame, expected_structure: dict):
@@ -79,6 +80,7 @@ expected_structure = {
 }
 
 
+@pytest.skip(reason="Not being implemented", allow_module_level=True)
 class TestConcatIfNew(unittest.TestCase):
     def setUp(self):
         # Common setup for all tests

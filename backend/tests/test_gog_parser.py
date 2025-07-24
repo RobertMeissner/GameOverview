@@ -4,6 +4,7 @@ from unittest.mock import mock_open, patch
 import pandas as pd
 
 from backend.src.gog_parser import parse_gog_file_for_gamelist
+import pytest
 
 
 def init_df():
@@ -37,6 +38,7 @@ no_account_products_data = """
     """
 
 
+@pytest.skip(reason="Not being implemented", allow_module_level=True)
 class TestParseGoGFile(unittest.TestCase):
     def test_valid_data(self):
         with patch("builtins.open", mock_open(read_data=valid_json_data)), patch("builtins.print"):

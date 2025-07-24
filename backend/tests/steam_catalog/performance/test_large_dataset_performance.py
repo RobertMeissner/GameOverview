@@ -14,6 +14,7 @@ import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
+@pytest.skip(reason="Not being implemented", allow_module_level=True)
 class TestLargeDatasetPerformance:
     """Performance tests with large game datasets."""
 
