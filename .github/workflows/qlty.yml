@@ -120,65 +120,18 @@ jobs:
         run: |
           qlty check --summary --level medium
 
-      # Upload Backend Coverage to Qlty
-      - name: Upload Backend Coverage to Qlty
-        if: always()
-        env:
-          QLTY_COVERAGE_TOKEN: ${{ secrets.QLTY_COVERAGE_TOKEN }}
-        run: |
-          if [ -f coverage-reports/backend-coverage.xml ]; then
-            echo "Uploading Backend coverage to Qlty..."
-            qlty coverage publish coverage-reports/backend-coverage.xml --framework python
-            echo "✓ Backend coverage uploaded" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "⚠️ Backend coverage XML not found, skipping upload" >> $GITHUB_STEP_SUMMARY
-          fi
-
-      # Upload Frontend Coverage to Qlty
-      - name: Upload Frontend Coverage to Qlty
-        if: always()
-        env:
-          QLTY_COVERAGE_TOKEN: ${{ secrets.QLTY_COVERAGE_TOKEN }}
-        run: |
-          if [ -f coverage-reports/frontend-coverage.xml ]; then
-            echo "Uploading Frontend coverage to Qlty..."
-            qlty coverage publish coverage-reports/frontend-coverage.xml --framework javascript
-            echo "✓ Frontend coverage uploaded" >> $GITHUB_STEP_SUMMARY
-          elif [ -f coverage-reports/frontend-coverage.lcov ]; then
-            echo "Uploading Frontend coverage (LCOV) to Qlty..."
-            qlty coverage publish coverage-reports/frontend-coverage.lcov --framework javascript
-            echo "✓ Frontend coverage (LCOV) uploaded" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "⚠️ Frontend coverage not found, skipping upload" >> $GITHUB_STEP_SUMMARY
-          fi
-
-      # Upload Worker Coverage to Qlty
-      - name: Upload Worker Coverage to Qlty
-        if: always()
-        env:
-          QLTY_COVERAGE_TOKEN: ${{ secrets.QLTY_COVERAGE_TOKEN }}
-        run: |
-          if [ -f coverage-reports/worker-coverage.xml ]; then
-            echo "Uploading Worker coverage to Qlty..."
-            qlty coverage publish coverage-reports/worker-coverage.xml --framework javascript
-            echo "✓ Worker coverage uploaded" >> $GITHUB_STEP_SUMMARY
-          elif [ -f coverage-reports/worker-coverage.lcov ]; then
-            echo "Uploading Worker coverage (LCOV) to Qlty..."
-            qlty coverage publish coverage-reports/worker-coverage.lcov --framework javascript
-            echo "✓ Worker coverage (LCOV) uploaded" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "⚠️ Worker coverage not found, skipping upload" >> $GITHUB_STEP_SUMMARY
-          fi
-
-      # Use Qlty Action for additional coverage processing (if needed)
-      - name: Qlty Coverage Action
+      # Upload Coverage to Qlty using official action
+      - name: Upload Coverage to Qlty
         uses: qltysh/qlty-action/coverage@v1
         if: always()
         with:
           token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
           files: |
+            coverage-reports/backend-coverage.xml
             coverage-reports/backend-coverage.lcov
+            coverage-reports/frontend-coverage.xml
             coverage-reports/frontend-coverage.lcov
+            coverage-reports/worker-coverage.xml
             coverage-reports/worker-coverage.lcov
         continue-on-error: true
 
