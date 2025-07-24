@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+import uuid
+from dataclasses import dataclass, field
 from enum import Enum
 
 
@@ -15,11 +16,15 @@ class PlayStatus(Enum):
     COMPLETED = "completed"
 
 
-@dataclass(frozen=True)
+@dataclass
 class Game:
     """Main entity."""
 
-    id: str  # UUID?
     name: str
     platforms: list[str]  # enum?
     play_status: PlayStatus
+
+    steam_id: int  # Identifier for steam
+    gog_id: int  # Identifier for GoG
+
+    id: str = field(default_factory=lambda: str(uuid.uuid4()))

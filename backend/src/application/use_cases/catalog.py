@@ -10,6 +10,13 @@ if TYPE_CHECKING:
 class Catalog:
     def __init__(self, catalog: GameCatalog) -> None:
         self._catalog = catalog
+        self._load_games()
 
-    def catalog(self) -> list[Game]:
-        return self._catalog.catalog()
+    def _load_games(self) -> list[Game]:
+        self._games = self._catalog.games()
+
+    def games(self) -> list[Game]:
+        return self._games
+
+    def game_by_steam_id(self, steam_id: int) -> Game | None:
+        return self._catalog.steam_game_by_id(steam_id)

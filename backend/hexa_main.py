@@ -8,10 +8,16 @@ from application.use_cases.catalog import Catalog
 load_dotenv()
 
 
-def main():
+def all_games_in_catalog() -> None:
     catalog_adapter = SteamJSONCatalogAdapter(os.getenv("STEAM_JSON_CATALOG"))
     catalog = Catalog(catalog_adapter)
-    print(catalog.catalog())
+    games = catalog.games()
+    print(f"Games in Catalog: {len(games)}")
+    print(f"{catalog.game_by_steam_id(70)}")
+
+
+def main():
+    all_games_in_catalog()
 
 
 if __name__ == "__main__":

@@ -6,10 +6,26 @@ Tests the core business objects without external dependencies.
 import pytest
 from dataclasses import FrozenInstanceError
 
+from domain.entity.game import Game, PlayStatus
 from domain.ports.game_catalog import GameCatalog
+from tests.fixtures.game_catalog_fixtures import MockGameCatalog
 
 
-@pytest.skip(reason="Not being implemented", allow_module_level=True)
+class TestMockGame_Catalog:
+    def test_mock_implements_protocol(self):
+        mock = MockGameCatalog()
+        assert isinstance(mock, GameCatalog)
+
+    def test_catalog_protocol_behavior(self):
+        steam_id = 1
+        games = [Game(name="Test Game", platforms=["test"], play_status=PlayStatus.NOT_STARTED, gog_id=1, steam_id=steam_id)]
+        catalog = MockGameCatalog(games)
+
+        assert catalog.steam_game_by_id(steam_id) is not None
+        assert len(catalog.games()) == 1
+
+
+@pytest.mark.skip(reason="Not being implemented")
 class TestSteamAppId:
     """Test cases for SteamAppId value object."""
 
@@ -57,7 +73,7 @@ class TestSteamAppId:
         assert not known_app_id.is_unknown()
 
 
-@pytest.skip(reason="Not being implemented", allow_module_level=True)
+@pytest.mark.skip(reason="Not being implemented")
 class TestGameName:
     """Test cases for GameName value object."""
 
@@ -114,7 +130,7 @@ class TestGameName:
         assert regular_name.without_demo_suffix().value == "Half-Life 2"
 
 
-@pytest.skip(reason="Not being implemented", allow_module_level=True)
+@pytest.mark.skip(reason="Not being implemented")
 class TestGameCatalogEntry:
     """Test cases for GameCatalogEntry entity."""
 
@@ -153,16 +169,9 @@ class TestGameCatalogEntry:
         assert not unknown_entry.has_known_app_id()
 
 
-@pytest.skip(reason="Not being implemented", allow_module_level=True)
+@pytest.mark.skip(reason="Not being implemented")
 class TestGameCatalog:
     """Test cases for GameCatalog aggregate root."""
-
-    def test_create_empty_catalog(self):
-        """Test creating an empty GameCatalog."""
-        catalog = GameCatalog()
-        assert len(catalog) == 0
-        assert catalog.is_empty()
-        assert list(catalog.entries()) == []
 
     def test_create_catalog_with_entries(self):
         """Test creating a GameCatalog with initial entries."""

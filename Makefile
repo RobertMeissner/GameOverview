@@ -1,5 +1,8 @@
 .PHONY: setup run clean
 
+main:
+	cd backend && uv run hexa_main.py
+
 wily:
 	uv run pip install radon wily
 

@@ -10,12 +10,12 @@ if TYPE_CHECKING:
 class GameCatalog(Protocol):
     """Catalog placeholder."""
 
-    def game_by_id(self, _game_id: str) -> Game | None:
+    def steam_game_by_id(self, _game_id: int) -> Game | None:
         """Get game by id."""
         ...
 
-    def catalog(self) -> list[Game]:
-        """Get the entire catalog.
+    def games(self) -> list[Game]:
+        """Get the entire catalog of games.
 
         :return:
         """

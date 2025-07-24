@@ -7,10 +7,28 @@ import json
 import os
 import tempfile
 import pytest
-from unittest.mock import patch, mock_open
+
+from adapters.game_catalog.steam_json_catalog_adapter import SteamJSONCatalogAdapter
+from domain.entity.game import Game, PlayStatus
 
 
-@pytest.skip(reason="Not being implemented", allow_module_level=True)
+class TestSteamJSONCatalogAdapter:
+    def test_create_empty_catalog(self):
+        """Test creating an empty GameCatalog."""
+        adapter = SteamJSONCatalogAdapter("")
+        catalog = adapter.games()
+        assert len(catalog) == 0
+        assert list(catalog) == []
+
+    def test_catalog_protocol_behavior(self):
+        test_json_path = "backend/tests/fixtures/data/steam_catalog_test.json"
+        adapter = SteamJSONCatalogAdapter(test_json_path)
+
+        assert adapter.steam_game_by_id(1) is not None
+        assert len(adapter.games()) == 3
+
+
+@pytest.mark.skip(reason="Not being implemented")
 class TestJsonCatalogRepository:
     """Test cases for JsonCatalogRepository adapter."""
 
@@ -249,7 +267,7 @@ class TestJsonCatalogRepository:
         assert all(count > 0 for count in results)  # All reads returned data
 
 
-@pytest.skip(reason="Not being implemented", allow_module_level=True)
+@pytest.mark.skip(reason="Not being implemented")
 class TestParquetCatalogRepository:
     """Test cases for ParquetCatalogRepository adapter (legacy format support)."""
 
@@ -304,7 +322,7 @@ class TestParquetCatalogRepository:
                 os.unlink(parquet_file)
 
 
-@pytest.skip(reason="Not being implemented", allow_module_level=True)
+@pytest.mark.skip(reason="Not being implemented")
 class TestInMemoryCatalogRepository:
     """Test cases for InMemoryCatalogRepository (testing adapter)."""
 
