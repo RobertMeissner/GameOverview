@@ -24,6 +24,7 @@ class TestSteamJSONCatalogAdapter:
         test_json_path = "backend/tests/fixtures/data/steam_catalog_test.json"
         adapter = SteamJSONCatalogAdapter(test_json_path)
 
+        print(adapter.games())
         assert adapter.steam_game_by_id(1) is not None
         assert len(adapter.games()) == 3
 

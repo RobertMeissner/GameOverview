@@ -12,7 +12,7 @@ class Catalog:
         self._catalog = catalog
         self._load_games()
 
-    def _load_games(self) -> list[Game]:
+    def _load_games(self) -> None:
         self._games = self._catalog.games()
 
     def games(self) -> list[Game]:

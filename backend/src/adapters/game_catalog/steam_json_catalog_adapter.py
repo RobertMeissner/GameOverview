@@ -2,9 +2,10 @@ import json
 import os
 
 from domain.entity.game import PlayStatus, Game
+from domain.ports.game_catalog import GameCatalog
 
 
-class SteamJSONCatalogAdapter:
+class SteamJSONCatalogAdapter(GameCatalog):
     """
     Adapter to STEAM catalog JSON
     """
@@ -30,9 +31,11 @@ class SteamJSONCatalogAdapter:
                     for name, steam_id in data.items()
                 ]
 
-            self._loaded = True
+                self._loaded = True
+            else:
+                raise ValueError("json catalog does not exist")
 
-    def steam_game_by_id(self, _game_id: str):
+    def steam_game_by_id(self, _game_id: int) -> Game | None:
         self.load_catalog()
         return next((g for g in self._catalog if g.steam_id == _game_id), None)
 
