@@ -30,6 +30,9 @@ RUN uv pip install --system --no-cache-dir -r pyproject.toml
 # Copy the rest of the application
 COPY . .
 
+# Add src directory to Python path
+ENV PYTHONPATH="/app/src:$PYTHONPATH"
+
 # Create a non-root user for security
 RUN groupadd -r appuser && useradd -r -g appuser appuser
 RUN chown -R appuser:appuser /app

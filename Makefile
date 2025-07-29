@@ -89,3 +89,41 @@ test-qlty-upload:
 # Clean coverage artifacts
 coverage-clean:
 	cd backend && rm -rf htmlcov/ .coverage .pytest_cache/ coverage-backend.xml coverage-backend.lcov
+
+# Docker commands
+.PHONY: docker-build docker-run docker-stop docker-clean docker-logs
+
+# Build the backend Docker image locally
+docker-build:
+	@echo "Building backend Docker image..."
+	cd backend && docker build -t game-overview-backend:latest .
+
+# Run the backend container locally
+docker-run:
+	@echo "Running backend container on port 8001..."
+	docker run -d --name game-overview-backend -p 8001:8001 game-overview-backend:latest
+
+# Stop the running container
+docker-stop:
+	@echo "Stopping backend container..."
+	docker stop game-overview-backend 2>/dev/null || echo "Container not running"
+	docker rm game-overview-backend 2>/dev/null || echo "Container not found"
+
+# View container logs
+docker-logs:
+	@echo "Showing backend container logs..."
+	docker logs game-overview-backend
+
+# Clean up Docker images and containers
+docker-clean:
+	@echo "Cleaning up Docker artifacts..."
+	docker stop game-overview-backend 2>/dev/null || true
+	docker rm game-overview-backend 2>/dev/null || true
+	docker rmi game-overview-backend:latest 2>/dev/null || true
+	@echo "Docker cleanup complete"
+
+# Build and run in one command
+docker-dev: docker-clean docker-build docker-run
+	@echo "Backend is running at http://localhost:8001"
+	@echo "API endpoints available at http://localhost:8001/api/games/catalog"
+	@echo "Use 'make docker-logs' to view logs or 'make docker-stop' to stop"
