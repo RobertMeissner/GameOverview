@@ -23,7 +23,7 @@ class TestSteamJSONCatalogAdapter:
         # TODO: Add test for empty file
 
     def test_catalog_protocol_behavior(self):
-        test_json_path = "backend/tests/fixtures/data/steam_catalog_test.json"
+        test_json_path = "tests/fixtures/data/steam_catalog_test.json"
         adapter = SteamJSONCatalogAdapter(test_json_path)
 
         print(adapter.games())
