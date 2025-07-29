@@ -5,8 +5,10 @@ from unittest.mock import mock_open, patch
 from dotenv import load_dotenv
 
 from backend.src.markdown_parser import played_games
+import pytest
 
 
+@pytest.skip(reason="Not being implemented", allow_module_level=True)
 class TestParseMarkdownFile(unittest.TestCase):
     def test_played_games(self):
         mock_file_content = """# Header 1

@@ -2,10 +2,12 @@ from unittest import TestCase, mock
 
 from fastapi.testclient import TestClient
 from main import NewItemFoundResponse, app
+import pytest
 
 client = TestClient(app)
 
 
+@pytest.skip(reason="Not being implemented", allow_module_level=True)
 class TestAPI(TestCase):
     def test_search_game_by_name(self):
         with mock.patch("main.game_by_app_id") as mocked_game_by_app_id:

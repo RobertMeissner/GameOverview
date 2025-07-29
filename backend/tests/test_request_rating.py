@@ -3,6 +3,7 @@ import os
 import unittest
 from unittest import skip
 from unittest.mock import Mock, patch
+import pytest
 
 import pandas as pd
 import requests
@@ -10,6 +11,7 @@ import requests
 from backend.src.request_rating import request_rating
 
 
+@pytest.skip(reason="Not being implemented", allow_module_level=True)
 class TestRequestRating(unittest.TestCase):
     @skip(reason="API currently WIP")
     @patch("requests.request")

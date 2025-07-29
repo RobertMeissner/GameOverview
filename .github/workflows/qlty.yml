@@ -2,9 +2,9 @@ name: Qlty Code Analysis
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, dev, develop ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, dev, develop ]
 
 jobs:
   qlty:
@@ -20,7 +20,18 @@ jobs:
           curl -s https://qlty.sh | bash
           echo "$HOME/.qlty/bin" >> $GITHUB_PATH
 
-      - name: Set up Python (if needed for coverage)
+      # Set up Node.js for Frontend and Worker tests
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: |
+            frontend/package-lock.json
+            worker/package-lock.json
+
+      # Set up Python for Backend tests
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -30,47 +41,141 @@ jobs:
         with:
           version: "latest"
 
-      - name: Install dependencies
+      # Install Backend dependencies
+      - name: Install Backend dependencies
         run: cd backend && uv sync
 
-      - name: Run tests with coverage (optional)
-        run: |
-          uv run pytest --cov=. --cov-report=xml --cov-report=term
-        continue-on-error: true  # Don't fail if no tests yet
+      # Install Frontend and Worker dependencies
+      - name: Install Frontend dependencies
+        run: cd frontend && npm ci
 
+      - name: Install Worker dependencies
+        run: cd worker && npm ci
+
+      # Run Backend tests with coverage
+      - name: Run Backend tests with coverage
+        run: |
+          cd backend && uv run pytest tests/unit/ --cov=src --cov-report=xml:coverage-backend.xml --cov-report=lcov:coverage-backend.lcov --cov-report=term-missing
+        continue-on-error: true
+
+      # Run Frontend tests with coverage
+      - name: Run Frontend tests with coverage
+        run: |
+          cd frontend && npm test -- --watchAll=false --coverage --coverageReporters=lcov --coverageReporters=cobertura
+        continue-on-error: true
+
+      # Run Worker tests with coverage
+      - name: Run Worker tests with coverage
+        run: |
+          cd worker && npm run test:coverage -- --run --reporter=verbose --coverage.reporter=lcov --coverage.reporter=cobertura
+        continue-on-error: true
+
+      # Collect and organize coverage files
+      - name: Organize coverage files
+        run: |
+          mkdir -p coverage-reports
+
+          # Backend coverage (XML format for qlty)
+          if [ -f backend/coverage-backend.xml ]; then
+            cp backend/coverage-backend.xml coverage-reports/backend-coverage.xml
+            echo "✓ Backend XML coverage found"
+          fi
+
+          # Backend coverage (LCOV format)
+          if [ -f backend/coverage-backend.lcov ]; then
+            cp backend/coverage-backend.lcov coverage-reports/backend-coverage.lcov
+            echo "✓ Backend LCOV coverage found"
+          fi
+
+          # Frontend coverage
+          if [ -f frontend/coverage/lcov.info ]; then
+            cp frontend/coverage/lcov.info coverage-reports/frontend-coverage.lcov
+            echo "✓ Frontend LCOV coverage found"
+          fi
+
+          if [ -f frontend/coverage/cobertura-coverage.xml ]; then
+            cp frontend/coverage/cobertura-coverage.xml coverage-reports/frontend-coverage.xml
+            echo "✓ Frontend XML coverage found"
+          fi
+
+          # Worker coverage
+          if [ -f worker/coverage/lcov.info ]; then
+            cp worker/coverage/lcov.info coverage-reports/worker-coverage.lcov
+            echo "✓ Worker LCOV coverage found"
+          fi
+
+          if [ -f worker/coverage/cobertura-coverage.xml ]; then
+            cp worker/coverage/cobertura-coverage.xml coverage-reports/worker-coverage.xml
+            echo "✓ Worker XML coverage found"
+          fi
+
+          echo "## Coverage Files Generated" >> $GITHUB_STEP_SUMMARY
+          echo "Available coverage files:" >> $GITHUB_STEP_SUMMARY
+          ls -la coverage-reports/ >> $GITHUB_STEP_SUMMARY || echo "No coverage files found" >> $GITHUB_STEP_SUMMARY
+
+      # Run Qlty Check
       - name: Run Qlty Check
         env:
           QLTY_COVERAGE_TOKEN: ${{ secrets.QLTY_COVERAGE_TOKEN }}
         run: |
           qlty check --summary --level medium
 
-      - name: Publish Coverage to Qlty
+      # Upload Coverage to Qlty using official action
+      - name: Upload Coverage to Qlty
+        uses: qltysh/qlty-action/coverage@v1
+        if: always()
+        with:
+          token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
+          files: |
+            coverage-reports/backend-coverage.xml
+            coverage-reports/backend-coverage.lcov
+            coverage-reports/frontend-coverage.xml
+            coverage-reports/frontend-coverage.lcov
+            coverage-reports/worker-coverage.xml
+            coverage-reports/worker-coverage.lcov
+        continue-on-error: true
+
+      # Generate Coverage Summary
+      - name: Generate Coverage Summary
+        if: always()
+        run: |
+          echo "## 📊 Coverage Summary" >> $GITHUB_STEP_SUMMARY
+
+          # Backend coverage summary
+          if [ -f backend/coverage-backend.xml ]; then
+            echo "### Backend Coverage" >> $GITHUB_STEP_SUMMARY
+            echo "Backend coverage report generated (see Qlty dashboard for details)" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Frontend coverage summary
+          if [ -f frontend/coverage/coverage-summary.json ]; then
+            echo "### Frontend Coverage" >> $GITHUB_STEP_SUMMARY
+            echo "Frontend coverage report generated (see Qlty dashboard for details)" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Worker coverage summary
+          if [ -f worker/coverage/coverage-summary.json ]; then
+            echo "### Worker Coverage" >> $GITHUB_STEP_SUMMARY
+            echo "Worker coverage report generated (see Qlty dashboard for details)" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📈 View detailed coverage reports on your [Qlty Dashboard](https://qlty.sh)" >> $GITHUB_STEP_SUMMARY
+
+      # Archive coverage artifacts
+      - name: Upload coverage artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-reports
+          path: coverage-reports/
+          retention-days: 30
+
+      # Run Qlty Analysis Summary
+      - name: Run Qlty Analysis Summary
         if: always()
         env:
           QLTY_COVERAGE_TOKEN: ${{ secrets.QLTY_COVERAGE_TOKEN }}
         run: |
-          if [ -f coverage.xml ]; then
-            qlty coverage publish coverage.xml
-          else
-            echo "## Coverage" >> $GITHUB_STEP_SUMMARY
-            echo "No coverage.xml found, skipping coverage upload" >> $GITHUB_STEP_SUMMARY
-          fi
-
-      - name: Generate SARIF for Security Tab
-        env:
-          QLTY_COVERAGE_TOKEN: ${{ secrets.QLTY_COVERAGE_TOKEN }}
-        run: |
-          echo "## Sarif Result" >> $GITHUB_STEP_SUMMARY
-          qlty check --sarif >> $GITHUB_STEP_SUMMARY 2>&1 || true
-
-      - name: Run Qlty Analysis
-        env:
-          QLTY_COVERAGE_TOKEN: ${{ secrets.QLTY_COVERAGE_TOKEN }}
-        run: |
-          echo "## Qlty Code Analysis Results" >> $GITHUB_STEP_SUMMARY
+          echo "## 🔍 Qlty Code Analysis Results" >> $GITHUB_STEP_SUMMARY
           qlty check --summary --level medium >> $GITHUB_STEP_SUMMARY 2>&1 || true
-
-      - uses: qltysh/qlty-action/coverage@v1
-        with:
-          token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
-          files: reports/lcov.info
