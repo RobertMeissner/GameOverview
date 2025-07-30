@@ -13,14 +13,11 @@ RUN npm install
 # Copy the rest of the application
 COPY . .
 
-# Build the React app
-RUN npm run build
-
-# Install serve to serve static files
-RUN npm install -g serve
-
-# Command to serve the built app
-CMD ["serve", "-s", "build"]
+# Copy environment file
+COPY .env .env
 
 # Expose the port the app runs on
-EXPOSE 5000
+EXPOSE 3000
+
+# Command to run the development server
+CMD ["npm", "start"]
