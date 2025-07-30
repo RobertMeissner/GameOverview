@@ -31,7 +31,7 @@ RUN uv pip install --system --no-cache-dir -r pyproject.toml
 COPY . .
 
 # Add src directory to Python path
-ENV PYTHONPATH="/app/src:$PYTHONPATH"
+ENV PYTHONPATH="/app/src"
 
 # Create a non-root user for security
 RUN groupadd -r appuser && useradd -r -g appuser appuser
@@ -46,4 +46,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:${PORT:-8001}/api/games/catalog || exit 1
 
 # Use uvicorn directly for production deployment with configurable port
-CMD uvicorn hexa_main:app --host 0.0.0.0 --port ${PORT:-8001}
+CMD ["sh", "-c", "uvicorn hexa_main:app --host 0.0.0.0 --port ${PORT:-8001}"]
