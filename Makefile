@@ -34,11 +34,15 @@ pre-commit:
 	cd backend && uv run pre-commit run -a
 
 # Test and coverage commands
-.PHONY: test test-coverage test-steam-catalog test-steam-catalog-coverage test-fast test-slow
+.PHONY: test-unit test-all test-coverage test-steam-catalog test-steam-catalog-coverage test-fast test-slow
 
-# Run all working backend tests
-test:
-	cd backend && uv run pytest tests/unit/ -v
+# Run unit tests only
+test-unit:
+	cd backend && PYTHONPATH=. uv run pytest tests/unit/ -v
+
+# Run ALL backend tests (unit + integration)
+test-all:
+	cd backend && PYTHONPATH=. uv run pytest tests/ -v
 
 # Run tests with coverage report
 test-coverage:

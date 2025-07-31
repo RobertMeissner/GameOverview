@@ -1,8 +1,11 @@
 import axios, { AxiosResponse } from 'axios'
 
-// Get API base URL from environment or default to relative path
-declare const process: { env: { [key: string]: string | undefined } }
-const API_BASE_URL = process.env.REACT_APP_API_URL || '/api'
+// Get API base URL from environment or detect local development
+
+// Force use backend port 8001 when running locally
+const API_BASE_URL = 'http://localhost:8001/api'
+
+console.log('GameService API URL:', API_BASE_URL)
 
 // Create axios instance with default config
 const api = axios.create({

@@ -8,7 +8,7 @@ services:
       - ./backend/src:/app/src
       - ./data:/data
     ports:
-      - "8000:8000"
+      - "8001:8001"
     env_file:
       - .env  # optional, if you have environment variables
     depends_on:
@@ -22,6 +22,8 @@ services:
       - ./frontend:/app
     ports:
       - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8001/api
 
 networks:
   default:
