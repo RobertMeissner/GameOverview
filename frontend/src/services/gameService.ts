@@ -1,7 +1,6 @@
 import axios, { AxiosResponse } from 'axios'
 
 // Get API base URL from environment or detect local development
-declare const process: { env: { [key: string]: string | undefined } }
 
 // Force use backend port 8001 when running locally
 const API_BASE_URL = 'http://localhost:8001/api'
