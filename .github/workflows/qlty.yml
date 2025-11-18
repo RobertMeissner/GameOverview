@@ -27,8 +27,8 @@ jobs:
           node-version: '18'
           cache: 'npm'
           cache-dependency-path: |
-            frontend/package-lock.json
-            worker/package-lock.json
+            apps/frontend/package-lock.json
+            apps/worker/package-lock.json
 
       # Set up Python for Backend tests
       - name: Set up Python
@@ -43,31 +43,31 @@ jobs:
 
       # Install Backend dependencies
       - name: Install Backend dependencies
-        run: cd backend && uv sync
+        run: cd apps/backend && uv sync
 
       # Install Frontend and Worker dependencies
       - name: Install Frontend dependencies
-        run: cd frontend && npm ci
+        run: cd apps/frontend && npm ci
 
       - name: Install Worker dependencies
-        run: cd worker && npm ci
+        run: cd apps/worker && npm ci
 
       # Run Backend tests with coverage
       - name: Run Backend tests with coverage
         run: |
-          cd backend && uv run pytest tests/unit/ --cov=src --cov-report=xml:coverage-backend.xml --cov-report=lcov:coverage-backend.lcov --cov-report=term-missing
+          cd apps/backend && uv run pytest tests/unit/ --cov=src --cov-report=xml:coverage-backend.xml --cov-report=lcov:coverage-backend.lcov --cov-report=term-missing
         continue-on-error: true
 
       # Run Frontend tests with coverage
       - name: Run Frontend tests with coverage
         run: |
-          cd frontend && npm test -- --watchAll=false --coverage --coverageReporters=lcov --coverageReporters=cobertura
+          cd apps/frontend && npm test -- --watchAll=false --coverage --coverageReporters=lcov --coverageReporters=cobertura
         continue-on-error: true
 
       # Run Worker tests with coverage
       - name: Run Worker tests with coverage
         run: |
-          cd worker && npm run test:coverage -- --run --reporter=verbose --coverage.reporter=lcov --coverage.reporter=cobertura
+          cd apps/worker && npm run test:coverage -- --run --reporter=verbose --coverage.reporter=lcov --coverage.reporter=cobertura
         continue-on-error: true
 
       # Collect and organize coverage files
@@ -76,36 +76,36 @@ jobs:
           mkdir -p coverage-reports
 
           # Backend coverage (XML format for qlty)
-          if [ -f backend/coverage-backend.xml ]; then
-            cp backend/coverage-backend.xml coverage-reports/backend-coverage.xml
+          if [ -f apps/backend/coverage-backend.xml ]; then
+            cp apps/backend/coverage-backend.xml coverage-reports/backend-coverage.xml
             echo "✓ Backend XML coverage found"
           fi
 
           # Backend coverage (LCOV format)
-          if [ -f backend/coverage-backend.lcov ]; then
-            cp backend/coverage-backend.lcov coverage-reports/backend-coverage.lcov
+          if [ -f apps/backend/coverage-backend.lcov ]; then
+            cp apps/backend/coverage-backend.lcov coverage-reports/backend-coverage.lcov
             echo "✓ Backend LCOV coverage found"
           fi
 
           # Frontend coverage
-          if [ -f frontend/coverage/lcov.info ]; then
-            cp frontend/coverage/lcov.info coverage-reports/frontend-coverage.lcov
+          if [ -f apps/frontend/coverage/lcov.info ]; then
+            cp apps/frontend/coverage/lcov.info coverage-reports/frontend-coverage.lcov
             echo "✓ Frontend LCOV coverage found"
           fi
 
-          if [ -f frontend/coverage/cobertura-coverage.xml ]; then
-            cp frontend/coverage/cobertura-coverage.xml coverage-reports/frontend-coverage.xml
+          if [ -f apps/frontend/coverage/cobertura-coverage.xml ]; then
+            cp apps/frontend/coverage/cobertura-coverage.xml coverage-reports/frontend-coverage.xml
             echo "✓ Frontend XML coverage found"
           fi
 
           # Worker coverage
-          if [ -f worker/coverage/lcov.info ]; then
-            cp worker/coverage/lcov.info coverage-reports/worker-coverage.lcov
+          if [ -f apps/worker/coverage/lcov.info ]; then
+            cp apps/worker/coverage/lcov.info coverage-reports/worker-coverage.lcov
             echo "✓ Worker LCOV coverage found"
           fi
 
-          if [ -f worker/coverage/cobertura-coverage.xml ]; then
-            cp worker/coverage/cobertura-coverage.xml coverage-reports/worker-coverage.xml
+          if [ -f apps/worker/coverage/cobertura-coverage.xml ]; then
+            cp apps/worker/coverage/cobertura-coverage.xml coverage-reports/worker-coverage.xml
             echo "✓ Worker XML coverage found"
           fi
 
@@ -142,19 +142,19 @@ jobs:
           echo "## 📊 Coverage Summary" >> $GITHUB_STEP_SUMMARY
 
           # Backend coverage summary
-          if [ -f backend/coverage-backend.xml ]; then
+          if [ -f apps/backend/coverage-backend.xml ]; then
             echo "### Backend Coverage" >> $GITHUB_STEP_SUMMARY
             echo "Backend coverage report generated (see Qlty dashboard for details)" >> $GITHUB_STEP_SUMMARY
           fi
 
           # Frontend coverage summary
-          if [ -f frontend/coverage/coverage-summary.json ]; then
+          if [ -f apps/frontend/coverage/coverage-summary.json ]; then
             echo "### Frontend Coverage" >> $GITHUB_STEP_SUMMARY
             echo "Frontend coverage report generated (see Qlty dashboard for details)" >> $GITHUB_STEP_SUMMARY
           fi
 
           # Worker coverage summary
-          if [ -f worker/coverage/coverage-summary.json ]; then
+          if [ -f apps/worker/coverage/coverage-summary.json ]; then
             echo "### Worker Coverage" >> $GITHUB_STEP_SUMMARY
             echo "Worker coverage report generated (see Qlty dashboard for details)" >> $GITHUB_STEP_SUMMARY
           fi

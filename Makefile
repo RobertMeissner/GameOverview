@@ -96,15 +96,11 @@ coverage-clean:
 
 # Docker commands
 .PHONY: docker-build docker-run docker-stop docker-clean docker-logs
-
-# Build the backend Docker image locally
 docker-build:
-	@echo "Building backend Docker image..."
 	cd backend && docker build -t game-overview-backend:latest .
 
 # Run the backend container locally
 docker-run:
-	@echo "Running backend container on port 8001..."
 	docker run -d --name game-overview-backend -p 8001:8001 game-overview-backend:latest
 
 # Stop the running container

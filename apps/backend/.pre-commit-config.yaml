@@ -46,7 +46,7 @@ repos:
     rev: 'v2.11'
     hooks:
       - id: vulture
-        args: ["backend/src", "--min-confidence", "80"]
+        args: ["apps/backend/src", "--min-confidence", "80"]
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0

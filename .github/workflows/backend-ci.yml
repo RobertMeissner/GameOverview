@@ -11,13 +11,6 @@ on:
     paths:
       - 'backend/**'
       - '.github/workflows/backend-ci.yml'
-  workflow_dispatch:
-    inputs:
-      deploy_to_fly:
-        description: 'Deploy to Fly.io after build'
-        required: false
-        default: false
-        type: boolean
 
 jobs:
   test:
@@ -25,7 +18,7 @@ jobs:
     name: Test Backend
     defaults:
       run:
-        working-directory: backend
+        working-directory: apps/backend
 
     steps:
       - name: Checkout
@@ -60,7 +53,7 @@ jobs:
     needs: test
     defaults:
       run:
-        working-directory: backend
+        working-directory: apps/backend
     permissions:
       contents: read
       packages: write
@@ -104,29 +97,6 @@ jobs:
 
       - name: Image digest
         run: echo ${{ steps.build.outputs.digest }}
-
-  deploy-fly:
-    runs-on: ubuntu-latest
-    name: Deploy to Fly.io
-    needs: [test, build-docker]
-    if: |
-      (github.ref == 'refs/heads/main' && github.event_name == 'push') ||
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_to_fly == 'true')
-    defaults:
-      run:
-        working-directory: backend
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Fly CLI
-        uses: superfly/flyctl-actions/setup-flyctl@master
-
-      - name: Deploy to Fly.io
-        run: flyctl deploy --remote-only
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
   security-scan:
     runs-on: ubuntu-latest

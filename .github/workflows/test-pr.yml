@@ -25,44 +25,44 @@ jobs:
 
       - name: Install Worker dependencies
         run: npm ci
-        working-directory: worker
+        working-directory: apps/worker
 
       - name: Install Frontend dependencies
         run: npm ci
-        working-directory: frontend
+        working-directory: apps/frontend
 
       - name: Run Worker TypeScript type check
         run: npm run type-check
-        working-directory: worker
+        working-directory: apps/worker
 
       - name: Run Worker unit tests
         run: npm test -- --run
-        working-directory: worker
+        working-directory: apps/worker
 
       - name: Run Worker tests with coverage
         run: npm run test:coverage -- --run
-        working-directory: worker
+        working-directory: apps/worker
 
       - name: Run Worker integration tests
         run: npm run test:integration:direct
-        working-directory: worker
+        working-directory: apps/worker
         env:
           RUN_INTEGRATION_TESTS: true
 
       - name: Run Frontend tests with coverage
         run: npm test -- --watchAll=false --passWithNoTests --coverage
-        working-directory: frontend
+        working-directory: apps/frontend
 
       - name: Build Frontend (test build process)
         run: npm run build
-        working-directory: frontend
+        working-directory: apps/frontend
 
       - name: Upload Frontend test coverage
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: frontend-coverage
-          path: frontend/coverage/
+          path: apps/frontend/coverage/
           retention-days: 7
 
       - name: Upload Worker test coverage
@@ -70,7 +70,7 @@ jobs:
         if: always()
         with:
           name: worker-coverage
-          path: worker/coverage/
+          path: apps/worker/coverage/
           retention-days: 7
 
   extended-tests:
@@ -92,11 +92,11 @@ jobs:
 
       - name: Install Worker dependencies
         run: npm ci
-        working-directory: worker
+        working-directory: apps/worker
 
       - name: Run full Worker integration tests
         run: npm run test:integration:full
-        working-directory: worker
+        working-directory: apps/worker
         env:
           RUN_INTEGRATION_TESTS: true
         continue-on-error: true
@@ -118,7 +118,7 @@ jobs:
           find . -name "*.test.*" -type f | head -10
 
           echo "Test validation complete"
-        working-directory: worker
+        working-directory: apps/worker
 
   lint-and-format:
     runs-on: ubuntu-latest
@@ -138,11 +138,11 @@ jobs:
 
       - name: Install Worker dependencies
         run: npm ci
-        working-directory: worker
+        working-directory: apps/worker
 
       - name: Install Frontend dependencies
         run: npm ci
-        working-directory: frontend
+        working-directory: apps/frontend
 
       - name: Check Frontend for linting scripts
         run: |
@@ -154,7 +154,7 @@ jobs:
             echo "Available scripts:"
             npm run
           fi
-        working-directory: frontend
+        working-directory: apps/frontend
         continue-on-error: true
 
       - name: Check Worker for linting scripts
@@ -167,5 +167,5 @@ jobs:
             echo "Available scripts:"
             npm run
           fi
-        working-directory: worker
+        working-directory: apps/worker
         continue-on-error: true

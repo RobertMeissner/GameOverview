@@ -125,8 +125,6 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-backend/.env
-frontend/.env
 .venv
 env/
 venv/
@@ -188,6 +186,9 @@ worker/static/
 .env.development.local
 .env.test.local
 .env.production.local
+backend/.env
+frontend/.env
+*.env
 
 # OS generated files
 .DS_Store

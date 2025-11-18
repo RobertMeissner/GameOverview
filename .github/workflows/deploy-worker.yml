@@ -32,42 +32,42 @@ jobs:
           node-version: '18'
           cache: 'npm'
           cache-dependency-path: |
-            frontend/package-lock.json
-            worker/package-lock.json
+            apps/frontend/package-lock.json
+            apps/worker/package-lock.json
 
       - name: Install Worker dependencies
         run: npm ci
-        working-directory: worker
+        working-directory: apps/worker
 
       - name: Install Frontend dependencies
         run: npm ci
-        working-directory: frontend
+        working-directory: apps/frontend
 
       - name: Run Worker TypeScript type check
         run: npm run type-check
-        working-directory: worker
+        working-directory: apps/worker
 
       - name: Run Worker unit tests
         run: npm test -- --run
-        working-directory: worker
+        working-directory: apps/worker
 
       - name: Run Worker tests with coverage
         run: npm run test:coverage -- --run
-        working-directory: worker
+        working-directory: apps/worker
 
       - name: Run Worker integration tests (simple)
         run: npm run test:integration:direct
-        working-directory: worker
+        working-directory: apps/worker
         env:
           RUN_INTEGRATION_TESTS: true
 
       - name: Run Frontend tests
         run: npm test -- --watchAll=false --passWithNoTests
-        working-directory: frontend
+        working-directory: apps/frontend
 
       - name: Build Frontend (test build process)
         run: npm run build
-        working-directory: frontend
+        working-directory: apps/frontend
 
   deploy-production:
     runs-on: ubuntu-latest
@@ -84,22 +84,22 @@ jobs:
           node-version: '18'
           cache: 'npm'
           cache-dependency-path: |
-            frontend/package-lock.json
-            worker/package-lock.json
+            apps/frontend/package-lock.json
+            apps/worker/package-lock.json
 
       - name: Install Worker dependencies
         run: npm ci
-        working-directory: worker
+        working-directory: apps/worker
 
       - name: Build and copy frontend assets
         run: npm run build
-        working-directory: worker
+        working-directory: apps/worker
 
       - name: Deploy to Production
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          workingDirectory: worker
+          workingDirectory: apps/worker
 
   deploy-staging:
     runs-on: ubuntu-latest
@@ -119,22 +119,22 @@ jobs:
           node-version: '18'
           cache: 'npm'
           cache-dependency-path: |
-            frontend/package-lock.json
-            worker/package-lock.json
+            apps/frontend/package-lock.json
+            apps/worker/package-lock.json
 
       - name: Install Worker dependencies
         run: npm ci
-        working-directory: worker
+        working-directory: apps/worker
 
       - name: Build and copy frontend assets
         run: npm run build
-        working-directory: worker
+        working-directory: apps/worker
 
       - name: Deploy to Staging
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          workingDirectory: worker
+          workingDirectory: apps/worker
           environment: staging
 
   deploy-manual:
@@ -152,19 +152,19 @@ jobs:
           node-version: '18'
           cache: 'npm'
           cache-dependency-path: |
-            frontend/package-lock.json
-            worker/package-lock.json
+            apps/frontend/package-lock.json
+            apps/worker/package-lock.json
 
       - name: Install Worker dependencies
         run: npm ci
-        working-directory: worker
+        working-directory: apps/worker
 
       - name: Build and copy frontend assets
         run: npm run build
-        working-directory: worker
+        working-directory: apps/worker
 
       - name: Deploy to Production (Manual)
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          workingDirectory: worker
+          workingDirectory: apps/worker
