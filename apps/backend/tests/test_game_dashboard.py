@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from game_dashboard import update_with_edited_data
+from apps.streamlit_dashboard.game_dashboard import update_with_edited_data
 
 
 @pytest.mark.parametrize(

@@ -207,3 +207,4 @@ Thumbs.db
 
 .qlty/cache/
 .qlty/tmp/
+*.venv

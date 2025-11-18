@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 
-from backend.src.constants import (
+from apps.backend.src.constants import (
     APP_ID,
     CORRECTED_APP_ID,
     CUSTOM_RATING,
@@ -16,7 +16,7 @@ from backend.src.constants import (
     played_flag,
     store_name,
 )
-from backend.src.utils import load_data, save_data
+from apps.backend.src.utils import load_data, save_data
 
 overview_columns = [
     game_name,

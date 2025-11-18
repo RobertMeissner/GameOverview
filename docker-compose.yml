@@ -1,11 +1,11 @@
 services:
   backend:
     build:
-      context: ./backend
+      context: ./apps/backend
     container_name: backend
     volumes:
-      - ./backend:/app
-      - ./backend/src:/app/src
+      - ./apps/backend:/app
+      - ./apps/backend/src:/app/src
       - ./data:/data
     ports:
       - "8001:8001"
@@ -16,10 +16,10 @@ services:
 
   frontend:
     build:
-      context: ./frontend
+      context: ./apps/frontend
     container_name: frontend
     volumes:
-      - ./frontend:/app
+      - ./apps/frontend:/app
     ports:
       - "3000:3000"
     environment:
