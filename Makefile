@@ -27,16 +27,16 @@ docker-run:
 
 .PHONY: run
 run:
-	cd apps/worker && bun run build && bun run dev
+	cd apps/api && bun run build && bun run dev
 
 build:
-	cd apps/worker && bun run build
+	cd apps/api && bun run build
 
 .PHONY: deploy
 deploy:
-	cd apps/worker && bun run deploy:staging
+	cd apps/api && bun run deploy:staging
 
 
 .PHONY: clean
 clean:
-	rm -rf apps/worker/static && rm -rf apps/frontend/build
+	rm -rf apps/api/static && rm -rf apps/frontend/build

@@ -1,4 +1,4 @@
-name = "nextbestgame"
+name = "gameoverview-api"
 main = "src/index.ts"
 compatibility_date = "2024-07-01"
 
@@ -22,7 +22,7 @@ ENVIRONMENT = "production"
 
 # Staging environment
 [env.staging]
-name = "nextbestgame-staging"
+name = "gameoverview-api-staging"
 
 [[env.staging.d1_databases]]
 binding = "DB"
@@ -39,7 +39,7 @@ ENVIRONMENT = "staging"
 
 # Development environment (local)
 [env.dev]
-name = "nextbestgame-dev"
+name = "gameoverview-api-dev"
 
 [env.dev.vars]
 JWT_SECRET = "dev-secret-change-in-production"

@@ -1,5 +1,5 @@
 {
-  "name": "nextbestgame-worker",
+  "name": "gameoverview-api-worker",
   "version": "1.0.0",
   "description": "Unified Cloudflare Worker for frontend and API",
   "main": "src/index.ts",
