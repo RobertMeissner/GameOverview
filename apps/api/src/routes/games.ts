@@ -23,12 +23,12 @@ export async function handleGamesRoutes(request: Request, env: Env, ctx: Executi
     // POST /api/games - Add a new game to user's library
     if (request.method === 'POST' && url.pathname === '/api/games') {
       const body = await request.json() as CreateGameRequest
-      const { name, store } = body
+      const { name, store, app_id } = body
 
       // Validate required fields
-      if (!name || !store) {
+      if (!name || (!app_id && !store)) {
         const errorResponse: ApiError = {
-          error: 'Name and store are required'
+          error: 'Name or app_id and store are required'
         }
         return new Response(JSON.stringify(errorResponse), {
           status: 400,

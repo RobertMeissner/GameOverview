@@ -41,6 +41,15 @@ ENVIRONMENT = "staging"
 [env.dev]
 name = "gameoverview-api-dev"
 
+[[env.dev.d1_databases]]
+binding = "DB"
+database_name = "gameoverview-staging-db"
+database_id = "8e8a1f7cda28eff1db378ad98289102639c2581ba03073559ccb8d1fc2f47e36"
+
+[[env.dev.kv_namespaces]]
+binding = "FEATURE_FLAGS"
+preview_id = "558e5336b0ab49a18e0ff3f4af345a5a"
+
 [env.dev.vars]
 JWT_SECRET = "dev-secret-change-in-production"
 ENVIRONMENT = "dev"

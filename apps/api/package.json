@@ -30,7 +30,8 @@
     "flags:health": "node scripts/monitor-flags.js prod health"
   },
   "dependencies": {
-    "@cloudflare/kv-asset-handler": "^0.3.0"
+    "@cloudflare/kv-asset-handler": "^0.3.0",
+    "concurrently": "^9.2.1"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20241127.0",

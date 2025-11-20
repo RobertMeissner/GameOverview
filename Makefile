@@ -40,3 +40,7 @@ deploy:
 .PHONY: clean
 clean:
 	rm -rf apps/api/static && rm -rf apps/frontend/build
+
+.PHONY: dev
+dev:
+	cd apps/api && bunx concurrently --names "API,Frontend" --prefix-colors "blue,green" "wrangler dev --env dev" "cd ../frontend && npm start"

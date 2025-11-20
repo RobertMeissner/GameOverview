@@ -189,6 +189,7 @@ worker/static/
 .env.test.local
 .env.production
 .env.production.local
+.env.dev
 backend/.env
 frontend/.env
 *.env

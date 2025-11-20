@@ -60,5 +60,6 @@
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "env-cmd": "^11.0.0",
     "react-app-rewired": "^2.2.1"
-  }
+  },
+  "proxy": "http://localhost:8787"
 }
