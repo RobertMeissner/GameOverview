@@ -165,6 +165,7 @@ cython_debug/
 
 data
 /node_modules/**
+**/node_modules/**
 /worker/node_modules/**
 /worker/static
 
@@ -186,6 +187,7 @@ worker/static/
 .env.development.local
 .env.staging
 .env.test.local
+.env.production
 .env.production.local
 backend/.env
 frontend/.env
@@ -213,3 +215,4 @@ Thumbs.db
 # Cloudflare parts
 *.venv-workers
 python_modules
+*.wrangler

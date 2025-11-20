@@ -75,3 +75,9 @@ Wait.
 Copy results from the console into `data/epic_console_log.json`
 
 Kudos go to [NikkelM](https://github.com/NikkelM/Steam-App-ID-Finder)
+
+# Development
+
+Create an issue, pull-request and/or contact me here.
+
+Figma: https://www.figma.com/design/WaL1cRWR8mN7nRGXEO8xX6/Goodplays?node-id=1669-162202&t=JleBbmPvfxw7D1PR-1

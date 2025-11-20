@@ -4,12 +4,14 @@
   "description": "Unified Cloudflare Worker for frontend and API",
   "main": "src/index.ts",
   "scripts": {
-    "build": "npm run build:frontend && npm run copy:assets",
-    "build:frontend": "cd ../frontend && npm install && npm run build",
+    "build": "bun run build:frontend && bun run copy:assets",
+    "build:frontend": "cd ../frontend && bun install && bun run build",
+    "build:staging": "bun run build:frontend:staging && bun run copy:assets",
+    "build:frontend:staging": "cd ../frontend && bun install && bun run build:staging",
     "copy:assets": "mkdir -p ./static && cp -r ../frontend/build/* ./static/",
     "deploy": "wrangler deploy",
-    "deploy:staging": "npm run build && wrangler deploy --env staging",
-    "deploy:production": "npm run build && wrangler deploy",
+    "deploy:staging": "bun run build:staging && wrangler deploy --env staging",
+    "deploy:production": "bun run build && wrangler deploy",
     "dev": "wrangler dev",
     "dev:staging": "wrangler dev --env staging",
     "type-check": "tsc --noEmit",
@@ -37,6 +39,6 @@
     "miniflare": "^3.20250408.2",
     "typescript": "^5.0.0",
     "vitest": "^2.1.9",
-    "wrangler": "^3.0.0"
+    "wrangler": "4"
   }
 }

@@ -169,11 +169,11 @@ const AuthenticatedApp: React.FC = () => {
                     }}
                 >
                     <List>
-                        <ListItemButton component={Link} to="/overview">
-                            <ListItemText primary="Overview"/>
-                        </ListItemButton>
                         <ListItemButton component={Link} to="/">
                             <ListItemText primary="Top Three"/>
+                        </ListItemButton>
+                        <ListItemButton component={Link} to="/overview">
+                            <ListItemText primary="Overview"/>
                         </ListItemButton>
                         <ListItemButton component={Link} to="/addDataItem">
                             <ListItemText primary="Add new game"/>

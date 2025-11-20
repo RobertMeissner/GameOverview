@@ -1,4 +1,3 @@
-// src/hooks/useData.ts
 import { useState, useEffect } from 'react';
 import { DataItem } from '../App';
 import { GameService } from '../services/gameService';

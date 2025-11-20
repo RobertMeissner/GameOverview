@@ -22,5 +22,21 @@ coverage-clean:
 
 # Docker commands
 .PHONY: docker-build docker-run docker-stop docker-clean docker-logs
+docker-run:
+	docker compose down && docker compose up
+
+.PHONY: run
 run:
-	docker compose down && docker compose build && docker compose up
+	cd apps/worker && bun run build && bun run dev
+
+build:
+	cd apps/worker && bun run build
+
+.PHONY: deploy
+deploy:
+	cd apps/worker && bun run deploy:staging
+
+
+.PHONY: clean
+clean:
+	rm -rf apps/worker/static && rm -rf apps/frontend/build
