@@ -36,10 +36,10 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20241127.0",
     "@types/node": "^20.0.0",
-    "@vitest/coverage-v8": "^2.1.9",
+    "@vitest/coverage-v8": "^4.0.13",
     "miniflare": "^3.20250408.2",
     "typescript": "^5.0.0",
-    "vitest": "^2.1.9",
+    "vitest": "^4.0.13",
     "wrangler": "4"
   }
 }
