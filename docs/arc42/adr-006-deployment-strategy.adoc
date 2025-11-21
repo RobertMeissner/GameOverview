@@ -1,7 +1,7 @@
 = ADR-006: Deployment Strategy
 
 == Status
-Accepted
+Superseded by adr-013 and Cloudflare Choice.
 
 == Context
 The application consists of a Python backend and React frontend that need to be deployed and made accessible to users.

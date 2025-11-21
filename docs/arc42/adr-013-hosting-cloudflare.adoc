@@ -1,0 +1,36 @@
+= ADR-013: Hosting on Cloudflare
+
+**Date**: 2025-11-21 +
+
+== Status
+Accepted
+
+== Context
+
+Local-only hosting of the solution does not scale well. Also, database management requires additional step.
+Cloudflare offers a fully managed and free (!) solution that fulfills all requirements.
+
+== Decision
+
+I will focus on Cloudflare for hosting. Docker, docker compose etc. are outdated.
+
+
+== Rationale
+
+Cloudflare requires Typescript. Python is in Beta and many packages are not available, e.g. pandas, numpy.
+
+== Consequences
+=== Positive
+
+* Through wrangler I can deploy through CLI and run it locally
+* Database connection and deployment stages have minimum overhead
+* Free tier generous
+* Reduced infrastructure complexity: no docker needed
+
+=== Negative
+
+* Vendor lock in
+* SQLite lock-in locally
+* Rewrite of python backend required
+
+== Notes
