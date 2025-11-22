@@ -1,3 +1,3 @@
 export interface IHttpClient {
-    fetch(request: Request, response: Response): Observable<Response>
+    fetch(request: Request): Promise<Response>
 }

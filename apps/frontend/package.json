@@ -36,7 +36,8 @@
     "build": "react-app-rewired build",
     "build:staging": "env-cmd -f .env.staging react-app-rewired build",
     "test": "react-app-rewired test",
-    "eject": "react-app-rewired eject"
+    "eject": "react-app-rewired eject",
+    "lint": "eslint src --ext .js,.jsx,.ts,.tsx"
   },
   "eslintConfig": {
     "extends": [
