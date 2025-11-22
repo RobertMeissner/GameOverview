@@ -21,7 +21,7 @@
     "test:integration": "./scripts/run-integration-tests.sh",
     "test:integration:direct": "RUN_INTEGRATION_TESTS=true vitest run src/integration/featureFlags.simple.test.ts",
     "test:integration:full": "RUN_INTEGRATION_TESTS=true vitest run src/integration/",
-    "test:e2e": "npx playwright test",
+    "test:e2e": "playwright test",
     "test:load": "npx artillery run tests/load/feature-flags-load.yml",
     "test:flags": "./scripts/test-feature-flags.sh",
     "flags": "node scripts/manage-flags.js",
@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "@cloudflare/kv-asset-handler": "^0.3.0",
+    "@playwright/test": "^1.56.1",
     "concurrently": "^9.2.1",
     "hono": "^4.10.6"
   },
