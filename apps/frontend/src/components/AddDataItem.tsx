@@ -56,7 +56,7 @@ const AddDataItem: React.FC<{ onDataAdded: () => void }> = ({onDataAdded}) => {
     };
 
     const handleTestDataItem = async (): Promise<void> => {
-        if (!formData.name && (!formData.app_id || !formData.store)) {
+        if (!formData.name && !formData.app_id) {
             setError('Please provide either a name or both app_id and store.');
             return;
         }
@@ -75,17 +75,18 @@ const AddDataItem: React.FC<{ onDataAdded: () => void }> = ({onDataAdded}) => {
 
             const response = await GameService.addGame(testData);
 
+            console.log(response)
             if (response.success) {
                 const game = response.game;
                 setFormData({
                     name: game.name || formData.name,
-                    app_id: game.app_id?.toString() || formData.app_id,
+                    app_id: game.steam_appid?.toString() || formData.app_id,
                     store: game.store || formData.store,
                     played: formData.played,
                     hide: formData.hide,
                     later: formData.later
                 });
-                setThumbnailUrl(game.thumbnail_url);
+                setThumbnailUrl(game.steam_thumbnail_url);
                 setAdditionalFieldsVisible(true);
 
                 // Delete the temporary game since this was just a test
@@ -108,37 +109,7 @@ const AddDataItem: React.FC<{ onDataAdded: () => void }> = ({onDataAdded}) => {
     };
 
     const handleCreateDataItem = async (): Promise<void> => {
-        setIsLoading(true);
-        setError(null);
-
-        const data = {
-            name: formData.name,
-            store: formData.store as 'steam' | 'gog' | 'epic' | 'other',
-            app_id: formData.app_id || undefined,
-            status: (formData.played ? 'completed' : (formData.later ? 'wishlist' : 'backlog')) as 'backlog' | 'playing' | 'completed' | 'dropped' | 'wishlist',
-            notes: formData.hide ? 'Hidden' : undefined,
-            played: formData.played,
-            hide: formData.hide,
-            later: formData.later,
-        };
-
-        try {
-            const response = await GameService.addGame(data);
-            if (response.success) {
-
-                setError(null);
-                resetForm();
-                onDataAdded();
-                // Show success message
-                alert('Game added to your library successfully!');
-            }
-        } catch (error: any) {
-            console.error("Error creating game:", error);
-            setError(error.message || 'Failed to add the game. Please try again.');
-
-        } finally {
-            setIsLoading(false);
-        }
+        console.log(formData);
     };
 
     return (

@@ -66,6 +66,7 @@ export class GameService {
       const response: AxiosResponse<GameResponse> = await api.post('/games', gameData)
       return response.data
     } catch (error: any) {
+      console.error(error)
       if (error.response?.data?.error) {
         throw new Error(error.response.data.error)
       }
@@ -89,7 +90,7 @@ export class GameService {
   // Get user's game library in legacy format for compatibility
   static async getLegacyGames(): Promise<any[]> {
     try {
-      const response: AxiosResponse<any[]> = await api.get('/games/legacy')
+      const response: AxiosResponse<any[]> = await api.get('/games')
       return response.data || []
     } catch (error: any) {
       if (error.response?.data?.error) {

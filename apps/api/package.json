@@ -13,6 +13,7 @@
     "deploy:staging": "bun run build:staging && wrangler deploy --env staging",
     "deploy:production": "bun run build && wrangler deploy",
     "dev": "wrangler dev",
+    "dev:debug": "wrangler dev --env dev --log-level debug",
     "dev:staging": "wrangler dev --env staging",
     "type-check": "tsc --noEmit",
     "test": "vitest",
@@ -31,7 +32,8 @@
   },
   "dependencies": {
     "@cloudflare/kv-asset-handler": "^0.3.0",
-    "concurrently": "^9.2.1"
+    "concurrently": "^9.2.1",
+    "hono": "^4.10.6"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20241127.0",
