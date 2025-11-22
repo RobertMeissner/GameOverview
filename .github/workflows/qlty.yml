@@ -51,7 +51,7 @@ jobs:
 
       # Install Frontend and API dependencies
       - name: Install Frontend dependencies
-        run: cd apps/frontend && npm ci
+        run: cd apps/frontend && bun install
 
       - name: Install API dependencies
         run: cd apps/api && bun install --frozen-lockfile
@@ -65,7 +65,7 @@ jobs:
       # Run Frontend tests with coverage
       - name: Run Frontend tests with coverage
         run: |
-          cd apps/frontend && npm test -- --watchAll=false --coverage --coverageReporters=lcov --coverageReporters=cobertura
+          cd apps/frontend && bun run test -- --watchAll=false --coverage --coverageReporters=lcov --coverageReporters=cobertura
         continue-on-error: true
 
       # Run API tests with coverage

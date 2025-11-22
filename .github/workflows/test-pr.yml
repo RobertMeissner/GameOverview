@@ -31,7 +31,7 @@ jobs:
         working-directory: apps/api
 
       - name: Install Frontend dependencies
-        run: npm ci
+        run: bun install
         working-directory: apps/frontend
 
       - name: Run API TypeScript type check
@@ -53,11 +53,11 @@ jobs:
           RUN_INTEGRATION_TESTS: true
 
       - name: Run Frontend tests with coverage
-        run: npm test -- --watchAll=false --passWithNoTests --coverage
+        run: bun run test -- --watchAll=false --passWithNoTests --coverage
         working-directory: apps/frontend
 
       - name: Build Frontend (test build process)
-        run: npm run build
+        run: bun run build
         working-directory: apps/frontend
 
       - name: Upload Frontend test coverage
@@ -143,18 +143,18 @@ jobs:
         working-directory: apps/api
 
       - name: Install Frontend dependencies
-        run: npm ci
+        run: bun install
         working-directory: apps/frontend
 
       - name: Check Frontend for linting scripts
         run: |
-          if npm run | grep -q "lint"; then
+          if bun run | grep -q "lint"; then
             echo "Running Frontend linting..."
-            npm run lint
+            bun run lint
           else
             echo "No lint script found in Frontend package.json"
             echo "Available scripts:"
-            npm run
+            bun run
           fi
         working-directory: apps/frontend
         continue-on-error: true

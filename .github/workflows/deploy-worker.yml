@@ -43,7 +43,7 @@ jobs:
         working-directory: apps/api
 
       - name: Install Frontend dependencies
-        run: npm ci
+        run: bun run install
         working-directory: apps/frontend
 
       - name: Run API TypeScript type check
@@ -65,11 +65,11 @@ jobs:
           RUN_INTEGRATION_TESTS: true
 
       - name: Run Frontend tests
-        run: npm test -- --watchAll=false --passWithNoTests
+        run: bun run test -- --watchAll=false --passWithNoTests
         working-directory: apps/frontend
 
       - name: Build Frontend (test build process)
-        run: npm run build
+        run: bun run build
         working-directory: apps/frontend
 
   deploy-production:
