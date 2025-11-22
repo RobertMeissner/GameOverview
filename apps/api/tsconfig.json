@@ -15,6 +15,9 @@
     "resolveJsonModule": true,
     "types": ["@cloudflare/workers-types"]
   },
-  "include": ["src/**/*"],
+  "include": [
+    "src/**/*",
+    "node_modules/vitest/globals.d.ts"
+  ],
   "exclude": ["node_modules", "static"]
 }

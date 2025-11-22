@@ -68,7 +68,7 @@ async function handleAPI(request: Request, env: Env, ctx: ExecutionContext): Pro
   // Games routes
   if (url.pathname.startsWith('/api/games')) {
     const response = await handleGamesRoutes(request, env, ctx)
-    if (response) return response
+    if (response !== null) return response
   }
 
   // Feature flag management routes

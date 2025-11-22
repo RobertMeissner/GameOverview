@@ -20,15 +20,19 @@ jobs:
           curl -s https://qlty.sh | bash
           echo "$HOME/.qlty/bin" >> $GITHUB_PATH
 
-      # Set up Node.js for Frontend and Worker tests
-      - name: Setup Node.js
+      # Set up Bun for API
+      - name: Setup Bun (for API)
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      # Set up Node.js for Frontend
+      - name: Setup Node.js (for Frontend)
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
-          cache-dependency-path: |
-            apps/frontend/package-lock.json
-            apps/worker/package-lock.json
+          cache-dependency-path: apps/frontend/package-lock.json
 
       # Set up Python for Backend tests
       - name: Set up Python
@@ -45,12 +49,12 @@ jobs:
       - name: Install Backend dependencies
         run: cd apps/backend && uv sync
 
-      # Install Frontend and Worker dependencies
+      # Install Frontend and API dependencies
       - name: Install Frontend dependencies
-        run: cd apps/frontend && npm ci
+        run: cd apps/frontend && bun install
 
-      - name: Install Worker dependencies
-        run: cd apps/worker && npm ci
+      - name: Install API dependencies
+        run: cd apps/api && bun install --frozen-lockfile
 
       # Run Backend tests with coverage
       - name: Run Backend tests with coverage
@@ -61,13 +65,13 @@ jobs:
       # Run Frontend tests with coverage
       - name: Run Frontend tests with coverage
         run: |
-          cd apps/frontend && npm test -- --watchAll=false --coverage --coverageReporters=lcov --coverageReporters=cobertura
+          cd apps/frontend && bun run test -- --watchAll=false --coverage --coverageReporters=lcov --coverageReporters=cobertura
         continue-on-error: true
 
-      # Run Worker tests with coverage
-      - name: Run Worker tests with coverage
+      # Run API tests with coverage
+      - name: Run API tests with coverage
         run: |
-          cd apps/worker && npm run test:coverage -- --run --reporter=verbose --coverage.reporter=lcov --coverage.reporter=cobertura
+          cd apps/api && bun run test:coverage -- --run --reporter=verbose --coverage.reporter=lcov --coverage.reporter=cobertura
         continue-on-error: true
 
       # Collect and organize coverage files
@@ -98,14 +102,14 @@ jobs:
             echo "✓ Frontend XML coverage found"
           fi
 
-          # Worker coverage
-          if [ -f apps/worker/coverage/lcov.info ]; then
-            cp apps/worker/coverage/lcov.info coverage-reports/worker-coverage.lcov
+          # API coverage
+          if [ -f apps/api/coverage/lcov.info ]; then
+            cp apps/api/coverage/lcov.info coverage-reports/worker-coverage.lcov
             echo "✓ Worker LCOV coverage found"
           fi
 
-          if [ -f apps/worker/coverage/cobertura-coverage.xml ]; then
-            cp apps/worker/coverage/cobertura-coverage.xml coverage-reports/worker-coverage.xml
+          if [ -f apps/api/coverage/cobertura-coverage.xml ]; then
+            cp apps/api/coverage/cobertura-coverage.xml coverage-reports/worker-coverage.xml
             echo "✓ Worker XML coverage found"
           fi
 
@@ -153,10 +157,10 @@ jobs:
             echo "Frontend coverage report generated (see Qlty dashboard for details)" >> $GITHUB_STEP_SUMMARY
           fi
 
-          # Worker coverage summary
-          if [ -f apps/worker/coverage/coverage-summary.json ]; then
-            echo "### Worker Coverage" >> $GITHUB_STEP_SUMMARY
-            echo "Worker coverage report generated (see Qlty dashboard for details)" >> $GITHUB_STEP_SUMMARY
+          # API coverage summary
+          if [ -f apps/api/coverage/coverage-summary.json ]; then
+            echo "### API Coverage" >> $GITHUB_STEP_SUMMARY
+            echo "API coverage report generated (see Qlty dashboard for details)" >> $GITHUB_STEP_SUMMARY
           fi
 
           echo "" >> $GITHUB_STEP_SUMMARY

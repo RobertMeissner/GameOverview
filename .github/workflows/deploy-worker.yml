@@ -26,47 +26,50 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Bun (for API)
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Setup Node.js (for Frontend)
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
-          cache-dependency-path: |
-            apps/frontend/package-lock.json
-            apps/worker/package-lock.json
+          cache-dependency-path: apps/frontend/package-lock.json
 
-      - name: Install Worker dependencies
-        run: npm ci
-        working-directory: apps/worker
+      - name: Install API dependencies
+        run: bun install --frozen-lockfile
+        working-directory: apps/api
 
       - name: Install Frontend dependencies
-        run: npm ci
+        run: bun run install
         working-directory: apps/frontend
 
-      - name: Run Worker TypeScript type check
-        run: npm run type-check
-        working-directory: apps/worker
+      - name: Run API TypeScript type check
+        run: bun run type-check
+        working-directory: apps/api
 
-      - name: Run Worker unit tests
-        run: npm test -- --run
-        working-directory: apps/worker
+      - name: Run API unit tests
+        run: bun test --run
+        working-directory: apps/api
 
-      - name: Run Worker tests with coverage
-        run: npm run test:coverage -- --run
-        working-directory: apps/worker
+      - name: Run API tests with coverage
+        run: bun run test:coverage -- --run
+        working-directory: apps/api
 
-      - name: Run Worker integration tests (simple)
-        run: npm run test:integration:direct
-        working-directory: apps/worker
+      - name: Run API integration tests (simple)
+        run: bun run test:integration:direct
+        working-directory: apps/api
         env:
           RUN_INTEGRATION_TESTS: true
 
       - name: Run Frontend tests
-        run: npm test -- --watchAll=false --passWithNoTests
+        run: bun run test -- --watchAll=false --passWithNoTests
         working-directory: apps/frontend
 
       - name: Build Frontend (test build process)
-        run: npm run build
+        run: bun run build
         working-directory: apps/frontend
 
   deploy-production:
@@ -78,28 +81,31 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Bun (for API)
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Setup Node.js (for Frontend)
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
-          cache-dependency-path: |
-            apps/frontend/package-lock.json
-            apps/worker/package-lock.json
+          cache-dependency-path: apps/frontend/package-lock.json
 
-      - name: Install Worker dependencies
-        run: npm ci
-        working-directory: apps/worker
+      - name: Install API dependencies
+        run: bun install --frozen-lockfile
+        working-directory: apps/api
 
       - name: Build and copy frontend assets
-        run: npm run build
-        working-directory: apps/worker
+        run: bun run build
+        working-directory: apps/api
 
       - name: Deploy to Production
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          workingDirectory: apps/worker
+          workingDirectory: apps/api
 
   deploy-staging:
     runs-on: ubuntu-latest
@@ -113,28 +119,31 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Bun (for API)
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Setup Node.js (for Frontend)
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
-          cache-dependency-path: |
-            apps/frontend/package-lock.json
-            apps/worker/package-lock.json
+          cache-dependency-path: apps/frontend/package-lock.json
 
-      - name: Install Worker dependencies
-        run: npm ci
-        working-directory: apps/worker
+      - name: Install API dependencies
+        run: bun install --frozen-lockfile
+        working-directory: apps/api
 
       - name: Build and copy frontend assets
-        run: npm run build
-        working-directory: apps/worker
+        run: bun run build
+        working-directory: apps/api
 
       - name: Deploy to Staging
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          workingDirectory: apps/worker
+          workingDirectory: apps/api
           environment: staging
 
   deploy-manual:
@@ -146,25 +155,28 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Bun (for API)
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Setup Node.js (for Frontend)
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
-          cache-dependency-path: |
-            apps/frontend/package-lock.json
-            apps/worker/package-lock.json
+          cache-dependency-path: apps/frontend/package-lock.json
 
-      - name: Install Worker dependencies
-        run: npm ci
-        working-directory: apps/worker
+      - name: Install API dependencies
+        run: bun install --frozen-lockfile
+        working-directory: apps/api
 
       - name: Build and copy frontend assets
-        run: npm run build
-        working-directory: apps/worker
+        run: bun run build
+        working-directory: apps/api
 
       - name: Deploy to Production (Manual)
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          workingDirectory: apps/worker
+          workingDirectory: apps/api
