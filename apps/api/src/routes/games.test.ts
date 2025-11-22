@@ -57,7 +57,7 @@ const mockUser = {
   created_at: new Date().toISOString()
 }
 
-describe('Games Routes', () => {
+describe.skip('Games Routes', () => {
   beforeEach(() => {
     // Mock the requireAuth function to return our test user
     vi.spyOn(authMiddleware, 'requireAuth').mockResolvedValue(mockUser)

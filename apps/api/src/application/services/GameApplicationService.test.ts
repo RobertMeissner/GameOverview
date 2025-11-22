@@ -43,11 +43,14 @@ describe("Game Application Service", () => {
         it("returns game", async () => {
             const command: PreviewGameCommand = {
                 name: "Stardew Valley",
+                sourceId: 413150,
                 store: "steam"
             }
             const result = await service.previewGame(command);
             expect(result).toBeDefined()
+            expect(result).not.toBeNull()
             expect(mockRepository.save).not.toHaveBeenCalled()
+            console.log(result)
             expect(result!.name).toEqual("Stardew Valley")
         })
     })
