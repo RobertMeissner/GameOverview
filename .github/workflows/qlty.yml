@@ -20,15 +20,19 @@ jobs:
           curl -s https://qlty.sh | bash
           echo "$HOME/.qlty/bin" >> $GITHUB_PATH
 
-      # Set up Node.js for Frontend and API tests
-      - name: Setup Node.js
+      # Set up Bun for API
+      - name: Setup Bun (for API)
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      # Set up Node.js for Frontend
+      - name: Setup Node.js (for Frontend)
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: |
-            apps/frontend/package-lock.json
-            apps/api/package-lock.json
+          cache-dependency-path: apps/frontend/package-lock.json
 
       # Set up Python for Backend tests
       - name: Set up Python
@@ -50,7 +54,7 @@ jobs:
         run: cd apps/frontend && npm ci
 
       - name: Install API dependencies
-        run: cd apps/api && npm ci
+        run: cd apps/api && bun install --frozen-lockfile
 
       # Run Backend tests with coverage
       - name: Run Backend tests with coverage
@@ -67,7 +71,7 @@ jobs:
       # Run API tests with coverage
       - name: Run API tests with coverage
         run: |
-          cd apps/api && npm run test:coverage -- --run --reporter=verbose --coverage.reporter=lcov --coverage.reporter=cobertura
+          cd apps/api && bun run test:coverage -- --run --reporter=verbose --coverage.reporter=lcov --coverage.reporter=cobertura
         continue-on-error: true
 
       # Collect and organize coverage files

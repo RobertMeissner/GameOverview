@@ -26,17 +26,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Bun (for API)
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Setup Node.js (for Frontend)
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: |
-            apps/frontend/package-lock.json
-            apps/api/package-lock.json
+          cache-dependency-path: apps/frontend/package-lock.json
 
       - name: Install API dependencies
-        run: npm ci
+        run: bun install --frozen-lockfile
         working-directory: apps/api
 
       - name: Install Frontend dependencies
@@ -44,19 +47,19 @@ jobs:
         working-directory: apps/frontend
 
       - name: Run API TypeScript type check
-        run: npm run type-check
+        run: bun run type-check
         working-directory: apps/api
 
       - name: Run API unit tests
-        run: npm test -- --run
+        run: bun test --run
         working-directory: apps/api
 
       - name: Run API tests with coverage
-        run: npm run test:coverage -- --run
+        run: bun run test:coverage -- --run
         working-directory: apps/api
 
       - name: Run API integration tests (simple)
-        run: npm run test:integration:direct
+        run: bun run test:integration:direct
         working-directory: apps/api
         env:
           RUN_INTEGRATION_TESTS: true
@@ -78,21 +81,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Bun (for API)
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Setup Node.js (for Frontend)
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: |
-            apps/frontend/package-lock.json
-            apps/api/package-lock.json
+          cache-dependency-path: apps/frontend/package-lock.json
 
       - name: Install API dependencies
-        run: npm ci
+        run: bun install --frozen-lockfile
         working-directory: apps/api
 
       - name: Build and copy frontend assets
-        run: npm run build
+        run: bun run build
         working-directory: apps/api
 
       - name: Deploy to Production
@@ -113,21 +119,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Bun (for API)
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Setup Node.js (for Frontend)
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: |
-            apps/frontend/package-lock.json
-            apps/api/package-lock.json
+          cache-dependency-path: apps/frontend/package-lock.json
 
       - name: Install API dependencies
-        run: npm ci
+        run: bun install --frozen-lockfile
         working-directory: apps/api
 
       - name: Build and copy frontend assets
-        run: npm run build
+        run: bun run build
         working-directory: apps/api
 
       - name: Deploy to Staging
@@ -146,21 +155,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Bun (for API)
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Setup Node.js (for Frontend)
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: |
-            apps/frontend/package-lock.json
-            apps/api/package-lock.json
+          cache-dependency-path: apps/frontend/package-lock.json
 
       - name: Install API dependencies
-        run: npm ci
+        run: bun install --frozen-lockfile
         working-directory: apps/api
 
       - name: Build and copy frontend assets
-        run: npm run build
+        run: bun run build
         working-directory: apps/api
 
       - name: Deploy to Production (Manual)
