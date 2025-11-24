@@ -45,7 +45,6 @@ const mockEnv: Env = {
     })
   } as any,
   ASSETS: {} as any,
-  FEATURE_FLAGS: {} as any,
   JWT_SECRET: 'test-secret',
   ENVIRONMENT: 'test'
 }

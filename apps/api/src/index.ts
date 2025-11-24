@@ -1,8 +1,6 @@
 import { handleAuthRoutes } from './routes/auth.js'
 import { handleGamesRoutes } from './routes/games.js'
-import { handleFeatureFlagRoutes } from './routes/featureFlags.js'
-import { createFeatureFlagService } from './utils/featureFlags.js'
-import type { Env, HealthResponse, ApiError } from './types/index.js'
+import type { Env, HealthResponse, ApiError } from './types'
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
@@ -43,24 +41,9 @@ export default {
 
 async function handleAPI(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
   const url = new URL(request.url)
-  const flagService = createFeatureFlagService(env)
 
-  // Authentication routes - protected by feature flag
+  // Authentication routes
   if (url.pathname.startsWith('/api/auth/')) {
-    const authEnabled = await flagService.isEnabled('authentication', undefined, true)
-    if (!authEnabled) {
-      const errorResponse: ApiError = {
-        error: 'Authentication feature is currently disabled'
-      }
-      return new Response(JSON.stringify(errorResponse), {
-        status: 503,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
-      })
-    }
-
     const response = await handleAuthRoutes(request, env, ctx)
     if (response) return response
   }
@@ -69,12 +52,6 @@ async function handleAPI(request: Request, env: Env, ctx: ExecutionContext): Pro
   if (url.pathname.startsWith('/api/games')) {
     const response = await handleGamesRoutes(request, env, ctx)
     if (response !== null) return response
-  }
-
-  // Feature flag management routes
-  if (url.pathname.startsWith('/api/flags')) {
-    const response = await handleFeatureFlagRoutes(request, env, ctx)
-    if (response) return response
   }
 
   // Health check endpoint

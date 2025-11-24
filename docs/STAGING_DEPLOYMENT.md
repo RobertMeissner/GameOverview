@@ -10,7 +10,6 @@ The GameOverview project uses a git tag-based staging deployment strategy. Stagi
 
 - **URL**: https://nextbestgame-staging.robertforpresent.workers.dev
 - **Database**: Separate D1 database (`gameoverview-staging-db`)
-- **KV Namespace**: Separate KV namespace for feature flags
 - **Environment**: `staging`
 
 ## Deployment Methods

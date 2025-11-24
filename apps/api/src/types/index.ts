@@ -2,7 +2,6 @@
 export interface Env {
   DB: D1Database
   ASSETS: Fetcher
-  FEATURE_FLAGS: KVNamespace
   JWT_SECRET: string
   ENVIRONMENT?: string
 }

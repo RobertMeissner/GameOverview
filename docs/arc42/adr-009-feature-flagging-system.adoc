@@ -1,8 +1,10 @@
 = ADR-009: Feature Flagging System with Cloudflare KV
 
-**Status**: Implemented +
+**Status**: SUPERSEDED BY ADR-016: Feature Flagging Postponed +
 **Date**: 2025-01-06 +
+**Date SUPERSEDED**: 2025-11-24 +
 **Deciders**: Development Team
+**Deciders SUPERSEDED**: Robert
 
 == Context
 

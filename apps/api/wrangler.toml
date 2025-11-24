@@ -11,11 +11,6 @@ binding = "DB"
 database_name = "gameoverview-db"
 database_id = "bd0ef27f-3efe-4f32-99ec-020a245d0223"
 
-[[kv_namespaces]]
-binding = "FEATURE_FLAGS"
-id = "ddb3f38ae0704a52a59f36b288879cc8"
-preview_id = "558e5336b0ab49a18e0ff3f4af345a5a"
-
 [vars]
 JWT_SECRET = "production-secret-change-me"
 ENVIRONMENT = "production"
@@ -29,10 +24,6 @@ binding = "DB"
 database_name = "gameoverview-staging-db"
 database_id = "f203a9c6-4aa6-4d82-bfd5-2c816b33c189"
 
-[[env.staging.kv_namespaces]]
-binding = "FEATURE_FLAGS"
-id = "e41f46196cd941029a640e3c1e2c096d"
-
 [env.staging.vars]
 JWT_SECRET = "staging-secret-change-me"
 ENVIRONMENT = "staging"
@@ -45,10 +36,6 @@ name = "gameoverview-api-dev"
 binding = "DB"
 database_name = "gameoverview-staging-db"
 database_id = "8e8a1f7cda28eff1db378ad98289102639c2581ba03073559ccb8d1fc2f47e36"
-
-[[env.dev.kv_namespaces]]
-binding = "FEATURE_FLAGS"
-preview_id = "558e5336b0ab49a18e0ff3f4af345a5a"
 
 [env.dev.vars]
 JWT_SECRET = "dev-secret-change-in-production"

@@ -1,0 +1,37 @@
+= ADR-016: Feature Flagging Postponed
+
+**Status**: Accepted +
+**Date**: 2025-11-24 +
+**Deciders**: Robert
+
+== Context
+
+The project has
+- a very limited target user base, currently ONLY me
+- very limited time availability
+
+Self/AI-implemented feature flagging yields no value
+
+=== Requirements
+
+* Keep simple, but flexible for the future
+
+=== Constraints
+
+* None
+
+== Decision
+
+Feature Flags are removed.
+
+== Implementation Details
+
+Cleanup
+
+== Alternatives Considered
+
+See [adr-009]
+
+== Security Considerations
+
+Authentication and authorization remain untouched by this.

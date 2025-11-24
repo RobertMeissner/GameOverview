@@ -35,9 +35,6 @@ export async function createTestEnvironment(): Promise<TestEnvironment> {
       JWT_SECRET: 'test-secret-key-for-integration-testing',
       ENVIRONMENT: 'integration-test'
     },
-    kvNamespaces: {
-      FEATURE_FLAGS: 'test-feature-flags'
-    },
     d1Databases: {
       DB: 'test-database'
     },
@@ -126,21 +123,6 @@ async function cleanupTestEnvironment(env: Env): Promise<void> {
     // Clear test data from database
     await env.DB.exec('DELETE FROM games WHERE user_id IN (1, 2)')
     await env.DB.exec('DELETE FROM users WHERE id IN (1, 2)')
-
-    // Clear feature flags from KV
-    const flagsList = await env.FEATURE_FLAGS.list({ prefix: 'feature:integration-test:' })
-    for (const key of flagsList.keys) {
-      await env.FEATURE_FLAGS.delete(key.name)
-    }
-
-    // Clear user overrides
-    const userOverrides = await env.FEATURE_FLAGS.list({ prefix: 'feature:integration-test:' })
-    for (const key of userOverrides.keys) {
-      if (key.name.includes(':users:')) {
-        await env.FEATURE_FLAGS.delete(key.name)
-      }
-    }
-
   } catch (error) {
     console.warn('Cleanup warning:', error)
   }
@@ -169,13 +151,6 @@ export async function makeAuthenticatedRequest(
 }
 
 /**
- * Wait for KV propagation (simulated delay)
- */
-export async function waitForKVPropagation(ms: number = 100): Promise<void> {
-  await new Promise(resolve => setTimeout(resolve, ms))
-}
-
-/**
  * Assert response status and return JSON body
  */
 export async function assertResponse(
@@ -193,18 +168,4 @@ export async function assertResponse(
   }
 
   return await response.text()
-}
-
-/**
- * Create test flag configuration
- */
-export function createTestFlag(overrides: any = {}) {
-  return {
-    enabled: true,
-    rolloutPercentage: 50,
-    userWhitelist: [],
-    userBlacklist: [],
-    environments: ['integration-test'],
-    ...overrides
-  }
 }

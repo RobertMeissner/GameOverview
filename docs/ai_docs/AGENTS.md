@@ -18,11 +18,11 @@
 ## Architecture
 - **Backend**: Hexagonal architecture (domain/application/adapters), use dependency injection
 - **Frontend**: React with Material-UI, custom hooks for data fetching
-- **Worker**: Cloudflare Workers with D1 database, feature flags via KV store
+- **Worker**: Cloudflare Workers with D1 database
 - **Testing**: Unit tests required, integration tests for API endpoints
 
 ## Key Patterns
 - Use existing utilities and services before creating new ones
 - Follow established patterns in each module (check neighboring files)
 - Maintain type safety across all TypeScript code
-- Use environment-specific configurations via feature flags
+- Use environment-specific configurations via environment variables
