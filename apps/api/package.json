@@ -16,6 +16,7 @@
     "dev:debug": "wrangler dev --env dev --log-level debug",
     "dev:staging": "wrangler dev --env staging",
     "type-check": "tsc --noEmit",
+    "lint": "eslint .",
     "test": "vitest",
     "test:coverage": "vitest --coverage",
     "test:integration": "./scripts/run-integration-tests.sh",
@@ -30,10 +31,18 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20241127.0",
+    "@eslint/js": "^9.39.1",
     "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.47.0",
+    "@typescript-eslint/parser": "^8.47.0",
     "@vitest/coverage-v8": "^2.1.9",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react": "^7.37.5",
+    "globals": "^16.5.0",
+    "jiti": "^2.6.1",
     "miniflare": "^3.20250408.2",
     "typescript": "^5.0.0",
+    "typescript-eslint": "^8.47.0",
     "vitest": "^2.1.9",
     "wrangler": "4"
   }

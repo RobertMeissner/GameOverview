@@ -47,3 +47,7 @@ dev:
 
 dev-debug:
 	cd apps/api && bunx concurrently --names "API,Frontend" --prefix-colors "blue,green" "wrangler dev --env dev --inspector --log-level debug" "cd ../frontend && npm start"
+
+.PHONY: check
+check:
+	cd apps/api && bun run lint && bun run type-check
