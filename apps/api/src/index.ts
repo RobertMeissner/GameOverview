@@ -45,7 +45,7 @@ async function handleAPI(request: Request, env: Env, ctx: ExecutionContext): Pro
   // Authentication routes
   if (url.pathname.startsWith('/api/auth/')) {
     const response = await handleAuthRoutes(request, env, ctx)
-    if (response) return response
+    if (response !== null) return response
   }
 
   // Games routes

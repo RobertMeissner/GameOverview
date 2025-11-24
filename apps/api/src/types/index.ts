@@ -35,6 +35,11 @@ export interface AuthResponse {
   token: string
 }
 
+export interface UserResponse {
+  success: boolean
+  user: User
+}
+
 // Game types
 export interface Game {
   id: number

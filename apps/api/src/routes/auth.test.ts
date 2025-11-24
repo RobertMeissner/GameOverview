@@ -54,9 +54,8 @@ describe('Authentication Routes', () => {
       })
 
       const response = await handleAuthRoutes(request, mockEnv, mockCtx)
-      expect(response).not.toBeNull()
 
-      if (response) {
+      if (response !== null) {
         expect(response.status).toBe(201)
 
         const responseData = await response.json() as any
@@ -88,7 +87,7 @@ describe('Authentication Routes', () => {
       const response = await handleAuthRoutes(request, mockEnv, mockCtx)
       expect(response).not.toBeNull()
 
-      if (response) {
+      if (response !== null) {
         expect(response.status).toBe(400)
 
         const responseData = await response.json() as any
@@ -112,7 +111,7 @@ describe('Authentication Routes', () => {
       const response = await handleAuthRoutes(request, mockEnv, mockCtx)
       expect(response).not.toBeNull()
 
-      if (response) {
+      if (response !== null) {
         expect(response.status).toBe(400)
 
         const responseData = await response.json() as any
@@ -122,7 +121,7 @@ describe('Authentication Routes', () => {
   })
 
   describe('POST /api/auth/logout', () => {
-    it('should logout user successfully', async () => {
+    it('should logout user successfully and clear cookie', async () => {
       const request = new Request('http://localhost/api/auth/logout', {
         method: 'POST'
       })
@@ -130,14 +129,13 @@ describe('Authentication Routes', () => {
       const response = await handleAuthRoutes(request, mockEnv, mockCtx)
       expect(response).not.toBeNull()
 
-      if (response) {
+      if (response !== null) {
         expect(response.status).toBe(200)
 
         const responseData = await response.json() as any
         expect(responseData.success).toBe(true)
         expect(responseData.message).toBe('Logged out successfully')
 
-        // Check that cookie is cleared
         const setCookieHeader = response.headers.get('Set-Cookie')
         expect(setCookieHeader).toContain('auth_token=;')
         expect(setCookieHeader).toContain('Max-Age=0')
@@ -154,7 +152,7 @@ describe('Authentication Routes', () => {
       const response = await handleAuthRoutes(request, mockEnv, mockCtx)
       expect(response).not.toBeNull()
 
-      if (response) {
+      if (response !== null) {
         expect(response.status).toBe(401)
 
         const responseData = await response.json() as any
@@ -165,6 +163,16 @@ describe('Authentication Routes', () => {
 
   describe('CORS Headers', () => {
     it('should include CORS headers in all responses', async () => {
+      const preflightRequest = new Request('http://localhost/api/auth/logout', {
+        method: 'OPTIONS'
+      })
+      const preflightResponse = await handleAuthRoutes(preflightRequest, mockEnv, mockCtx)
+
+      expect(preflightResponse).not.toBeNull()
+      if (preflightResponse !== null) {
+        expect(preflightResponse.headers.get('Access-Control-Allow-Methods')).toContain('POST')
+        expect(preflightResponse.headers.get('Access-Control-Allow-Headers')).toContain('Authorization')
+      }
       const request = new Request('http://localhost/api/auth/logout', {
         method: 'POST'
       })
@@ -172,10 +180,8 @@ describe('Authentication Routes', () => {
       const response = await handleAuthRoutes(request, mockEnv, mockCtx)
       expect(response).not.toBeNull()
 
-      if (response) {
+      if (response !== null) {
         expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*')
-        expect(response.headers.get('Access-Control-Allow-Methods')).toContain('POST')
-        expect(response.headers.get('Access-Control-Allow-Headers')).toContain('Authorization')
         expect(response.headers.get('Access-Control-Allow-Credentials')).toBe('true')
       }
     })

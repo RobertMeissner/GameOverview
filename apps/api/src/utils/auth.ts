@@ -1,9 +1,6 @@
-import type { User, UserWithPassword, JWTPayload, Env } from '../types/index.js'
+import type { User, UserWithPassword, JWTPayload, Env } from '../types'
 import { generateUUID } from './uuid.js'
 
-/**
- * Authentication utilities for JWT handling and password hashing
- */
 export class AuthUtils {
   private jwtSecret: string
 

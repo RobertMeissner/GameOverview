@@ -1,228 +1,199 @@
-import { AuthUtils, UserService } from '../utils/auth.js'
-import { createCorsHeaders } from '../middleware/auth.js'
-import type { Env, CreateUserRequest, LoginRequest, AuthResponse, ApiError } from '../types/index.js'
+import {AuthUtils, UserService} from '../utils/auth.js'
+import type {Env, CreateUserRequest, LoginRequest, AuthResponse, ApiError, UserResponse} from '../types'
+import {Hono} from "hono";
+import {createMiddleware} from 'hono/factory'
+import {cors} from "hono/cors"
 
-export async function handleAuthRoutes(request: Request, env: Env, ctx: ExecutionContext): Promise<Response | null> {
-  const url = new URL(request.url)
-  const authUtils = new AuthUtils(env.JWT_SECRET || 'default-secret-change-in-production')
-  const userService = new UserService(env.DB)
-  const corsHeaders = createCorsHeaders()
+type Variables = {
+    authUtils: AuthUtils
+    userService: UserService
+}
 
-  try {
-    // POST /api/auth/register
-    if (request.method === 'POST' && url.pathname === '/api/auth/register') {
-      const body = await request.json() as CreateUserRequest
-      const { email, username, password } = body
+export const serviceMiddleware = createMiddleware<{ Bindings: Env; Variables: Variables }>(async (ctx, next) => {
+    ctx.set("authUtils", new AuthUtils(ctx.env.JWT_SECRET))
+    ctx.set("userService", new UserService(ctx.env.DB))
+    await next()
+})
 
-      // Basic validation
-      if (!email || !username || !password) {
+export const authApp = new Hono<{ Bindings: Env; Variables: Variables }>()
+authApp.use("*", cors({
+    origin: '*',
+    allowMethods: ["GET", " POST", " PUT", " DELETE", " OPTIONS"],
+    allowHeaders: ["Content-Type", "Authorization"],
+    credentials: true
+}))
+authApp.use("*", serviceMiddleware)
+
+
+authApp.post("/api/auth/register", async (ctx, next) => {
+    const body = await ctx.req.json() as CreateUserRequest
+    const {email, username, password} = body
+    const authUtils = ctx.get("authUtils")
+    const userService = ctx.get("userService")
+
+    if (!email || !username || !password) {
         const errorResponse: ApiError = {
-          error: 'Email, username, and password are required'
+            error: 'Email, username, and password are required'
         }
-        return new Response(JSON.stringify(errorResponse), {
-          status: 400,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders }
-        })
-      }
+        return ctx.json(errorResponse, 400)
+    }
 
-      if (password.length < 6) {
+    if (password.length < 6) {
         const errorResponse: ApiError = {
-          error: 'Password must be at least 6 characters long'
+            error: 'Password must be at least 6 characters long'
         }
-        return new Response(JSON.stringify(errorResponse), {
-          status: 400,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders }
-        })
-      }
+        return ctx.json(errorResponse, 400, {'Content-Type': 'application/json'})
+    }
 
-      // Email validation
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-      if (!emailRegex.test(email)) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
         const errorResponse: ApiError = {
-          error: 'Invalid email format'
+            error: 'Invalid email format'
         }
-        return new Response(JSON.stringify(errorResponse), {
-          status: 400,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders }
-        })
-      }
+        return ctx.json(errorResponse, 400, {'Content-Type': 'application/json'})
+    }
 
-      try {
+    try {
         const user = await userService.createUser(email, username, password, authUtils)
 
-        // Create JWT token
         const token = await authUtils.createJWT({
-          userId: user.id,
-          email: user.email,
-          username: user.username
+            userId: user.id,
+            email: user.email,
+            username: user.username
         })
 
         const response: AuthResponse = {
-          success: true,
-          user: {
-            id: user.id,
-            email: user.email,
-            username: user.username,
-            created_at: user.created_at
-          },
-          token
+            success: true,
+            user: {
+                id: user.id,
+                email: user.email,
+                username: user.username,
+                created_at: user.created_at
+            },
+            token
         }
-
-        return new Response(JSON.stringify(response), {
-          status: 201,
-          headers: {
+        return ctx.json(response, 201,  {
             'Content-Type': 'application/json',
-            'Set-Cookie': `auth_token=${token}; HttpOnly; Secure; SameSite=Strict; Max-Age=86400; Path=/`,
-            ...corsHeaders
-          }
+            'Set-Cookie': `auth_token=${token}; HttpOnly; Secure; SameSite=Strict; Max-Age=86400; Path=/`
         })
-      } catch (error: any) {
+    } catch (error: any) {
         const errorResponse: ApiError = {
-          error: error.message
+            error: error.message
         }
-        return new Response(JSON.stringify(errorResponse), {
-          status: 400,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders }
-        })
-      }
+        return ctx.json(errorResponse, 400, {'Content-Type': 'application/json'})
+    }
+})
+
+authApp.post("/api/auth/login", async (ctx, next) => {
+    const body = await ctx.req.json() as LoginRequest
+    const authUtils = ctx.get("authUtils")
+    const userService = ctx.get("userService")
+    const {emailOrUsername, password} = body
+
+    if (!emailOrUsername || !password) {
+        const errorResponse: ApiError = {
+            error: 'Email/username and password are required'
+        }
+        return ctx.json(errorResponse, 400)
     }
 
-    // POST /api/auth/login
-    if (request.method === 'POST' && url.pathname === '/api/auth/login') {
-      const body = await request.json() as LoginRequest
-      const { emailOrUsername, password } = body
-
-      if (!emailOrUsername || !password) {
-        const errorResponse: ApiError = {
-          error: 'Email/username and password are required'
-        }
-        return new Response(JSON.stringify(errorResponse), {
-          status: 400,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders }
-        })
-      }
-
-      try {
+    try {
         const user = await userService.authenticateUser(emailOrUsername, password, authUtils)
 
-        // Create JWT token
         const token = await authUtils.createJWT({
-          userId: user.id,
-          email: user.email,
-          username: user.username
+            userId: user.id,
+            email: user.email,
+            username: user.username
         })
 
         const response: AuthResponse = {
-          success: true,
-          user: {
-            id: user.id,
-            email: user.email,
-            username: user.username,
-            created_at: user.created_at
-          },
-          token
+            success: true,
+            user: {
+                id: user.id,
+                email: user.email,
+                username: user.username,
+                created_at: user.created_at
+            },
+            token
         }
 
-        return new Response(JSON.stringify(response), {
-          status: 200,
-          headers: {
+        return ctx.json(response, 200, {
             'Content-Type': 'application/json',
-            'Set-Cookie': `auth_token=${token}; HttpOnly; Secure; SameSite=Strict; Max-Age=86400; Path=/`,
-            ...corsHeaders
-          }
+            'Set-Cookie': `auth_token=${token}; HttpOnly; Secure; SameSite=Strict; Max-Age=86400; Path=/`
         })
-      } catch (error: any) {
+    } catch (error: any) {
         const errorResponse: ApiError = {
-          error: 'Invalid credentials'
+            error: 'Invalid credentials'
         }
-        return new Response(JSON.stringify(errorResponse), {
-          status: 401,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders }
-        })
-      }
+        return ctx.json(errorResponse, 401)
     }
+})
 
-    // POST /api/auth/logout
-    if (request.method === 'POST' && url.pathname === '/api/auth/logout') {
-      return new Response(JSON.stringify({
+authApp.post("/api/auth/logout", async (ctx, next) => {
+    return ctx.json({
         success: true,
-        message: 'Logged out successfully'
-      }), {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          'Set-Cookie': `auth_token=; HttpOnly; Secure; SameSite=Strict; Max-Age=0; Path=/`,
-          ...corsHeaders
-        }
-      })
+        message: 'Logged out successfully',
+    }, 200, {
+        'Content-Type': 'application/json',
+        'Set-Cookie': `auth_token=; HttpOnly; Secure; SameSite=Strict; Max-Age=0; Path=/`
+    })
+})
+
+authApp.get("/api/auth/me", async (ctx, next) => {
+
+    const authHeader = ctx.req.header('Authorization')
+    const cookieHeader = ctx.req.header('Cookie')
+
+    const authUtils = ctx.get("authUtils")
+    const userService = ctx.get("userService")
+    let token: string | null = null
+    if (authHeader) {
+        token = authUtils.extractTokenFromHeader(authHeader)  // ✅ Type-safe!
+    }
+    if (!token && cookieHeader) {
+        token = authUtils.extractTokenFromCookie(cookieHeader)  // ✅ Type-safe!
     }
 
-    // GET /api/auth/me - Get current user info
-    if (request.method === 'GET' && url.pathname === '/api/auth/me') {
-      const authHeader = request.headers.get('Authorization')
-      const cookieHeader = request.headers.get('Cookie')
-
-      let token = authUtils.extractTokenFromHeader(authHeader)
-      if (!token) {
-        token = authUtils.extractTokenFromCookie(cookieHeader)
-      }
-
-      if (!token) {
+    if (token === null) {
         const errorResponse: ApiError = {
-          error: 'No authentication token provided'
+            error: 'No authentication token provided'
         }
-        return new Response(JSON.stringify(errorResponse), {
-          status: 401,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders }
-        })
-      }
+        return ctx.json(errorResponse, 401)
+    }
 
-      try {
+    try {
         const payload = await authUtils.verifyJWT(token)
         const user = await userService.findUserById(payload.userId)
 
         if (!user) {
-          const errorResponse: ApiError = {
-            error: 'User not found'
-          }
-          return new Response(JSON.stringify(errorResponse), {
-            status: 404,
-            headers: { 'Content-Type': 'application/json', ...corsHeaders }
-          })
+            const errorResponse: ApiError = {
+                error: 'User not found'
+            }
+            return ctx.json(errorResponse, 404)
         }
 
-        return new Response(JSON.stringify({
-          success: true,
-          user: {
-            id: user.id,
-            email: user.email,
-            username: user.username,
-            created_at: user.created_at
-          }
-        }), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders }
-        })
-      } catch (error: any) {
+        const userFoundResponse: UserResponse = {
+            success: true,
+            user: {
+                id: user.id,
+                email: user.email,
+                username: user.username,
+                created_at: user.created_at
+            }
+        }
+        return ctx.json(userFoundResponse, 200)
+    } catch (error: any) {
         const errorResponse: ApiError = {
-          error: 'Invalid or expired token'
+            error: 'Invalid or expired token'
         }
-        return new Response(JSON.stringify(errorResponse), {
-          status: 401,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders }
-        })
-      }
+        return ctx.json(errorResponse, 401)
     }
+})
 
-    return null // Route not handled
-  } catch (error: any) {
-    console.error('Auth route error:', error)
-    const errorResponse: ApiError = {
-      error: 'Internal server error'
+export async function handleAuthRoutes(request: Request, env: Env, ctx: ExecutionContext): Promise<Response | null> {
+    const url = new URL(request.url)
+    if (url.pathname.startsWith('/api/auth')) {
+        return authApp.fetch(request, env, ctx)
     }
-    return new Response(JSON.stringify(errorResponse), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    })
-  }
+    return null // Route not handled
 }
