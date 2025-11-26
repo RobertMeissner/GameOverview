@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { handleAuthRoutes } from './auth.js'
-import type { Env } from '../types/index.js'
+import {authApp} from './auth.js'
+import type { Env } from '../types'
 
 // Mock environment for testing
 const createMockEnv = (): Env => {
@@ -53,7 +53,7 @@ describe('Authentication Routes', () => {
         body: JSON.stringify(requestBody)
       })
 
-      const response = await handleAuthRoutes(request, mockEnv, mockCtx)
+      const response = await authApp.fetch(request, mockEnv, mockCtx)
 
       if (response !== null) {
         expect(response.status).toBe(201)
@@ -84,7 +84,7 @@ describe('Authentication Routes', () => {
         body: JSON.stringify(requestBody)
       })
 
-      const response = await handleAuthRoutes(request, mockEnv, mockCtx)
+      const response = await authApp.fetch(request, mockEnv, mockCtx)
       expect(response).not.toBeNull()
 
       if (response !== null) {
@@ -108,7 +108,7 @@ describe('Authentication Routes', () => {
         body: JSON.stringify(requestBody)
       })
 
-      const response = await handleAuthRoutes(request, mockEnv, mockCtx)
+      const response = await authApp.fetch(request, mockEnv, mockCtx)
       expect(response).not.toBeNull()
 
       if (response !== null) {
@@ -126,7 +126,7 @@ describe('Authentication Routes', () => {
         method: 'POST'
       })
 
-      const response = await handleAuthRoutes(request, mockEnv, mockCtx)
+      const response = await authApp.fetch(request, mockEnv, mockCtx)
       expect(response).not.toBeNull()
 
       if (response !== null) {
@@ -149,7 +149,7 @@ describe('Authentication Routes', () => {
         method: 'GET'
       })
 
-      const response = await handleAuthRoutes(request, mockEnv, mockCtx)
+      const response = await authApp.fetch(request, mockEnv, mockCtx)
       expect(response).not.toBeNull()
 
       if (response !== null) {
@@ -161,29 +161,5 @@ describe('Authentication Routes', () => {
     })
   })
 
-  describe('CORS Headers', () => {
-    it('should include CORS headers in all responses', async () => {
-      const preflightRequest = new Request('http://localhost/api/auth/logout', {
-        method: 'OPTIONS'
-      })
-      const preflightResponse = await handleAuthRoutes(preflightRequest, mockEnv, mockCtx)
 
-      expect(preflightResponse).not.toBeNull()
-      if (preflightResponse !== null) {
-        expect(preflightResponse.headers.get('Access-Control-Allow-Methods')).toContain('POST')
-        expect(preflightResponse.headers.get('Access-Control-Allow-Headers')).toContain('Authorization')
-      }
-      const request = new Request('http://localhost/api/auth/logout', {
-        method: 'POST'
-      })
-
-      const response = await handleAuthRoutes(request, mockEnv, mockCtx)
-      expect(response).not.toBeNull()
-
-      if (response !== null) {
-        expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*')
-        expect(response.headers.get('Access-Control-Allow-Credentials')).toBe('true')
-      }
-    })
-  })
 })

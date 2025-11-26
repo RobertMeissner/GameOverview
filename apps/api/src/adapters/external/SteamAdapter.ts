@@ -17,7 +17,6 @@ export class SteamAdapter implements IExternalDataSource {
     }
 
     public gameById(id: GAME_ID): Promise<Game | undefined> {
-        console.log(id)
         if (this.isValidId(id)) return Promise.resolve(this.fetchSteamData(id))
         return Promise.resolve(undefined)
     }

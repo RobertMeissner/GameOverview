@@ -1,13 +1,25 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { handleGamesRoutes } from './games.js'
-import * as authMiddleware from '../middleware/auth.js'
+import { describe, it, expect, beforeEach, vi, beforeAll } from 'vitest'
+import { AuthUtils } from '../utils/auth.js'
 import type { Env } from '../types/index.js'
+import { GameApplicationService } from '../application/services/GameApplicationService.js'
+import {MockExternalDataSource} from "../../tests/mocks/externalDataSource";
+import {MockGameEnricher} from "../../tests/mocks/basicEnricher";
+import {MockGameRepository} from "../../tests/mocks/gameRepository";
+
+
+// Mock the factory function
+function createMockGameService(): GameApplicationService {
+  const mockSource = new MockExternalDataSource()
+  const mockEnricher = new MockGameEnricher()
+  const mockRepo = new MockGameRepository()
+  return new GameApplicationService(mockSource, mockEnricher, mockRepo)
+}
 
 // Mock environment for testing
 const mockEnv: Env = {
   DB: {
-    prepare: (query: string) => ({
-      bind: (...args: any[]) => ({
+    prepare: (_query: string) => ({
+      bind: (..._args: any[]) => ({
         run: () => Promise.resolve({
           meta: { last_row_id: 1, changes: 1 },
           success: true
@@ -50,16 +62,32 @@ const mockEnv: Env = {
 }
 
 const mockUser = {
-  id: '550e8400-e29b-41d4-a716-446655440001',
+  userId: '550e8400-e29b-41d4-a716-446655440001',
   email: 'test@example.com',
-  username: 'testuser',
-  created_at: new Date().toISOString()
+  username: 'testuser'
 }
 
-describe.skip('Games Routes', () => {
-  beforeEach(() => {
-    // Mock the requireAuth function to return our test user
-    vi.spyOn(authMiddleware, 'requireAuth').mockResolvedValue(mockUser)
+async function generateTestToken(env: Env): Promise<string> {
+  const authUtils = new AuthUtils(env.JWT_SECRET)
+  return await authUtils.createJWT(mockUser)
+}
+
+describe('Games Routes', () => {
+  let validToken: string
+  let gamesApp: any
+
+  beforeAll(async () => {
+    // Dynamically import and setup mock
+    const factoryModule = await import('../application/factories/defaultGameApplicationService.js')
+    vi.spyOn(factoryModule, 'defaultGameApplicationService').mockReturnValue(createMockGameService())
+
+    // Import the games app after mocking
+    const gamesModule = await import('./games.js')
+    gamesApp = gamesModule.gamesApp
+  })
+
+  beforeEach(async() => {
+    validToken = await generateTestToken(mockEnv)
   })
 
   it('should create a new game', async () => {
@@ -67,7 +95,7 @@ describe.skip('Games Routes', () => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer test-token'
+        'Authorization': `Bearer ${validToken}`
       },
       body: JSON.stringify({
         name: 'Test Game',
@@ -76,7 +104,7 @@ describe.skip('Games Routes', () => {
       })
     })
 
-    const response = await handleGamesRoutes(request, mockEnv, {} as any)
+    const response = await gamesApp.fetch(request, mockEnv, {} as any)
     expect(response).toBeTruthy()
     expect(response!.status).toBe(201)
 
@@ -89,13 +117,13 @@ describe.skip('Games Routes', () => {
     const request = new Request('http://localhost/api/games', {
       method: 'GET',
       headers: {
-        'Authorization': 'Bearer test-token'
+        'Authorization': `Bearer ${validToken}`
       }
     })
 
-    const response = await handleGamesRoutes(request, mockEnv, {} as any)
+    const response = await gamesApp.fetch(request, mockEnv, {} as any)
     expect(response).toBeTruthy()
-    expect(response!.status).toBe(200)
+    expect(response.status).toBe(200)
 
     const data = await response!.json() as any
     expect(data.success).toBe(true)
@@ -106,11 +134,11 @@ describe.skip('Games Routes', () => {
     const request = new Request('http://localhost/api/games/legacy', {
       method: 'GET',
       headers: {
-        'Authorization': 'Bearer test-token'
+        'Authorization': `Bearer ${validToken}`
       }
     })
 
-    const response = await handleGamesRoutes(request, mockEnv, {} as any)
+    const response = await gamesApp.fetch(request, mockEnv, {} as any)
     expect(response).toBeTruthy()
     expect(response!.status).toBe(200)
 
@@ -124,14 +152,15 @@ describe.skip('Games Routes', () => {
   })
 
   it('should require authentication', async () => {
-    // Mock auth failure
-    vi.spyOn(authMiddleware, 'requireAuth').mockRejectedValue(new Error('Invalid token'))
-
+    // Send request without valid token
     const request = new Request('http://localhost/api/games', {
-      method: 'GET'
+      method: 'GET',
+      headers: {
+        'Authorization': 'Bearer invalid-token'
+      }
     })
 
-    const response = await handleGamesRoutes(request, mockEnv, {} as any)
+    const response = await gamesApp.fetch(request, mockEnv, {} as any)
     expect(response).toBeTruthy()
     expect(response!.status).toBe(401)
   })
@@ -141,14 +170,14 @@ describe.skip('Games Routes', () => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer test-token'
+        'Authorization': `Bearer ${validToken}`
       },
       body: JSON.stringify({
         // Missing required fields
       })
     })
 
-    const response = await handleGamesRoutes(request, mockEnv, {} as any)
+    const response = await gamesApp.fetch(request, mockEnv, {} as any)
     expect(response).toBeTruthy()
     expect(response!.status).toBe(400)
 

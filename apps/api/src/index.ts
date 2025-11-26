@@ -1,85 +1,48 @@
-import { handleAuthRoutes } from './routes/auth.js'
-import { handleGamesRoutes } from './routes/games.js'
-import type { Env, HealthResponse, ApiError } from './types'
+import {authApp} from './routes/auth'
+import {gamesApp} from './routes/games'
+import type {Env, HealthResponse} from './types'
+import {Hono} from "hono";
+import {cors} from "hono/cors";
 
-export default {
-  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    const url = new URL(request.url)
+export const app = new Hono<{ Bindings: Env }>
+app.use("*", cors({
+    origin: '*',
+    allowMethods: ["GET", " POST", " PUT", " DELETE", " OPTIONS"],
+    allowHeaders: ["Content-Type", "Authorization"],
+    credentials: true
+}))
+app.route("api/auth", authApp)
+app.route("api/games", gamesApp)
 
-    // Handle CORS preflight requests
-    if (request.method === 'OPTIONS') {
-      return new Response(null, {
-        status: 200,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-          'Access-Control-Allow-Credentials': 'true'
-        },
-      })
-    }
-
-    // API Routes
-    if (url.pathname.startsWith('/api/')) {
-      return handleAPI(request, env, ctx)
-    }
-
-    // Serve static assets using the new assets feature
-    try {
-      return await env.ASSETS.fetch(request)
-    } catch (e) {
-      // If asset not found, serve index.html for SPA routing
-      try {
-        const indexRequest = new Request(`${url.origin}/index.html`, request)
-        return await env.ASSETS.fetch(indexRequest)
-      } catch (indexError) {
-        return new Response('Not Found', { status: 404 })
-      }
-    }
-  },
-} satisfies ExportedHandler<Env>
-
-async function handleAPI(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-  const url = new URL(request.url)
-
-  // Authentication routes
-  if (url.pathname.startsWith('/api/auth/')) {
-    const response = await handleAuthRoutes(request, env, ctx)
-    if (response !== null) return response
-  }
-
-  // Games routes
-  if (url.pathname.startsWith('/api/games')) {
-    const response = await handleGamesRoutes(request, env, ctx)
-    if (response !== null) return response
-  }
-
-  // Health check endpoint
-  if (url.pathname === '/api/health') {
+app.get("api/health", (ctx, next) => {
     const healthResponse: HealthResponse = {
-      status: 'healthy',
-      timestamp: new Date().toISOString(),
-      version: '1.0.0'
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        version: '1.0.0'
     }
-
-    return new Response(JSON.stringify(healthResponse), {
-      status: 200,
-      headers: {
+    return ctx.json(healthResponse, 200, {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
-      }
     })
-  }
+})
 
-  const errorResponse: ApiError = {
-    error: 'API endpoint not found'
-  }
+export default {
+    async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+        const url = new URL(request.url)
+        if (url.pathname.startsWith('/api/')) {
+            return app.fetch(request, env, ctx)
+        }
 
-  return new Response(JSON.stringify(errorResponse), {
-    status: 404,
-    headers: {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*'
-    }
-  })
-}
+        try {
+            return await env.ASSETS.fetch(request)
+        } catch (e) {
+            // If asset not found, serve index.html for SPA routing
+            try {
+                const indexRequest = new Request(`${url.origin}/index.html`, request)
+                return await env.ASSETS.fetch(indexRequest)
+            } catch (indexError) {
+                return new Response('Not Found', {status: 404})
+            }
+        }
+    },
+} satisfies ExportedHandler<Env>

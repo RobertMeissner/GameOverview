@@ -4,7 +4,6 @@ export class Game {
     public steam_thumbnail_url: string = ""
 
     constructor(public readonly id: string) {
-        console.log(id)
     }
 
     static create(name: string): Game {

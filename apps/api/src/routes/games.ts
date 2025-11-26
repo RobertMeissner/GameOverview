@@ -9,15 +9,18 @@ import {jwt} from "hono/jwt"
 
 export const gamesApp = new Hono<{ Bindings: Env }>()
 
-// Apply JWT auth to all routes
 gamesApp.use('*', async (c, next) => {
-    console.log("auth received by Hono")
     return jwt({secret: c.env.JWT_SECRET})(c, next)
 })
 
-// POST /api/games - Add a new game to user's library
 gamesApp.post('/api/games', async (c) => {
     const body = await c.req.json() as CreateGameRequest
+
+    // Validate required fields
+    if (!body.name || !body.store) {
+        return c.json({ error: 'Name and store are required' }, 400)
+    }
+
     const gameService = defaultGameApplicationService(c.env)
 
     const command: PreviewGameCommand = {
@@ -26,16 +29,17 @@ gamesApp.post('/api/games', async (c) => {
         name: body.name
     }
     const game = await gameService.previewGame(command)
+    console.log(game)
     return c.json({success: true, game}, 201)
 })
 
 gamesApp.get('/api/games', async (c) => {
-    return c.json({})
+    return c.json({ success: true, games: [] })
 })
 
 // GET /api/games/legacy - Get user's game library in legacy format
 gamesApp.get('/api/games/legacy', async (c) => {
-    return c.json({})
+    return c.json([])
 })
 
 // GET /api/games/:id - Get a specific game
@@ -52,12 +56,3 @@ gamesApp.put('/api/games/:id', async (c) => {
 gamesApp.delete('/api/games/:id', async (c) => {
     return c.json({})
 })
-
-export async function handleGamesRoutes(request: Request, env: Env, ctx: ExecutionContext): Promise<Response | null> {
-    // Forward all /api/games routes to Hono
-    const url = new URL(request.url)
-    if (url.pathname.startsWith('/api/games')) {
-        return gamesApp.fetch(request, env, ctx)
-    }
-    return null
-}

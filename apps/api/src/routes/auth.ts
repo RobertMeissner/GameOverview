@@ -16,12 +16,7 @@ export const serviceMiddleware = createMiddleware<{ Bindings: Env; Variables: Va
 })
 
 export const authApp = new Hono<{ Bindings: Env; Variables: Variables }>()
-authApp.use("*", cors({
-    origin: '*',
-    allowMethods: ["GET", " POST", " PUT", " DELETE", " OPTIONS"],
-    allowHeaders: ["Content-Type", "Authorization"],
-    credentials: true
-}))
+
 authApp.use("*", serviceMiddleware)
 
 
@@ -189,11 +184,3 @@ authApp.get("/api/auth/me", async (ctx, next) => {
         return ctx.json(errorResponse, 401)
     }
 })
-
-export async function handleAuthRoutes(request: Request, env: Env, ctx: ExecutionContext): Promise<Response | null> {
-    const url = new URL(request.url)
-    if (url.pathname.startsWith('/api/auth')) {
-        return authApp.fetch(request, env, ctx)
-    }
-    return null // Route not handled
-}
