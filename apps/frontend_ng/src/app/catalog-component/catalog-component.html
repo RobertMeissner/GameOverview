@@ -1,0 +1,10 @@
+<div class="catalog-container">
+
+  <div class="game-grid">
+    @for (game of games(); track game.id ?? game.name) {
+      <div class="game-card">
+        <h3>{{ game.name }}</h3>
+      </div>
+    }
+  </div>
+</div>
