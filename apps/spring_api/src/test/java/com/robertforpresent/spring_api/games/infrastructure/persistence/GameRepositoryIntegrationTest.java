@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @DataJpaTest
 @Import({GameEntityMapper.class, JpaGameRepositoryAdapter.class})

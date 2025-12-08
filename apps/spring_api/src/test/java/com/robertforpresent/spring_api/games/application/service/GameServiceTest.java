@@ -2,7 +2,6 @@ package com.robertforpresent.spring_api.games.application.service;
 
 import com.robertforpresent.spring_api.games.domain.Game;
 import com.robertforpresent.spring_api.games.domain.repository.GameRepository;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -11,7 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -21,10 +20,6 @@ class GameServiceTest {
 
     @InjectMocks
     private GameService service;
-
-    @AfterEach
-    void tearDown() {
-    }
 
     @Test
     void testGetAllGames() {

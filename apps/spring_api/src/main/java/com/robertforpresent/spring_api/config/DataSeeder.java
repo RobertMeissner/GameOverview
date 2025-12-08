@@ -2,12 +2,14 @@ package com.robertforpresent.spring_api.config;
 
 import com.robertforpresent.spring_api.games.domain.Game;
 import com.robertforpresent.spring_api.games.domain.repository.GameRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @Component
+@Slf4j
 public class DataSeeder implements CommandLineRunner {
     private final GameRepository gameRepository;
 
@@ -18,6 +20,7 @@ public class DataSeeder implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         if (gameRepository.findAll().isEmpty()) {
+            log.debug("H2 database empty. Seeding now with test games.");
             seedGames();
         }
     }

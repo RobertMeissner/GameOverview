@@ -25,9 +25,6 @@ public class GameEntity {
     @Setter
     private float rating;
 
-    public GameEntity() {
-    }
-
     public GameEntity(String id, String name, float rating) {
         this.id = id;
         this.name = name;

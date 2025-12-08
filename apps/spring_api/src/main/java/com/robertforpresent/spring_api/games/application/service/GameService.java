@@ -8,7 +8,7 @@ import java.util.List;
 
 @Service
 public class GameService {
-    private GameRepository repository;
+    private final GameRepository repository;
 
     public GameService(GameRepository repository) {
         this.repository = repository;
