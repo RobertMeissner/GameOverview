@@ -1,9 +1,32 @@
-<p>Top three games</p>
+<section class="top-games-section">
+  <h2 class="section-title">Top Games</h2>
+  <div class="games-list">
+    @for (game of games(); track game.id ?? game.name; let idx = $index) {
+      <article class="game-card" [attr.data-rank]="idx+1">
+        <div class="rank-badge">
+          <span class="rank-number">#{{ idx + 1 }}</span>
+        </div>
+        <div class="game-thumbnail">
+          <img [src]="game.thumbnailUrl"
+               [alt]='game.name'
+               loading="lazy"/>
+          <div class="thumbnail-overlay"></div>
+        </div>
 
-<div class="game-grid">
-  @for (game of games(); track game.id ?? game.name) {
-    <div class="game-card">
-      <h3>{{ game.name }}</h3>
-    </div>
-  }
-</div>
+        <div class="game-info">
+          <h3 class="game-title">{{ game.name }}</h3>
+
+          <div class="rating-container">
+            <div class="rating-bar">
+              <div class="rating-fill" [style.width.%]="game.rating"></div>
+            </div>
+            <span class="rating-score">{{ game.rating }}/100</span>
+          </div>
+        </div>
+        <div class="hover-overlay">
+          <p class="hover-details">Click to view details</p>
+        </div>
+      </article>
+    }
+  </div>
+</section>

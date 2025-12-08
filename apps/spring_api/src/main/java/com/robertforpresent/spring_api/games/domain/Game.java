@@ -13,4 +13,5 @@ public class Game {
     @Builder.Default
     float rating = 0.0f;
 
+    String thumbnailUrl;
 }

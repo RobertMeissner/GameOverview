@@ -25,11 +25,15 @@ public class DataSeeder implements CommandLineRunner {
         }
     }
 
+    private String thumbnail(int appId) {
+        return String.format("https://steamcdn-a.akamaihd.net/steam/apps/%s/header.jpg", appId);
+    }
+
     private void seedGames() {
-        List<Game> games = List.of(Game.builder().name("Stardey Valley").rating(100).build(),
-                Game.builder().name("Half Life").rating(80).build(),
-                Game.builder().name("Planescape Torment").rating(60).build(),
-                Game.builder().name("Monkey Island").rating(90).build());
+        List<Game> games = List.of(Game.builder().name("Stardey Valley").rating(100).thumbnailUrl(thumbnail(413150)).build(),
+                Game.builder().name("Half Life").rating(80).thumbnailUrl(thumbnail(70)).build(),
+                Game.builder().name("Planescape Torment").rating(60).thumbnailUrl(thumbnail(613230)).build(),
+                Game.builder().name("Monkey Island").rating(90).thumbnailUrl(thumbnail(32360)).build());
         games.forEach(gameRepository::save);
     }
 }

@@ -25,10 +25,19 @@ public class GameEntity {
     @Setter
     private float rating;
 
-    public GameEntity(String id, String name, float rating) {
+    @Getter
+    @Setter
+    private String thumbnailUrl;
+
+    public GameEntity(String id, String name, float rating, String thumbnailUrl) {
         this.id = id;
         this.name = name;
         this.rating = rating;
+        this.thumbnailUrl = thumbnailUrl;
     }
+
+    public GameEntity() {
+    }
+
 
 }

@@ -1,0 +1,309 @@
+// Top Games Section - Steam-Inspired Design
+// Using OKLCH colors, CSS Grid, and modern animations
+
+.top-games-section {
+  margin-top: 3rem;
+  width: 100%;
+}
+
+.section-title {
+  font-family: "Inter Tight", sans-serif;
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--gray-900);
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.05rem;
+
+  // Gradient underline effect
+  position: relative;
+  display: inline-block;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -0.5rem;
+    left: 0;
+    width: 60%;
+    height: 3px;
+    background: var(--red-to-pink-to-purple-horizontal-gradient);
+    border-radius: 2px;
+  }
+}
+
+// Vertical list layout
+.games-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+// Steam-style game card
+.game-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 460px 1fr;
+  grid-template-rows: 215px;
+  background: white;
+  border: 1px solid oklch(90% 0.01 300);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08),
+  0 1px 3px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    transform: translateX(8px) scale(1.02);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15),
+    0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: var(--electric-violet);
+
+    .thumbnail-overlay {
+      opacity: 0.3;
+    }
+
+    .hover-overlay {
+      opacity: 1;
+    }
+
+    .rank-badge {
+      transform: scale(1.1);
+    }
+  }
+}
+
+.rank-badge {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 10;
+
+  padding: 0.5rem 0.75rem;
+  background: var(--red-to-pink-to-purple-vertical-gradient);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  .rank-number {
+    font-family: "Inter Tight", sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+}
+
+// Thumbnail container
+.game-thumbnail {
+  position: relative;
+  width: 460px;
+  height: 215px;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .game-card:hover & img {
+    transform: scale(1.05);
+  }
+}
+
+// Thumbnail overlay for depth
+.thumbnail-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+      to right,
+      transparent 0%,
+      rgba(0, 0, 0, 0.1) 100%
+  );
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+// Game info section
+.game-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 2rem;
+  gap: 1rem;
+}
+
+.game-title {
+  font-family: "Inter Tight", sans-serif;
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--gray-900);
+  margin: 0;
+  letter-spacing: -0.03rem;
+  line-height: 1.2;
+}
+
+// Rating container
+.rating-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+// Rating bar with gradient fill
+.rating-bar {
+  flex: 1;
+  height: 24px;
+  background: oklch(95% 0.01 300);
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.rating-fill {
+  height: 100%;
+  background: var(--red-to-pink-to-purple-horizontal-gradient);
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 12px;
+  position: relative;
+
+  // Shine effect on the rating bar
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.3) 0%,
+        transparent 100%
+    );
+    border-radius: 12px 12px 0 0;
+  }
+}
+
+.rating-score {
+  font-family: "Inter Tight", sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  min-width: 80px;
+  text-align: right;
+}
+
+// Hover overlay (appears at bottom on hover)
+.hover-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1rem;
+  background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.9) 0%,
+      transparent 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+
+  .hover-details {
+    color: white;
+    font-size: 0.875rem;
+    margin: 0;
+    text-align: center;
+    font-weight: 500;
+  }
+}
+
+// TODO(human): Add pulse-glow animation for top-ranked games
+// Create a @keyframes animation called 'pulse-glow' that makes the rating bars
+// for #1 and #2 ranked games pulse with a glowing effect.
+//
+// Your task:
+// 1. Define @keyframes pulse-glow that animates box-shadow
+// 2. At 0% and 100%: subtle glow with box-shadow: 0 0 8px rgba(255, 107, 53, 0.3)
+// 3. At 50%: stronger glow with box-shadow: 0 0 20px rgba(255, 107, 53, 0.6)
+// 4. Apply the animation to .game-card[data-rank="1"] .rating-fill and
+//    .game-card[data-rank="2"] .rating-fill
+// 5. Use: animation: pulse-glow 2s ease-in-out infinite;
+//
+// This teaches you:
+// - CSS keyframe animations
+// - Box-shadow for glow effects
+// - Data attribute selectors
+// - Infinite animation loops
+//
+// Add your code below this comment:
+// ------------------------------------------------------------------------
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow:
+      inset 0 2px 4px rgba(0, 0, 0, 0.1),
+      0 0 8px rgba(255, 107, 53, 0.3);
+  }
+  50% {
+    box-shadow:
+      inset 0 2px 4px rgba(0, 0, 0, 0.1),
+      0 0 20px rgba(255, 107, 53, 0.6);
+  }
+}
+
+// Apply the animation to top 2 ranked games using data attribute selectors
+// Note: Applied to .rating-bar instead of .rating-fill because the parent's
+// overflow:hidden would clip the glow effect
+.game-card[data-rank="1"] .rating-bar,
+.game-card[data-rank="2"] .rating-bar {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+// ------------------------------------------------------------------------
+// End of TODO(human) section
+
+// Responsive design
+@media screen and (max-width: 768px) {
+  .game-card {
+    grid-template-columns: 1fr;
+    grid-template-rows: 215px auto;
+  }
+
+  .game-thumbnail {
+    width: 100%;
+  }
+
+  .game-info {
+    padding: 1.5rem;
+  }
+
+  .game-title {
+    font-size: 1.5rem;
+  }
+}
+
+@media screen and (max-width: 520px) {
+  .game-card {
+    grid-template-rows: 180px auto;
+  }
+
+  .game-thumbnail {
+    height: 180px;
+  }
+
+  .section-title {
+    font-size: 1.75rem;
+  }
+
+  .rating-score {
+    font-size: 1rem;
+    min-width: 70px;
+  }
+}
