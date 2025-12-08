@@ -6,10 +6,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class GameEntityMapper {
     public Game toDomain(GameEntity entity) {
-        return new Game(entity.getId(), entity.getName());
+        return Game.builder().id(entity.getId()).name(entity.getName()).rating(entity.getRating()).build();
     }
 
     public GameEntity toEntity(Game domain) {
-        return new GameEntity(domain.id(), domain.name());
+        return new GameEntity(domain.getId(), domain.getName(), domain.getRating());
     }
 }

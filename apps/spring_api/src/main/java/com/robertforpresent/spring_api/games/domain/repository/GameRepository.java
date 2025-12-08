@@ -7,7 +7,12 @@ import java.util.Optional;
 
 public interface GameRepository {
     List<Game> findAll();
+
     Optional<Game> findById(String id);
+
     Game save(Game game);
+
     void deleteById(String id);
+
+    List<Game> findTopByRating();
 }

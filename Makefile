@@ -5,13 +5,13 @@ compile:
 
 run:
 	cd apps/spring_api && ./mvnw spring-boot:run & \
-	cd apps/frontend_ng && npm start
+	cd apps/frontend_ng && bun run start
 
 run-backend:
 	cd apps/spring_api && ./mvnw spring-boot:run
 
 run-frontend:
-	cd apps/frontend_ng && npm start
+	cd apps/frontend_ng && bun run start
 
 test:
 	cd apps/spring_api && ./mvnw test

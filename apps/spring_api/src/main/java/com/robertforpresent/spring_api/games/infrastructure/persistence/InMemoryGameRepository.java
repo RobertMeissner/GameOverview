@@ -11,7 +11,9 @@ import java.util.Optional;
 public class InMemoryGameRepository implements GameRepository {
     @Override
     public List<Game> findAll() {
-        return List.of(Game.create("Half Life"), Game.create("Stardew Valley"), Game.create("Planescape Torment"));
+        return List.of(Game.builder().name("Half Life").build(),
+                Game.builder().name("Stardew Valley").build(),
+                Game.builder().name("Planescape Torment").build());
     }
 
     @Override
@@ -27,5 +29,10 @@ public class InMemoryGameRepository implements GameRepository {
     @Override
     public void deleteById(String id) {
 
+    }
+
+    @Override
+    public List<Game> findTopByRating() {
+        return List.of();
     }
 }

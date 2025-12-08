@@ -17,4 +17,8 @@ public class GameService {
     public List<Game> getAllGames(){
         return repository.findAll();
     }
+
+    public List<Game> getTopGames() {
+        return repository.findTopByRating();
+    }
 }

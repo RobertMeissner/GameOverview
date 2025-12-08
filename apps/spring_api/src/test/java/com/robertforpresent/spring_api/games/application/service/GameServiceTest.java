@@ -28,7 +28,7 @@ class GameServiceTest {
 
     @Test
     void testGetAllGames() {
-        List<Game> expected = List.of(new Game("1", "Stardew Valley"));
+        List<Game> expected = List.of(Game.builder().id("1").name("Stardew Valley").build());
         when(repository.findAll()).thenReturn(expected);
         assertEquals(1, service.getAllGames().size());
     }

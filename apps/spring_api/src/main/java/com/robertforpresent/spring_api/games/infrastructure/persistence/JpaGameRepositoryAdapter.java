@@ -41,4 +41,9 @@ public class JpaGameRepositoryAdapter implements GameRepository {
     public void deleteById(String id) {
         jpaRepository.deleteById(id);
     }
+
+    @Override
+    public List<Game> findTopByRating() {
+        return jpaRepository.findTop3ByOrderByRatingDesc().stream().map(mapper::toDomain).toList();
+    }
 }

@@ -21,4 +21,9 @@ public class GameController {
     public List<Game> games() {
         return service.getAllGames();
     }
+
+    @GetMapping("/games/top")
+    public List<Game> topGames(){
+        return service.getTopGames();
+    }
 }

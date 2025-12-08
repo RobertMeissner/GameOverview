@@ -35,21 +35,21 @@ public class GameRepositoryIntegrationTest {
     @Test
     public void testSaveAndRetrieve(){
         // given
-        Game game = Game.create("Stardew Valley");
+        Game game = Game.builder().name("Stardew Valley").build();
 
         // when
         Game savedGame = gameRepository.save(game);
 
         // then
-        assertNotNull(savedGame.id(), "saved game should have auto-generated ID");
-        assertEquals(game.name(), savedGame.name());
+        assertNotNull(savedGame.getId(), "saved game should have auto-generated ID");
+        assertEquals(game.getName(), savedGame.getName());
     }
     @Test
     public void testFindAll(){
         // given
-        Game game = Game.create("Stardew Valley");
+        Game game = Game.builder().name("Stardew Valley").build();
         gameRepository.save(game);
-        game = Game.create("Half-Life");
+        game = Game.builder().name("Half-Life").build();
         gameRepository.save(game);
 
         // when
@@ -63,17 +63,17 @@ public class GameRepositoryIntegrationTest {
     public void testFindById(){
 
         // given
-        Game game = Game.create("Stardew Valley");
+        Game game = Game.builder().name("Stardew Valley").build();
         Game desiredGame = gameRepository.save(game);
-        game = Game.create("Half-Life");
+        game = Game.builder().name("Half-Life").build();
         gameRepository.save(game);
 
         // when
-        Optional<Game> foundGame = gameRepository.findById(desiredGame.id());
+        Optional<Game> foundGame = gameRepository.findById(desiredGame.getId());
 
         // then
         assertTrue(foundGame.isPresent());
 
-        assertEquals("Stardew Valley", foundGame.get().name());
+        assertEquals("Stardew Valley", foundGame.get().getName());
     }
 }

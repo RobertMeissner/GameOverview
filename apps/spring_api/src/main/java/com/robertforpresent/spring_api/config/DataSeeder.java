@@ -23,11 +23,10 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void seedGames() {
-        List<Game> games = List.of(Game.create("Stardey Valley"), Game.create("Half Life"), Game.create("Planescape Torment"), Game.create("Monkey Island"));
-        for (Game game : games) {
-            gameRepository.save(game);
-        }
-
-
+        List<Game> games = List.of(Game.builder().name("Stardey Valley").rating(100).build(),
+                Game.builder().name("Half Life").rating(80).build(),
+                Game.builder().name("Planescape Torment").rating(60).build(),
+                Game.builder().name("Monkey Island").rating(90).build());
+        games.forEach(gameRepository::save);
     }
 }

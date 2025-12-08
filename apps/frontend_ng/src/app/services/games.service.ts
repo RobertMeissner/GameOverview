@@ -13,4 +13,8 @@ export class GamesService {
   getAllGames(): Observable<Game[]> {
     return this.http.get<Game[]>(`${this.apiUrl}/games`);
   }
+
+  getTopGames(): Observable<Game[]> {
+    return this.http.get<Game[]>(`${this.apiUrl}/games/top`);
+  }
 }
