@@ -1,15 +1,20 @@
-<aside class="sidebar">
-  <!-- Brand -->
+<aside class="sidebar" [class.collapsed]="isCollapsed()">
   <div class="sidebar-brand p-4">
-    <h4 class="fw-bold">Game Overview</h4>
+    <h4 class="fw-bold" [class.collapsed]="isCollapsed()">Game Flower</h4>
+    <button class="toggle-btn" (click)="toggleCollapse()" type="button">
+      {{ isCollapsed() ? ">" : "<" }}
+    </button>
   </div>
 
   <nav class="nav nav-pills flex-column px-3">
     @for (item of navItems(); track item.path) {
       <a [routerLink]="item.path"
          routerLinkActive="active"
-         class="nav-link">
-        {{ item.label }}
+         class="nav-link"
+         [title]="item.label">
+        <i class="bi nav-icon {{ item.icon}}"></i>
+        <span class="nav-label">
+        {{ item.label }}</span>
       </a>
     }
   </nav>

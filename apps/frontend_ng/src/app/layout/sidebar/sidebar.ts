@@ -1,4 +1,4 @@
-import {Component, signal} from '@angular/core';
+import {Component, signal, output} from '@angular/core';
 import {RouterLink, RouterLinkActive} from '@angular/router';
 import {CommonModule} from '@angular/common';
 
@@ -10,14 +10,23 @@ import {CommonModule} from '@angular/common';
 })
 export class Sidebar {
   protected navItems = signal<NavItem[]>([
-    {path: "/catalog", label: 'Catalog',},
-    {path: "/top-games", label: 'Top Games',},
-    {path: "/settings", label: 'Settings',},
-    {path: "/about", label: 'About',},
+    {path: "/catalog", label: 'Catalog',icon:"bi-book"},
+    {path: "/top-games", label: 'Top Games',icon: "bi-trophy"},
+    {path: "/settings", label: 'Settings',icon: "bi-gear"},
+    {path: "/about", label: 'About',icon:"bi-info-circle"},
   ])
+
+  protected isCollapsed = signal(true);
+  collapsedChange = output<boolean>();
+
+  protected toggleCollapse() {
+    this.isCollapsed.update(v => !v);
+    this.collapsedChange.emit(this.isCollapsed());
+  }
 }
 
 interface NavItem {
   path: string;
   label: string;
+  icon: string;
 }
