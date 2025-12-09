@@ -1,0 +1,16 @@
+<aside class="sidebar">
+  <!-- Brand -->
+  <div class="sidebar-brand p-4">
+    <h4 class="fw-bold">Game Overview</h4>
+  </div>
+
+  <nav class="nav nav-pills flex-column px-3">
+    @for (item of navItems(); track item.path) {
+      <a [routerLink]="item.path"
+         routerLinkActive="active"
+         class="nav-link">
+        {{ item.label }}
+      </a>
+    }
+  </nav>
+</aside>

@@ -1,7 +1,7 @@
 import {Component, inject, OnInit, signal} from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {GamesService} from '../services/games.service';
-import {Game} from '../domain/entities/game.model';
+import {GamesService} from '../../services/games.service';
+import {Game} from '../../domain/entities/game.model';
 
 @Component({
   selector: 'app-catalog-component',
