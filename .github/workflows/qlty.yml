@@ -14,67 +14,38 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Full history for better analysis
+          fetch-depth: 0
 
       - name: Install Qlty CLI
         run: |
           curl -s https://qlty.sh | bash
           echo "$HOME/.qlty/bin" >> $GITHUB_PATH
 
-      - name: Setup Java 25 (for API)
-        uses: actions/setup-java@v4
-        with:
-          java-version: '25'
-          distribution: 'temurin'
-          cache: 'maven'
-          cache-dependency-path: apps/api/pom.xml
-
       - name: Setup Node.js (for Frontend)
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'bun'
+          cache: 'npm'
           cache-dependency-path: apps/frontend/package-lock.json
 
       - name: Install Frontend dependencies
-        run: cd apps/frontend && bun ci
-
-      - name: Run API tests with coverage
-        run: |
-          cd apps/api
-          ./mvnw test jacoco:report -q
-          echo "API tests completed"
-        continue-on-error: true
+        run: cd apps/frontend && npm ci
 
       - name: Run Frontend tests with coverage
         run: |
           cd apps/frontend
-          bun run test -- --run --coverage --coverage.reporter=lcov --coverage.reporter=cobertura --coverage.reporter=json-summary
+          npx vitest run --coverage --coverage.reporter=lcov --coverage.reporter=cobertura --coverage.reporter=json-summary
         continue-on-error: true
 
       - name: Organize coverage files
         run: |
           mkdir -p coverage-reports
 
-          # API coverage (JaCoCo XML format)
-          if [ -f apps/api/target/site/jacoco/jacoco.xml ]; then
-            cp apps/api/target/site/jacoco/jacoco.xml coverage-reports/api-coverage.xml
-            echo "✓ API JaCoCo XML coverage found"
-          fi
-
-          # API coverage (JaCoCo CSV for additional metrics)
-          if [ -f apps/api/target/site/jacoco/jacoco.csv ]; then
-            cp apps/api/target/site/jacoco/jacoco.csv coverage-reports/api-coverage.csv
-            echo "✓ API JaCoCo CSV coverage found"
-          fi
-
-          # Frontend coverage (LCOV format)
           if [ -f apps/frontend/coverage/lcov.info ]; then
             cp apps/frontend/coverage/lcov.info coverage-reports/frontend-coverage.lcov
             echo "✓ Frontend LCOV coverage found"
           fi
 
-          # Frontend coverage (Cobertura XML format)
           if [ -f apps/frontend/coverage/cobertura-coverage.xml ]; then
             cp apps/frontend/coverage/cobertura-coverage.xml coverage-reports/frontend-coverage.xml
             echo "✓ Frontend XML coverage found"
@@ -83,6 +54,8 @@ jobs:
           echo "## Coverage Files Generated" >> $GITHUB_STEP_SUMMARY
           echo "Available coverage files:" >> $GITHUB_STEP_SUMMARY
           ls -la coverage-reports/ >> $GITHUB_STEP_SUMMARY || echo "No coverage files found" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "ℹ️ **Note**: API coverage requires Java 25 which is not yet available in GitHub Actions." >> $GITHUB_STEP_SUMMARY
 
       - name: Run Qlty Check
         env:
@@ -96,7 +69,6 @@ jobs:
         with:
           token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
           files: |
-            coverage-reports/api-coverage.xml
             coverage-reports/frontend-coverage.xml
             coverage-reports/frontend-coverage.lcov
         continue-on-error: true
@@ -106,24 +78,6 @@ jobs:
         run: |
           echo "## 📊 Coverage Summary" >> $GITHUB_STEP_SUMMARY
 
-          # API coverage summary
-          echo "### Spring Boot API Coverage" >> $GITHUB_STEP_SUMMARY
-          if [ -f apps/api/target/site/jacoco/jacoco.xml ]; then
-            echo "JaCoCo coverage report generated successfully." >> $GITHUB_STEP_SUMMARY
-            # Parse and display coverage from CSV if available
-            if [ -f apps/api/target/site/jacoco/jacoco.csv ]; then
-              echo "" >> $GITHUB_STEP_SUMMARY
-              echo '```' >> $GITHUB_STEP_SUMMARY
-              head -5 apps/api/target/site/jacoco/jacoco.csv >> $GITHUB_STEP_SUMMARY
-              echo '```' >> $GITHUB_STEP_SUMMARY
-            fi
-          else
-            echo "⚠️ No API coverage report generated" >> $GITHUB_STEP_SUMMARY
-          fi
-
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          # Frontend coverage summary
           echo "### Angular Frontend Coverage" >> $GITHUB_STEP_SUMMARY
           if [ -f apps/frontend/coverage/coverage-summary.json ]; then
             echo "Vitest coverage report generated successfully." >> $GITHUB_STEP_SUMMARY
