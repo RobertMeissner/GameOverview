@@ -33,11 +33,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
+          cache: 'bun'
           cache-dependency-path: apps/frontend/package-lock.json
 
       - name: Install Frontend dependencies
-        run: cd apps/frontend && npm ci
+        run: cd apps/frontend && bun ci
 
       - name: Run API tests with coverage
         run: |
@@ -49,7 +49,7 @@ jobs:
       - name: Run Frontend tests with coverage
         run: |
           cd apps/frontend
-          npm run test -- --run --coverage --coverage.reporter=lcov --coverage.reporter=cobertura --coverage.reporter=json-summary
+          bun run test -- --run --coverage --coverage.reporter=lcov --coverage.reporter=cobertura --coverage.reporter=json-summary
         continue-on-error: true
 
       - name: Organize coverage files

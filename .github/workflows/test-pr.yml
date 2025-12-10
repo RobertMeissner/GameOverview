@@ -89,18 +89,18 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
+          cache: 'bun'
           cache-dependency-path: apps/frontend/package-lock.json
 
       - name: Install Frontend dependencies
-        run: npm ci
+        run: bun ci
 
       - name: Run Frontend tests with coverage
-        run: npm run test -- --run --coverage --coverage.reporter=lcov --coverage.reporter=json-summary --coverage.reporter=text
+        run: bun run test -- --run --coverage --coverage.reporter=lcov --coverage.reporter=json-summary --coverage.reporter=text
         continue-on-error: true
 
       - name: Build Frontend (production build test)
-        run: npm run build
+        run: bun run build
 
       - name: Check TypeScript types
         run: npx tsc --noEmit
