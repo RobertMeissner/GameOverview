@@ -1,66 +1,45 @@
 {
-  "name": "frontend",
-  "version": "0.1.0",
-  "private": true,
-  "homepage": ".",
-  "dependencies": {
-    "@emotion/react": "^11.13.3",
-    "@emotion/styled": "^11.13.0",
-    "@mui/icons-material": "^6.1.0",
-    "@mui/material": "^6.1.0",
-    "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/react": "^14.3.1",
-    "@testing-library/user-event": "^14.6.1",
-    "ajv": "^8.17.1",
-    "ajv-keywords": "^5.1.0",
-    "assert": "^2.1.0",
-    "axios": "^1.7.7",
-    "browserify-zlib": "^0.2.0",
-    "buffer": "^6.0.3",
-    "parquetjs": "^0.11.2",
-    "parquetjs-lite": "^0.8.7",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-router-dom": "^6.26.2",
-    "react-scripts": "^5.0.1",
-    "react-table": "^7.8.0",
-    "readable-stream": "^4.5.2",
-    "stream-browserify": "^3.0.0",
-    "typescript": "^4.9.5",
-    "util": "^0.12.5",
-    "web-vitals": "^2.1.4",
-    "wrangler": "^4.22.0"
-  },
+  "name": "frontend-ng",
+  "version": "0.0.0",
   "scripts": {
-    "start": "react-app-rewired start",
-    "build": "react-app-rewired build",
-    "build:staging": "env-cmd -f .env.staging react-app-rewired build",
-    "test": "react-app-rewired test",
-    "eject": "react-app-rewired eject",
-    "lint": "eslint src --ext .js,.jsx,.ts,.tsx"
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test"
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
+  "prettier": {
+    "printWidth": 100,
+    "singleQuote": true,
+    "overrides": [
+      {
+        "files": "*.html",
+        "options": {
+          "parser": "angular"
+        }
+      }
     ]
   },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+  "private": true,
+  "packageManager": "npm@11.6.4",
+  "dependencies": {
+    "@angular/common": "^21.0.0",
+    "@angular/compiler": "^21.0.0",
+    "@angular/core": "^21.0.0",
+    "@angular/forms": "^21.0.0",
+    "@angular/platform-browser": "^21.0.0",
+    "@angular/router": "^21.0.0",
+    "bootstrap": "^5.3.8",
+    "bootstrap-icons": "^1.13.1",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
   },
   "devDependencies": {
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
-    "env-cmd": "^11.0.0",
-    "react-app-rewired": "^2.2.1"
-  },
-  "proxy": "http://localhost:8787"
+    "@angular/build": "^21.0.2",
+    "@angular/cli": "^21.0.2",
+    "@angular/compiler-cli": "^21.0.0",
+    "jsdom": "^27.1.0",
+    "typescript": "~5.9.2",
+    "vitest": "^4.0.8"
+  }
 }

@@ -1,1 +1,0 @@
-# Steam catalog tests package
