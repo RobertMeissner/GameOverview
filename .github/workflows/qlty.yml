@@ -21,9 +21,6 @@ jobs:
           curl -s https://qlty.sh | bash
           echo "$HOME/.qlty/bin" >> $GITHUB_PATH
 
-      # ============================================
-      # Setup Java for Spring Boot API
-      # ============================================
       - name: Setup Java 25 (for API)
         uses: actions/setup-java@v4
         with:
@@ -32,9 +29,6 @@ jobs:
           cache: 'maven'
           cache-dependency-path: apps/api/pom.xml
 
-      # ============================================
-      # Setup Node.js for Angular Frontend
-      # ============================================
       - name: Setup Node.js (for Frontend)
         uses: actions/setup-node@v4
         with:
@@ -42,15 +36,9 @@ jobs:
           cache: 'npm'
           cache-dependency-path: apps/frontend/package-lock.json
 
-      # ============================================
-      # Install Dependencies
-      # ============================================
       - name: Install Frontend dependencies
         run: cd apps/frontend && npm ci
 
-      # ============================================
-      # Run API Tests with Coverage (JaCoCo)
-      # ============================================
       - name: Run API tests with coverage
         run: |
           cd apps/api
@@ -58,18 +46,12 @@ jobs:
           echo "API tests completed"
         continue-on-error: true
 
-      # ============================================
-      # Run Frontend Tests with Coverage (Vitest)
-      # ============================================
       - name: Run Frontend tests with coverage
         run: |
           cd apps/frontend
           npm run test -- --run --coverage --coverage.reporter=lcov --coverage.reporter=cobertura --coverage.reporter=json-summary
         continue-on-error: true
 
-      # ============================================
-      # Collect and Organize Coverage Files
-      # ============================================
       - name: Organize coverage files
         run: |
           mkdir -p coverage-reports
@@ -102,18 +84,12 @@ jobs:
           echo "Available coverage files:" >> $GITHUB_STEP_SUMMARY
           ls -la coverage-reports/ >> $GITHUB_STEP_SUMMARY || echo "No coverage files found" >> $GITHUB_STEP_SUMMARY
 
-      # ============================================
-      # Run Qlty Check
-      # ============================================
       - name: Run Qlty Check
         env:
           QLTY_COVERAGE_TOKEN: ${{ secrets.QLTY_COVERAGE_TOKEN }}
         run: |
           qlty check --summary --level medium
 
-      # ============================================
-      # Upload Coverage to Qlty
-      # ============================================
       - name: Upload Coverage to Qlty
         uses: qltysh/qlty-action/coverage@v1
         if: always()
@@ -125,9 +101,6 @@ jobs:
             coverage-reports/frontend-coverage.lcov
         continue-on-error: true
 
-      # ============================================
-      # Generate Coverage Summary
-      # ============================================
       - name: Generate Coverage Summary
         if: always()
         run: |
@@ -165,9 +138,6 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "📈 View detailed coverage reports on your [Qlty Dashboard](https://qlty.sh)" >> $GITHUB_STEP_SUMMARY
 
-      # ============================================
-      # Archive Coverage Artifacts
-      # ============================================
       - name: Upload coverage artifacts
         uses: actions/upload-artifact@v4
         if: always()
@@ -176,9 +146,6 @@ jobs:
           path: coverage-reports/
           retention-days: 30
 
-      # ============================================
-      # Run Qlty Analysis Summary
-      # ============================================
       - name: Run Qlty Analysis Summary
         if: always()
         env:

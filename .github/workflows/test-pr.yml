@@ -7,9 +7,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  # ============================================
-  # API Tests (Spring Boot with Maven)
-  # ============================================
   api-tests:
     runs-on: ubuntu-latest
     name: API Tests (Spring Boot)
@@ -77,9 +74,6 @@ jobs:
             echo "⚠️ No coverage report generated" >> $GITHUB_STEP_SUMMARY
           fi
 
-  # ============================================
-  # Frontend Tests (Angular with Vitest)
-  # ============================================
   frontend-tests:
     runs-on: ubuntu-latest
     name: Frontend Tests (Angular)
@@ -138,9 +132,6 @@ jobs:
             echo "⚠️ No coverage report generated" >> $GITHUB_STEP_SUMMARY
           fi
 
-  # ============================================
-  # Quality Metrics Summary
-  # ============================================
   quality-summary:
     runs-on: ubuntu-latest
     name: Quality Metrics Summary
