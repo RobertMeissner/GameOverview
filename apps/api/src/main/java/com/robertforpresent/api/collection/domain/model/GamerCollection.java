@@ -1,5 +1,6 @@
 package com.robertforpresent.api.collection.domain.model;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -21,6 +22,10 @@ public class GamerCollection {
         this.id = id;
         this.gamerId = gamerId;
         this.games = games;
+    }
+
+    public List<PersonalizedGame> getAll() {
+        return this.games.values().stream().toList();
     }
 
     /**

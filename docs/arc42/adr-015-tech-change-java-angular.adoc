@@ -1,0 +1,40 @@
+= ADR-015: Switching to Java 25 Spring Boot 4.0.0. and Angular
+
+**Status**: Accepted +
+**Date**: 2025-12-11 +
+**Deciders**: Robert
+
+== Context
+
+The project
+- is for my learning. Thus, breaking changes are alright
+- I will use Java and Spring Boot in the future
+- most likely will be deprecated soon/tomorrow
+
+=== Requirements
+
+* Keep simple, but flexible for the future
+
+=== Constraints
+
+* None
+
+== Decision
+
+- Python and Vue.js removed.
+- A read-only coupling between CatalogService and GamerCollectionService is acceptable
+
+
+== Implementation Details
+
+Cleanup
+
+== Alternatives Considered
+
+- CQRS, ACL (Port/Adapter) and repository joins
+- Each of them either adds complexity or requires pure DDD implementation. I see value in each of these, but since optimization is currently not necessary, I accept that I may shoot myself in teh foot with these changes.
+
+== Security Considerations
+
+No user authentication at all is done. Everything is open.
+Since this solution runs on prem-only, it is deemed an acceptible risk.

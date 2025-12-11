@@ -1,6 +1,7 @@
 package com.robertforpresent.api.games.domain.model;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import java.time.Instant;
 import java.util.Map;
@@ -28,6 +29,8 @@ public class CanonicalGame {
     @Getter
     private final UUID id;
     private String canonicalName;
+    private String thumbnailUrl;
+    private float rating;
 
     private CanonicalMetadata metadata;
 
@@ -44,12 +47,18 @@ public class CanonicalGame {
         return this.canonicalName;
     }
 
+    public String getThumbnailUrl(){
+        return thumbnailUrl;
+    }
+
     /**
      * Explicit builder. Favoured over Lombok to have in-depth control
      */
     public static class Builder {
         private String name;
         private UUID id;
+        private float rating;
+        private String thumbnailUrl;
 
         public Builder(String name) {
             this.name = name;
@@ -66,13 +75,23 @@ public class CanonicalGame {
             this.id = id;
             return this;
         }
+        public Builder setRating(float rating) {
+            this.rating = rating;
+            return this;
+        }
+        public Builder setThumbnailUrl(String thumbnailUrl) {
+            this.thumbnailUrl = thumbnailUrl;
+            return this;
+        }
     }
 
     private CanonicalGame(Builder builder) {
         id = builder.id;
         canonicalName = builder.name;
+        thumbnailUrl = "";
         storeData = Map.of();
         createdAt = Instant.now();
         updatedAt = Instant.now();
+        rating = 0;
     }
 }

@@ -1,7 +1,9 @@
 package com.robertforpresent.api.config;
 
-import com.robertforpresent.api.games.domain.Game;
-import com.robertforpresent.api.games.domain.repository.GameRepository;
+import com.robertforpresent.api.collection.infrastructure.persistence.PersonalizedGameEntity;
+import com.robertforpresent.api.collection.infrastructure.persistence.SpringDataGamerCollectionRepository;
+import com.robertforpresent.api.games.domain.model.CanonicalGame;
+import com.robertforpresent.api.games.domain.repository.CanonicalGameRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,23 +17,30 @@ import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Component
 @Slf4j
 public class DataSeeder implements CommandLineRunner {
-    private final GameRepository gameRepository;
+    private final CanonicalGameRepository canonicalGameRepository;
     private final DataSource duckDBDataSource;
+    private final SpringDataGamerCollectionRepository collectionRepository;
+
     @Value("${game.data.legacy.path}")
     private Resource parquetPath;
 
-    public DataSeeder(GameRepository gameRepository, @Qualifier("duckDB")DataSource duckDBDataSource) {
-        this.gameRepository = gameRepository;
+    // Hardcoded test user
+    private static final UUID TEST_USER_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
+
+    public DataSeeder(CanonicalGameRepository canonicalGameRepository, @Qualifier("duckDB") DataSource duckDBDataSource, SpringDataGamerCollectionRepository collectionRepository) {
+        this.canonicalGameRepository = canonicalGameRepository;
         this.duckDBDataSource = duckDBDataSource;
+        this.collectionRepository = collectionRepository;
     }
 
     @Override
     public void run(String... args) throws Exception {
-        if (gameRepository.findAll().isEmpty()) {
+        if (canonicalGameRepository.findAll().isEmpty()) {
             log.debug("H2 database empty. Seeding now with test games.");
             seedGames();
         }
@@ -49,18 +58,22 @@ public class DataSeeder implements CommandLineRunner {
              ResultSet rs = stmt.executeQuery(
                      "SELECT * FROM read_parquet('" + parquetFile + "')")) {
 
-            List<Game> batch = new ArrayList<>();
+            List<CanonicalGame> batch = new ArrayList<>();
             while (rs.next()) {
                 batch.add(mapToGame(rs));
             }
-            batch.forEach(gameRepository::save);
-            log.debug("{} games added", batch);
+            List<CanonicalGame> savedGames = batch.stream().map(canonicalGameRepository::save).toList();
+
+            savedGames.forEach(game -> {
+                collectionRepository.save(new PersonalizedGameEntity(TEST_USER_ID, game.getId()));
+            });
+            log.debug("{} games added to catalog and test user collection", batch.size());
         }
 
     }
 
-    private Game mapToGame(ResultSet set) throws SQLException {
-        return Game.builder().name(set.getString("name")).rating(set.getFloat("rating")).thumbnailUrl(thumbnail(set.getInt( "app_id"))).build();
+    private CanonicalGame mapToGame(ResultSet set) throws SQLException {
+        return new CanonicalGame.Builder(set.getString("name")).setRating(set.getFloat("rating")).setThumbnailUrl(thumbnail(set.getInt("app_id"))).build();
     }
 
 }
