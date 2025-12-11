@@ -7,6 +7,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
+/**
+ * In memory database. Needed for testing and data seeding.
+ * <p> At this projects current state, a persistent storage adds no value. In memory pre-seeded is enough.</p>
+ */
 @Configuration
 public class H2DataSourceConfig {
 

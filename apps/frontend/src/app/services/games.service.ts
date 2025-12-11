@@ -7,15 +7,16 @@ import {environment} from '../../environments/environment';
 @Injectable({providedIn: 'root'})
 export class GamesService {
   private readonly apiUrl = environment.apiUrl
+  private readonly userId = environment.userId
 
   constructor(private http: HttpClient) {
   }
 
   getAllGames(): Observable<Game[]> {
-    return this.http.get<Game[]>(`${this.apiUrl}/games`);
+    return this.http.get<Game[]>(`${this.apiUrl}/collection`, {params: {"userId": this.userId}});
   }
 
   getTopGames(): Observable<Game[]> {
-    return this.http.get<Game[]>(`${this.apiUrl}/games/top`);
+    return this.http.get<Game[]>(`${this.apiUrl}/collection/top`, {params: {"userId": this.userId}});
   }
 }

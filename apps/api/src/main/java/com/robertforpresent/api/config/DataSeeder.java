@@ -1,9 +1,9 @@
 package com.robertforpresent.api.config;
 
 import com.robertforpresent.api.collection.infrastructure.persistence.PersonalizedGameEntity;
-import com.robertforpresent.api.collection.infrastructure.persistence.SpringDataGamerCollectionRepository;
-import com.robertforpresent.api.games.domain.model.CanonicalGame;
-import com.robertforpresent.api.games.domain.repository.CanonicalGameRepository;
+import com.robertforpresent.api.collection.infrastructure.persistence.SpringDataCollectionRepository;
+import com.robertforpresent.api.catalog.domain.model.CanonicalGame;
+import com.robertforpresent.api.catalog.domain.repository.CanonicalGameRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,7 +24,7 @@ import java.util.UUID;
 public class DataSeeder implements CommandLineRunner {
     private final CanonicalGameRepository canonicalGameRepository;
     private final DataSource duckDBDataSource;
-    private final SpringDataGamerCollectionRepository collectionRepository;
+    private final SpringDataCollectionRepository collectionRepository;
 
     @Value("${game.data.legacy.path}")
     private Resource parquetPath;
@@ -32,7 +32,7 @@ public class DataSeeder implements CommandLineRunner {
     // Hardcoded test user
     private static final UUID TEST_USER_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
 
-    public DataSeeder(CanonicalGameRepository canonicalGameRepository, @Qualifier("duckDB") DataSource duckDBDataSource, SpringDataGamerCollectionRepository collectionRepository) {
+    public DataSeeder(CanonicalGameRepository canonicalGameRepository, @Qualifier("duckDB") DataSource duckDBDataSource, SpringDataCollectionRepository collectionRepository) {
         this.canonicalGameRepository = canonicalGameRepository;
         this.duckDBDataSource = duckDBDataSource;
         this.collectionRepository = collectionRepository;

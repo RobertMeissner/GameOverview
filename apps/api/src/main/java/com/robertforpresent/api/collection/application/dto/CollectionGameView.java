@@ -5,6 +5,7 @@ import java.util.UUID;
 public record CollectionGameView(
         UUID id,
         String name,
-        String thumbnailUrl
+        String thumbnailUrl,
+        float rating
 ) {
 }

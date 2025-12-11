@@ -2,8 +2,6 @@ package com.robertforpresent.api.collection.presentation.rest;
 
 import com.robertforpresent.api.collection.application.dto.CollectionGameView;
 import com.robertforpresent.api.collection.application.service.GamerCollectionService;
-import com.robertforpresent.api.collection.domain.model.PersonalizedGame;
-import com.robertforpresent.api.games.domain.Game;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -21,9 +19,14 @@ public class GamerCollectionController {
     @Autowired
     private GamerCollectionService service;
 
-    @GetMapping("collection")
+    @GetMapping("/collection")
     public List<CollectionGameView> getCollection(@RequestParam String userId){
         return service.getCollection(UUID.fromString(userId));
+    }
+
+    @GetMapping("/collection/top")
+    public List<CollectionGameView> getTop3(@RequestParam String userId){
+        return service.getTop3(UUID.fromString(userId));
     }
 
 }
