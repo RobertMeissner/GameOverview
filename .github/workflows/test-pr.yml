@@ -22,11 +22,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: apps/frontend/package-lock.json
 
       - name: Install Frontend dependencies
-        run: npm ci
+        run: npm install
 
       - name: Run Frontend tests with coverage
         run: npx vitest run --coverage --coverage.reporter=lcov --coverage.reporter=json-summary --coverage.reporter=text
