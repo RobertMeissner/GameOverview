@@ -54,7 +54,7 @@ jobs:
       - name: Frontend Test Summary
         if: always()
         run: |
-          echo "## 🎨 Frontend Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "## Frontend Test Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           if [ -f coverage/coverage-summary.json ]; then
             echo "### Coverage Summary" >> $GITHUB_STEP_SUMMARY
@@ -62,7 +62,7 @@ jobs:
             cat coverage/coverage-summary.json >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
           else
-            echo "⚠️ No coverage report generated" >> $GITHUB_STEP_SUMMARY
+            echo " No coverage report generated" >> $GITHUB_STEP_SUMMARY
           fi
 
   quality-summary:
@@ -88,7 +88,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Component | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-----------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| API (Spring Boot) | ⏭️ Skipped (Java 25 not available in CI) |" >> $GITHUB_STEP_SUMMARY
+          echo "| API (Spring Boot) | Skipped (Java 25 not available in CI) |" >> $GITHUB_STEP_SUMMARY
 
           if [ "${{ needs.frontend-tests.result }}" == "success" ]; then
             echo "| Frontend (Angular) | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
@@ -100,7 +100,7 @@ jobs:
           echo "### Coverage Reports" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Coverage reports are available as artifacts:" >> $GITHUB_STEP_SUMMARY
-          echo "- 📁 **frontend-coverage**: LCOV and JSON coverage for Frontend" >> $GITHUB_STEP_SUMMARY
+          echo "- **frontend-coverage**: LCOV and JSON coverage for Frontend" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "ℹ️ **Note**: API tests require Java 25 which is not yet available in GitHub Actions." >> $GITHUB_STEP_SUMMARY
+          echo " **Note**: API tests require Java 25 which is not yet available in GitHub Actions." >> $GITHUB_STEP_SUMMARY
           echo "Run API tests locally with \`./mvnw test\` in the \`apps/api\` directory." >> $GITHUB_STEP_SUMMARY

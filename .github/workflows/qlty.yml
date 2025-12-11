@@ -2,9 +2,9 @@ name: Qlty Code Analysis
 
 on:
   push:
-    branches: [ main, dev, develop ]
+    branches: [ main, dev ]
   pull_request:
-    branches: [ main, dev, develop ]
+    branches: [ main, dev ]
 
 jobs:
   qlty:
@@ -55,7 +55,7 @@ jobs:
           echo "Available coverage files:" >> $GITHUB_STEP_SUMMARY
           ls -la coverage-reports/ >> $GITHUB_STEP_SUMMARY || echo "No coverage files found" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "ℹ️ **Note**: API coverage requires Java 25 which is not yet available in GitHub Actions." >> $GITHUB_STEP_SUMMARY
+          echo "**Note**: API coverage requires Java 25 which is not yet available in GitHub Actions." >> $GITHUB_STEP_SUMMARY
 
       - name: Run Qlty Check
         env:
@@ -86,7 +86,7 @@ jobs:
             cat apps/frontend/coverage/coverage-summary.json >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
           else
-            echo "⚠️ No Frontend coverage report generated" >> $GITHUB_STEP_SUMMARY
+            echo " No Frontend coverage report generated" >> $GITHUB_STEP_SUMMARY
           fi
 
           echo "" >> $GITHUB_STEP_SUMMARY
