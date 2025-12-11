@@ -2,96 +2,43 @@ name: Qlty Code Analysis
 
 on:
   push:
-    branches: [ main, dev, develop ]
+    branches: [ main, dev ]
   pull_request:
-    branches: [ main, dev, develop ]
+    branches: [ main, dev ]
 
 jobs:
   qlty:
     runs-on: ubuntu-latest
+    name: Code Quality & Coverage Analysis
 
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Full history for better analysis
+          fetch-depth: 0
 
       - name: Install Qlty CLI
         run: |
           curl -s https://qlty.sh | bash
           echo "$HOME/.qlty/bin" >> $GITHUB_PATH
 
-      # Set up Bun for API
-      - name: Setup Bun (for API)
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
-      # Set up Node.js for Frontend
       - name: Setup Node.js (for Frontend)
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: apps/frontend/package-lock.json
+          node-version: '22'
 
-      # Set up Python for Backend tests
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          version: "latest"
-
-      # Install Backend dependencies
-      - name: Install Backend dependencies
-        run: cd apps/backend && uv sync
-
-      # Install Frontend and API dependencies
       - name: Install Frontend dependencies
-        run: cd apps/frontend && bun install
+        run: cd apps/frontend && npm install
 
-      - name: Install API dependencies
-        run: cd apps/api && bun install --frozen-lockfile
-
-      # Run Backend tests with coverage
-      - name: Run Backend tests with coverage
-        run: |
-          cd apps/backend && uv run pytest tests/unit/ --cov=src --cov-report=xml:coverage-backend.xml --cov-report=lcov:coverage-backend.lcov --cov-report=term-missing
-        continue-on-error: true
-
-      # Run Frontend tests with coverage
       - name: Run Frontend tests with coverage
         run: |
-          cd apps/frontend && bun run test -- --watchAll=false --coverage --coverageReporters=lcov --coverageReporters=cobertura
+          cd apps/frontend
+          npx vitest run --coverage --coverage.reporter=lcov --coverage.reporter=cobertura --coverage.reporter=json-summary
         continue-on-error: true
 
-      # Run API tests with coverage
-      - name: Run API tests with coverage
-        run: |
-          cd apps/api && bun run test:coverage -- --run --reporter=verbose --coverage.reporter=lcov --coverage.reporter=cobertura
-        continue-on-error: true
-
-      # Collect and organize coverage files
       - name: Organize coverage files
         run: |
           mkdir -p coverage-reports
 
-          # Backend coverage (XML format for qlty)
-          if [ -f apps/backend/coverage-backend.xml ]; then
-            cp apps/backend/coverage-backend.xml coverage-reports/backend-coverage.xml
-            echo "✓ Backend XML coverage found"
-          fi
-
-          # Backend coverage (LCOV format)
-          if [ -f apps/backend/coverage-backend.lcov ]; then
-            cp apps/backend/coverage-backend.lcov coverage-reports/backend-coverage.lcov
-            echo "✓ Backend LCOV coverage found"
-          fi
-
-          # Frontend coverage
           if [ -f apps/frontend/coverage/lcov.info ]; then
             cp apps/frontend/coverage/lcov.info coverage-reports/frontend-coverage.lcov
             echo "✓ Frontend LCOV coverage found"
@@ -102,71 +49,47 @@ jobs:
             echo "✓ Frontend XML coverage found"
           fi
 
-          # API coverage
-          if [ -f apps/api/coverage/lcov.info ]; then
-            cp apps/api/coverage/lcov.info coverage-reports/worker-coverage.lcov
-            echo "✓ Worker LCOV coverage found"
-          fi
-
-          if [ -f apps/api/coverage/cobertura-coverage.xml ]; then
-            cp apps/api/coverage/cobertura-coverage.xml coverage-reports/worker-coverage.xml
-            echo "✓ Worker XML coverage found"
-          fi
-
           echo "## Coverage Files Generated" >> $GITHUB_STEP_SUMMARY
           echo "Available coverage files:" >> $GITHUB_STEP_SUMMARY
           ls -la coverage-reports/ >> $GITHUB_STEP_SUMMARY || echo "No coverage files found" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note**: API coverage requires Java 25 which is not yet available in GitHub Actions." >> $GITHUB_STEP_SUMMARY
 
-      # Run Qlty Check
       - name: Run Qlty Check
         env:
           QLTY_COVERAGE_TOKEN: ${{ secrets.QLTY_COVERAGE_TOKEN }}
         run: |
           qlty check --summary --level medium
 
-      # Upload Coverage to Qlty using official action
       - name: Upload Coverage to Qlty
         uses: qltysh/qlty-action/coverage@v1
         if: always()
         with:
           token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
           files: |
-            coverage-reports/backend-coverage.xml
-            coverage-reports/backend-coverage.lcov
             coverage-reports/frontend-coverage.xml
             coverage-reports/frontend-coverage.lcov
-            coverage-reports/worker-coverage.xml
-            coverage-reports/worker-coverage.lcov
         continue-on-error: true
 
-      # Generate Coverage Summary
       - name: Generate Coverage Summary
         if: always()
         run: |
           echo "## 📊 Coverage Summary" >> $GITHUB_STEP_SUMMARY
 
-          # Backend coverage summary
-          if [ -f apps/backend/coverage-backend.xml ]; then
-            echo "### Backend Coverage" >> $GITHUB_STEP_SUMMARY
-            echo "Backend coverage report generated (see Qlty dashboard for details)" >> $GITHUB_STEP_SUMMARY
-          fi
-
-          # Frontend coverage summary
+          echo "### Angular Frontend Coverage" >> $GITHUB_STEP_SUMMARY
           if [ -f apps/frontend/coverage/coverage-summary.json ]; then
-            echo "### Frontend Coverage" >> $GITHUB_STEP_SUMMARY
-            echo "Frontend coverage report generated (see Qlty dashboard for details)" >> $GITHUB_STEP_SUMMARY
-          fi
-
-          # API coverage summary
-          if [ -f apps/api/coverage/coverage-summary.json ]; then
-            echo "### API Coverage" >> $GITHUB_STEP_SUMMARY
-            echo "API coverage report generated (see Qlty dashboard for details)" >> $GITHUB_STEP_SUMMARY
+            echo "Vitest coverage report generated successfully." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            cat apps/frontend/coverage/coverage-summary.json >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          else
+            echo " No Frontend coverage report generated" >> $GITHUB_STEP_SUMMARY
           fi
 
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "📈 View detailed coverage reports on your [Qlty Dashboard](https://qlty.sh)" >> $GITHUB_STEP_SUMMARY
 
-      # Archive coverage artifacts
       - name: Upload coverage artifacts
         uses: actions/upload-artifact@v4
         if: always()
@@ -175,7 +98,6 @@ jobs:
           path: coverage-reports/
           retention-days: 30
 
-      # Run Qlty Analysis Summary
       - name: Run Qlty Analysis Summary
         if: always()
         env:

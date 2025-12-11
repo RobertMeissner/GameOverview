@@ -6,7 +6,10 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "lint": "prettier --check \"src/**/*.{ts,html,scss}\"",
+    "lint:fix": "prettier --write \"src/**/*.{ts,html,scss}\"",
+    "type-check": "tsc --noEmit"
   },
   "prettier": {
     "printWidth": 100,
