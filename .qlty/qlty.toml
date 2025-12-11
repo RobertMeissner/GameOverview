@@ -69,6 +69,7 @@ name = "bandit"
 
 [[plugin]]
 name = "checkov"
+mode = "disabled"  # Disabled due to Python dependency issues in CI
 
 [[plugin]]
 name = "dockerfmt"
