@@ -1,5 +1,7 @@
 package com.robertforpresent.api.config;
 
+import com.robertforpresent.api.catalog.domain.model.steam.ReviewSentiment;
+import com.robertforpresent.api.catalog.domain.model.steam.SteamRating;
 import com.robertforpresent.api.collection.infrastructure.persistence.PersonalizedGameEntity;
 import com.robertforpresent.api.collection.infrastructure.persistence.SpringDataCollectionRepository;
 import com.robertforpresent.api.catalog.domain.model.CanonicalGame;
@@ -73,7 +75,13 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private CanonicalGame mapToGame(ResultSet set) throws SQLException {
-        return new CanonicalGame.Builder(set.getString("name")).setRating(set.getFloat("rating")).setThumbnailUrl(thumbnail(set.getInt("app_id"))).build();
+
+        return new CanonicalGame.Builder(set.getString("name"))
+                .setSteamRating(new SteamRating(set.getInt("total_positive"),
+                        set.getInt("total_negative"),
+                        ReviewSentiment.fromScore(set.getInt("review_score"))))
+                .setThumbnailUrl(thumbnail(set.getInt("app_id")))
+                .build();
     }
 
 }

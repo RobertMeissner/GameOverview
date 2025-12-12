@@ -1,9 +1,11 @@
 package com.robertforpresent.api.catalog.domain.model;
 
-import lombok.Getter;
+import com.robertforpresent.api.catalog.domain.model.steam.ReviewSentiment;
+import com.robertforpresent.api.catalog.domain.model.steam.SteamRating;
 
 import java.time.Instant;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -25,11 +27,9 @@ import java.util.UUID;
  */
 
 public class CanonicalGame {
-    @Getter
-    private final UUID id;
-    private String canonicalName;
-    private String thumbnailUrl;
-    private float rating;
+    GameIdentity identity;
+    AggregatedRatings ratings;
+    private final String thumbnailUrl;
 
     private CanonicalMetadata metadata;
 
@@ -39,11 +39,12 @@ public class CanonicalGame {
     private Instant updatedAt;
 
 
-    // public static CanonicalGame add(){}
-    // public static CanonicalGame addStoreData(GameStore store){}
+    public UUID getId() {
+        return identity.id();
+    }
 
     public String getName() {
-        return this.canonicalName;
+        return this.identity.name();
     }
 
     public String getThumbnailUrl() {
@@ -51,17 +52,21 @@ public class CanonicalGame {
     }
 
     public float getRating() {
-        return rating;
+        return ratings.rating();
+    }
+
+    public AggregatedRatings getRatings() {
+        return ratings;
     }
 
     /**
      * Explicit builder. Favoured over Lombok to have in-depth control
      */
     public static class Builder {
-        private String name;
+        private final String name;
         private UUID id;
-        private float rating;
         private String thumbnailUrl;
+        private SteamRating steamRating;
 
         public Builder(String name) {
             this.name = name;
@@ -79,24 +84,23 @@ public class CanonicalGame {
             return this;
         }
 
-        public Builder setRating(float rating) {
-            this.rating = rating;
+        public Builder setThumbnailUrl(String thumbnailUrl) {
+            this.thumbnailUrl = thumbnailUrl;
             return this;
         }
 
-        public Builder setThumbnailUrl(String thumbnailUrl) {
-            this.thumbnailUrl = thumbnailUrl;
+        public Builder setSteamRating(SteamRating rating) {
+            this.steamRating = rating;
             return this;
         }
     }
 
     private CanonicalGame(Builder builder) {
-        id = builder.id;
-        canonicalName = builder.name;
+        identity = new GameIdentity(builder.id, builder.name, builder.name);
         thumbnailUrl = builder.thumbnailUrl;
         storeData = Map.of();
         createdAt = Instant.now();
         updatedAt = Instant.now();
-        rating = builder.rating;
+        ratings = new AggregatedRatings(builder.steamRating);
     }
 }
