@@ -16,8 +16,14 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "http://localhost:4200")
 public class GamerCollectionController {
+    private final TopRankedMapper mapper;
+
     @Autowired
     private GamerCollectionService service;
+
+    public GamerCollectionController(TopRankedMapper mapper) {
+        this.mapper = mapper;
+    }
 
     @GetMapping("/collection")
     public List<CollectionGameView> getCollection(@RequestParam String userId){
@@ -25,8 +31,8 @@ public class GamerCollectionController {
     }
 
     @GetMapping("/collection/top")
-    public List<CollectionGameView> getTop3(@RequestParam String userId){
-        return service.getTop3(UUID.fromString(userId));
+    public List<TopRankedDTO> getTop3(@RequestParam String userId){
+        return service.getTop3(UUID.fromString(userId)).stream().map(mapper::toDto).toList();
     }
 
 }
