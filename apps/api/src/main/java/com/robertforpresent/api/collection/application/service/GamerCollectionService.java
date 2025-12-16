@@ -1,10 +1,10 @@
 package com.robertforpresent.api.collection.application.service;
 
 import com.robertforpresent.api.catalog.application.service.CatalogService;
+import com.robertforpresent.api.catalog.domain.model.CanonicalGame;
 import com.robertforpresent.api.collection.application.dto.CollectionGameView;
 import com.robertforpresent.api.collection.domain.model.PersonalizedGame;
 import com.robertforpresent.api.collection.domain.repository.CollectionRepository;
-import com.robertforpresent.api.catalog.domain.model.CanonicalGame;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -31,6 +31,8 @@ public class GamerCollectionService {
 
     private CollectionGameView toView(PersonalizedGame pg) {
         CanonicalGame canonical = catalog.get(pg.getCanonicalGameId());
-        return new CollectionGameView(pg.getCanonicalGameId(), canonical.getName(), canonical.getThumbnailUrl(), canonical.getRating());
+        return new CollectionGameView(pg.getCanonicalGameId(), canonical.getName(),
+                canonical.getThumbnailUrl(), canonical.getRating(),
+                pg.isMarkedAsPlayed(), pg.isMarkedAsHidden(), pg.isMarkedForLater());
     }
 }

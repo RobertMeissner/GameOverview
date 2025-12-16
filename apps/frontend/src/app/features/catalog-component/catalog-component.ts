@@ -1,7 +1,7 @@
 import {Component, inject, OnInit, signal} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {GamesService} from '../../services/games.service';
-import {Game} from '../../domain/entities/game.model';
+import {CollectionEntry} from '../../domain/entities/CollectionEntry';
 
 @Component({
   selector: 'app-catalog-component',
@@ -16,7 +16,7 @@ export class CatalogComponent implements OnInit {
 
   private gamesService = inject(GamesService);
 
-  games = signal<Game[]>([]);
+  games = signal<CollectionEntry[]>([]);
 
   private loadGames(): void {
     this.gamesService.getAllGames().subscribe({

@@ -6,6 +6,9 @@ public record CollectionGameView(
         UUID id,
         String name,
         String thumbnailUrl,
-        float rating
+        float rating,
+        boolean markedAsPlayed,
+        boolean markedAsHidden,
+        boolean markedForLater
 ) {
 }

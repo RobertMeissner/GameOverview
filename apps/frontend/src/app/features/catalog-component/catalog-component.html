@@ -3,7 +3,7 @@
   <div class="game-grid">
     @for (game of games(); track game.id ?? game.name) {
       <div class="game-card">
-        <h3>{{ game.name }}</h3>
+        <h3>{{ game.name }}: {{game.rating}}. {{game.markedAsPlayed}}</h3>
       </div>
     }
   </div>

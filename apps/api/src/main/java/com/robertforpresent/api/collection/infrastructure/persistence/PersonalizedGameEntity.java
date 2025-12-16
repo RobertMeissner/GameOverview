@@ -1,5 +1,6 @@
 package com.robertforpresent.api.collection.infrastructure.persistence;
 
+import com.robertforpresent.api.collection.domain.model.PersonalizedGame;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,10 +27,34 @@ public class PersonalizedGameEntity {
     @Column(nullable = false)
     private UUID canonicalGameId;
 
-    public PersonalizedGameEntity(UUID gamerId, UUID canonicalGameId) {
+    @Getter
+    @Setter
+    @Column(nullable = false)
+    private boolean markAsPlayed;
+
+
+    @Getter
+    @Setter
+    @Column(nullable = false)
+    private boolean markAsHidden;
+
+    @Getter
+    @Setter
+    @Column(nullable = false)
+    private boolean markAsForLater;
+
+    public PersonalizedGameEntity(UUID gamerId, UUID canonicalGameId, boolean markAsPlayed, boolean markAsHidden, boolean markAsForLater) {
         this.gamerId = gamerId;
         this.canonicalGameId = canonicalGameId;
+        this.markAsPlayed = markAsPlayed;
+        this.markAsHidden = markAsHidden;
+        this.markAsForLater = markAsForLater;
+
     }
 
     public PersonalizedGameEntity(){}
+
+    public static PersonalizedGameEntity from(PersonalizedGame game){
+        return new PersonalizedGameEntity(game.getGamerId(), game.getCanonicalGameId(), game.isMarkedAsPlayed(), game.isMarkedAsHidden(), game.isMarkedForLater());
+    }
 }
