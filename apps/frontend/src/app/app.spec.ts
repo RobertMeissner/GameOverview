@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { App } from './app';
+import { describe, beforeEach, it} from 'vitest';
 
 describe('App', () => {
   beforeEach(async () => {
@@ -14,10 +15,10 @@ describe('App', () => {
     expect(app).toBeTruthy();
   });
 
-  it('should render title', async () => {
+  it('should have router outlet for navigation', () => {
     const fixture = TestBed.createComponent(App);
-    await fixture.whenStable();
+    fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, frontend_ng');
+    expect(compiled.querySelector('router-outlet')).toBeTruthy();
   });
 });

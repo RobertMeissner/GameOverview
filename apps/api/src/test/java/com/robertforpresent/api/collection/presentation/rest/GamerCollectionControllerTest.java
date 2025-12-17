@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -29,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * <p>Tests the user collection endpoints: listing, top games, and flag updates.</p>
  */
 @WebMvcTest(GamerCollectionController.class)
+@Import({ObjectMapper.class})
 class GamerCollectionControllerTest {
 
     private static final UUID TEST_USER_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");

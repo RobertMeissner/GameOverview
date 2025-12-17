@@ -96,8 +96,8 @@ class CatalogControllerTest {
         mockMvc.perform(get("/catalog"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].ratings").exists())
-                .andExpect(jsonPath("$[0].ratings.steamRating.positiveReviews", is(100)))
-                .andExpect(jsonPath("$[0].ratings.steamRating.negativeReviews", is(10)));
+                .andExpect(jsonPath("$[0].ratings.steam.positive", is(100)))
+                .andExpect(jsonPath("$[0].ratings.steam.negative", is(10)));
     }
 
     @Test

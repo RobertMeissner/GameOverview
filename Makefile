@@ -15,6 +15,7 @@ run-frontend:
 
 test:
 	cd apps/api && ./mvnw test
+	cd apps/frontend && bun run test
 
 clean:
-	rm -rf apps/api target && cd apps/api && ./mvnw clean install
+	rm -rf apps/api/target && cd apps/api && ./mvnw clean install

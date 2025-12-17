@@ -101,9 +101,9 @@ class LegacyGameMapperTest {
 
             // then
             assertNotNull(result.getRatings());
-            assertNotNull(result.getRatings().steamRating());
-            assertEquals(100, result.getRatings().steamRating().positiveReviews());
-            assertEquals(20, result.getRatings().steamRating().negativeReviews());
+            assertNotNull(result.getRatings().steam());
+            assertEquals(100, result.getRatings().steam().positive());
+            assertEquals(20, result.getRatings().steam().negative());
         }
 
         @Test
@@ -116,7 +116,7 @@ class LegacyGameMapperTest {
             CanonicalGame result = mapper.toCanonicalGame(legacy);
 
             // then
-            assertEquals(ReviewSentiment.VERY_POSITIVE, result.getRatings().steamRating().sentiment());
+            assertEquals(ReviewSentiment.VERY_POSITIVE, result.getRatings().steam().sentiment());
         }
 
         @Test
@@ -129,7 +129,7 @@ class LegacyGameMapperTest {
             CanonicalGame result = mapper.toCanonicalGame(legacy);
 
             // then
-            assertNull(result.getRatings().steamRating());
+            assertNull(result.getRatings().steam());
         }
 
         @Test
@@ -142,7 +142,7 @@ class LegacyGameMapperTest {
             CanonicalGame result = mapper.toCanonicalGame(legacy);
 
             // then
-            assertNull(result.getRatings().steamRating());
+            assertNull(result.getRatings().steam());
         }
 
         @Test
@@ -155,7 +155,7 @@ class LegacyGameMapperTest {
             CanonicalGame result = mapper.toCanonicalGame(legacy);
 
             // then
-            assertNull(result.getRatings().steamRating());
+            assertNull(result.getRatings().steam());
         }
 
         @Test
@@ -168,8 +168,8 @@ class LegacyGameMapperTest {
             CanonicalGame result = mapper.toCanonicalGame(legacy);
 
             // then
-            assertNotNull(result.getRatings().steamRating());
-            assertEquals(ReviewSentiment.UNDEFINED, result.getRatings().steamRating().sentiment());
+            assertNotNull(result.getRatings().steam());
+            assertEquals(ReviewSentiment.UNDEFINED, result.getRatings().steam().sentiment());
         }
 
         @Test
@@ -191,7 +191,7 @@ class LegacyGameMapperTest {
         private void assertSentimentForScore(Long score, ReviewSentiment expected) {
             LegacyGame legacy = createLegacyGame("Test", 123L, 100L, 10L, score);
             CanonicalGame result = mapper.toCanonicalGame(legacy);
-            assertEquals(expected, result.getRatings().steamRating().sentiment(),
+            assertEquals(expected, result.getRatings().steam().sentiment(),
                     "Score " + score + " should map to " + expected);
         }
     }

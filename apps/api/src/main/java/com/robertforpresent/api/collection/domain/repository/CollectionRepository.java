@@ -1,10 +1,8 @@
 package com.robertforpresent.api.collection.domain.repository;
 
 import com.robertforpresent.api.collection.domain.model.PersonalizedGame;
-import com.robertforpresent.api.collection.infrastructure.persistence.PersonalizedGameEntity;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 public interface CollectionRepository {

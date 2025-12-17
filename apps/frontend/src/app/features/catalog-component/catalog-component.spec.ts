@@ -1,5 +1,6 @@
-import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { of, throwError, Subject } from 'rxjs';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { of, throwError } from 'rxjs';
+import {describe, beforeEach, it, vi, MockedObject} from "vitest";
 
 import { CatalogComponent } from './catalog-component';
 import { GamesService } from '../../services/games.service';
@@ -9,8 +10,8 @@ import { CollectionEntry } from '../../domain/entities/CollectionEntry';
  * Unit tests for CatalogComponent.
  *
  * Demonstrates Angular testing patterns:
- * 1. Service mocking with Jasmine spies
- * 2. Testing async behavior with fakeAsync/tick
+ * 1. Service mocking with Vitest mocks
+ * 2. Testing async behavior with async/await and fixture.whenStable()
  * 3. Testing component lifecycle (ngOnInit)
  * 4. Testing user interactions
  * 5. DOM testing with fixture.nativeElement
@@ -18,7 +19,7 @@ import { CollectionEntry } from '../../domain/entities/CollectionEntry';
 describe('CatalogComponent', () => {
   let component: CatalogComponent;
   let fixture: ComponentFixture<CatalogComponent>;
-  let gamesServiceSpy: jasmine.SpyObj<GamesService>;
+  let gamesServiceSpy: MockedObject<GamesService>;
 
   // Test data factory
   const createMockGame = (overrides: Partial<CollectionEntry> = {}): CollectionEntry => ({
@@ -33,18 +34,17 @@ describe('CatalogComponent', () => {
   });
 
   beforeEach(async () => {
-    // Create spy object with all service methods
-    const spy = jasmine.createSpyObj('GamesService', ['getAllGames', 'updateGameFlags']);
-    // Default behavior: return empty array
-    spy.getAllGames.and.returnValue(of([]));
-    spy.updateGameFlags.and.returnValue(of(createMockGame()));
+    const spy = {
+      getAllGames: vi.fn().mockReturnValue(of([])),
+      updateGameFlags: vi.fn().mockReturnValue(of(createMockGame())),
+    };
 
     await TestBed.configureTestingModule({
       imports: [CatalogComponent],
       providers: [{ provide: GamesService, useValue: spy }],
     }).compileComponents();
 
-    gamesServiceSpy = TestBed.inject(GamesService) as jasmine.SpyObj<GamesService>;
+    gamesServiceSpy = TestBed.inject(GamesService) as MockedObject<GamesService>;
     fixture = TestBed.createComponent(CatalogComponent);
     component = fixture.componentInstance;
   });
@@ -62,22 +62,22 @@ describe('CatalogComponent', () => {
       expect(gamesServiceSpy.getAllGames).toHaveBeenCalledTimes(1);
     });
 
-    it('should populate games signal with service response', fakeAsync(() => {
+    it('should populate games signal with service response', async () => {
       // given
       const mockGames = [
         createMockGame({ id: '1', name: 'Stardew Valley' }),
         createMockGame({ id: '2', name: 'Half-Life 2' }),
       ];
-      gamesServiceSpy.getAllGames.and.returnValue(of(mockGames));
+      gamesServiceSpy.getAllGames.mockReturnValue(of(mockGames));
 
       // when
       fixture.detectChanges();
-      tick();
+      await fixture.whenStable();
 
       // then
       expect(component.games()).toEqual(mockGames);
       expect(component.games().length).toBe(2);
-    }));
+    });
 
     it('should start with empty games array', () => {
       expect(component.games()).toEqual([]);
@@ -105,34 +105,34 @@ describe('CatalogComponent', () => {
       });
     });
 
-    it('should handle service errors gracefully', fakeAsync(() => {
+    it('should handle service errors gracefully', async () => {
       // given
       const game = createMockGame();
-      const consoleSpy = spyOn(console, 'error');
-      gamesServiceSpy.updateGameFlags.and.returnValue(throwError(() => new Error('API Error')));
+      const consoleSpy = vi.spyOn(console, 'error');
+      gamesServiceSpy.updateGameFlags.mockReturnValue(throwError(() => new Error('API Error')));
 
       // when
       component.onFlagChange(game);
-      tick();
+      await fixture.whenStable();
 
       // then - should not throw, just log error
       expect(consoleSpy).toHaveBeenCalled();
-    }));
+    });
   });
 
   describe('error handling', () => {
-    it('should handle getAllGames error gracefully', fakeAsync(() => {
+    it('should handle getAllGames error gracefully', async () => {
       // given
-      const consoleSpy = spyOn(console, 'error');
-      gamesServiceSpy.getAllGames.and.returnValue(throwError(() => new Error('Network error')));
+      const consoleSpy = vi.spyOn(console, 'error');
+      gamesServiceSpy.getAllGames.mockReturnValue(throwError(() => new Error('Network error')));
 
       // when
       fixture.detectChanges();
-      tick();
+      await fixture.whenStable();
 
       // then
       expect(consoleSpy).toHaveBeenCalled();
       expect(component.games()).toEqual([]); // Should remain empty
-    }));
+    });
   });
 });

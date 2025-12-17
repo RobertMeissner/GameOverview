@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
+import { describe, beforeEach, it, afterEach, expect } from 'vitest';
 
 import { GamesService } from './games.service';
 import { CollectionEntry } from '../domain/entities/CollectionEntry';
@@ -48,7 +49,6 @@ describe('GamesService', () => {
   });
 
   afterEach(() => {
-    // Verify no outstanding HTTP requests
     httpMock.verify();
   });
 
@@ -90,7 +90,7 @@ describe('GamesService', () => {
     it('should propagate HTTP errors', () => {
       // when
       service.getAllGames().subscribe({
-        next: () => fail('should have failed'),
+        next: () => expect.fail('should have failed'),
         error: (error) => {
           // then
           expect(error.status).toBe(500);
@@ -157,7 +157,7 @@ describe('GamesService', () => {
 
       // when
       service.updateGameFlags(gameId, flags).subscribe({
-        next: () => fail('should have failed'),
+        next: () => expect.fail('should have failed'),
         error: (error) => {
           expect(error.status).toBe(404);
         },
