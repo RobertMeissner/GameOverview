@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import {describe, beforeEach, it} from "vitest";
 import { MainLayout } from './main-layout';
+import {provideRouter} from '@angular/router';
 
 describe('MainLayout', () => {
   let component: MainLayout;
@@ -8,7 +9,8 @@ describe('MainLayout', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [MainLayout]
+      imports: [MainLayout],
+      providers: [provideRouter([])]
     })
     .compileComponents();
 
