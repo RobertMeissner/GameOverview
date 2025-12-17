@@ -53,15 +53,17 @@ describe('GamesService', () => {
   });
 
   describe('getAllGames()', () => {
-    it('should fetch collection from correct URL with userId param', () => {
+    it('should fetch collection from correct URL with userId param and transform thumbnail URLs', () => {
       // given
       const mockResponse: CollectionEntry[] = [mockCollectionEntry];
 
       // when
       service.getAllGames().subscribe((games) => {
         // then
-        expect(games).toEqual(mockResponse);
         expect(games.length).toBe(1);
+        // Thumbnail URL should be transformed to cached endpoint
+        expect(games[0].thumbnailUrl).toBe(`${environment.apiUrl}/thumbnails/${mockCollectionEntry.id}`);
+        expect(games[0].name).toBe(mockCollectionEntry.name);
       });
 
       // Verify the request
@@ -103,13 +105,16 @@ describe('GamesService', () => {
   });
 
   describe('getTopGames()', () => {
-    it('should fetch top games from correct endpoint', () => {
+    it('should fetch top games from correct endpoint and transform thumbnail URLs', () => {
       // given
       const mockResponse: Game[] = [mockGame];
 
       // when
       service.getTopGames().subscribe((games) => {
-        expect(games).toEqual(mockResponse);
+        expect(games.length).toBe(1);
+        // Thumbnail URL should be transformed to cached endpoint
+        expect(games[0].thumbnailUrl).toBe(`${environment.apiUrl}/thumbnails/${mockGame.id}`);
+        expect(games[0].name).toBe(mockGame.name);
       });
 
       // then
@@ -124,7 +129,7 @@ describe('GamesService', () => {
   });
 
   describe('updateGameFlags()', () => {
-    it('should send PATCH request with correct body', () => {
+    it('should send PATCH request with correct body and transform thumbnail URL', () => {
       // given
       const gameId = 'game-123';
       const flags = {
@@ -136,6 +141,8 @@ describe('GamesService', () => {
       // when
       service.updateGameFlags(gameId, flags).subscribe((result) => {
         expect(result.markedAsPlayed).toBe(true);
+        // Thumbnail URL should be transformed to cached endpoint
+        expect(result.thumbnailUrl).toBe(`${environment.apiUrl}/thumbnails/${gameId}`);
       });
 
       // then

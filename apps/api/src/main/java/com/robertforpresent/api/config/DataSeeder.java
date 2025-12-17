@@ -52,7 +52,7 @@ public class DataSeeder implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         if (canonicalGameRepository.findAll().isEmpty()) {
-            log.debug("H2 database empty. Seeding now with test games.");
+            log.info("Database empty. Seeding with legacy game data.");
             seedGames();
         }
     }
@@ -86,7 +86,7 @@ public class DataSeeder implements CommandLineRunner {
                 collectionRepository.save(entity);
             });
 
-            log.debug("{} games added to catalog and test user collection", savedWithState.size());
+            log.info("{} games added to catalog and test user collection", savedWithState.size());
         }
     }
 
