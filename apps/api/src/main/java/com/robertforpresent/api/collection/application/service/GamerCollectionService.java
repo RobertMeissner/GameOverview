@@ -5,6 +5,7 @@ import com.robertforpresent.api.catalog.domain.model.CanonicalGame;
 import com.robertforpresent.api.collection.application.dto.CollectionGameView;
 import com.robertforpresent.api.collection.domain.model.PersonalizedGame;
 import com.robertforpresent.api.collection.domain.repository.CollectionRepository;
+import com.robertforpresent.api.collection.presentation.rest.UpdateFlagsRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -34,5 +35,10 @@ public class GamerCollectionService {
         return new CollectionGameView(pg.getCanonicalGameId(), canonical.getName(),
                 canonical.getThumbnailUrl(), canonical.getRating(),
                 pg.isMarkedAsPlayed(), pg.isMarkedAsHidden(), pg.isMarkedForLater());
+    }
+
+    public CollectionGameView updateFlags(UUID gamerId, UUID canonicalGameId, UpdateFlagsRequest request) {
+        PersonalizedGame game = repository.updateFlags(gamerId, canonicalGameId, request.markedAsPlayed(), request.markedAsHidden(), request.markedForLater());
+        return toView(game);
     }
 }

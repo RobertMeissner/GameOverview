@@ -20,4 +20,12 @@ export class GamesService {
   getTopGames(): Observable<Game[]> {
     return this.http.get<Game[]>(`${this.apiUrl}/collection/top`, {params: {"userId": this.userId}});
   }
+
+  updateGameFlags(gameId: string, flags: {
+    markedAsPlayed: boolean;
+    markedAsHidden: boolean;
+    markedForLater: boolean;
+  }): Observable<CollectionEntry> {
+    return this.http.patch<CollectionEntry>(`${this.apiUrl}/collection/games/${gameId}`, flags, {params: {"userId": this.userId}});
+  }
 }

@@ -1,8 +1,12 @@
 package com.robertforpresent.api.collection.infrastructure.persistence;
 
+import com.robertforpresent.api.collection.application.dto.CollectionGameView;
 import com.robertforpresent.api.collection.domain.model.PersonalizedGame;
 import com.robertforpresent.api.collection.domain.repository.CollectionRepository;
+import com.robertforpresent.api.collection.presentation.rest.UpdateFlagsRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.UUID;
@@ -30,6 +34,17 @@ public class CollectionRepositoryAdapter implements CollectionRepository {
     @Override
     public PersonalizedGame save(PersonalizedGame game) {
         PersonalizedGameEntity entity = mapper.toEntity(game);
+        PersonalizedGameEntity saved = jpaRepository.save(entity);
+        return mapper.toDomain(saved);
+    }
+
+
+    public PersonalizedGame updateFlags(UUID gamerId, UUID canonicalGameId, boolean played, boolean hidden, boolean forLater) {
+        PersonalizedGameEntity entity = jpaRepository.findByGamerIdAndCanonicalGameId(gamerId, canonicalGameId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Game not in collection"));
+
+        entity.setMarkAsPlayed(played);
+        entity.setMarkAsHidden(hidden);
+        entity.setMarkAsForLater(forLater);
         PersonalizedGameEntity saved = jpaRepository.save(entity);
         return mapper.toDomain(saved);
     }
