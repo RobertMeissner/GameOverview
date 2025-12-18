@@ -5,13 +5,12 @@ import com.robertforpresent.api.catalog.domain.repository.CanonicalGameRepositor
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.UUID;
 
 @Service
 public class CatalogService {
     private final CanonicalGameRepository repository;
 
-    public CanonicalGame get(UUID id) {
+    public CanonicalGame get(String id) {
         return repository.findById(id).orElseThrow();
     }
 

@@ -1,15 +1,12 @@
 package com.robertforpresent.api.collection.infrastructure.persistence;
 
-import com.robertforpresent.api.collection.application.dto.CollectionGameView;
 import com.robertforpresent.api.collection.domain.model.PersonalizedGame;
 import com.robertforpresent.api.collection.domain.repository.CollectionRepository;
-import com.robertforpresent.api.collection.presentation.rest.UpdateFlagsRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.UUID;
 
 @Repository
 public class CollectionRepositoryAdapter implements CollectionRepository {
@@ -23,11 +20,11 @@ public class CollectionRepositoryAdapter implements CollectionRepository {
 
     @Override
     public List<PersonalizedGame> findAll() {
-        return List.of();
+        return jpaRepository.findAll().stream().map(mapper::toDomain).toList();
     }
 
     @Override
-    public List<PersonalizedGame> findByGamerId(UUID id) {
+    public List<PersonalizedGame> findByGamerId(String id) {
         return jpaRepository.findByGamerId(id).stream().map(mapper::toDomain).toList();
     }
 
@@ -39,7 +36,7 @@ public class CollectionRepositoryAdapter implements CollectionRepository {
     }
 
 
-    public PersonalizedGame updateFlags(UUID gamerId, UUID canonicalGameId, boolean played, boolean hidden, boolean forLater) {
+    public PersonalizedGame updateFlags(String gamerId, String canonicalGameId, boolean played, boolean hidden, boolean forLater) {
         PersonalizedGameEntity entity = jpaRepository.findByGamerIdAndCanonicalGameId(gamerId, canonicalGameId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Game not in collection"));
 
         entity.setMarkAsPlayed(played);
