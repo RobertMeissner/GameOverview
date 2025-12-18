@@ -6,18 +6,21 @@ import com.robertforpresent.api.collection.application.dto.CollectionGameView;
 import com.robertforpresent.api.collection.domain.model.PersonalizedGame;
 import com.robertforpresent.api.collection.domain.repository.CollectionRepository;
 import com.robertforpresent.api.collection.presentation.rest.UpdateFlagsRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 public class GamerCollectionService {
     private final CollectionRepository repository;
     private final CatalogService catalog;
 
     public List<CollectionGameView> getCollection(UUID gamerId) {
+        log.info("Found by gamer id, size: {}", repository.findByGamerId(gamerId).size());
         return repository.findByGamerId(gamerId).stream().map(this::toView).toList();
     }
 

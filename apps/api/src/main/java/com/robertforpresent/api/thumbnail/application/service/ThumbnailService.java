@@ -56,7 +56,7 @@ public class ThumbnailService {
         if (Files.exists(cachedFile)) {
             try {
                 String contentType = Files.probeContentType(cachedFile);
-                return Optional.ofNullable(contentType != null ? contentType : "image/jpeg");
+                return Optional.of(contentType != null ? contentType : "image/jpeg");
             } catch (IOException e) {
                 return Optional.of("image/jpeg");
             }

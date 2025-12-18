@@ -6,6 +6,7 @@ compile:
 run:
 	cd apps/api && ./mvnw spring-boot:run & \
 	cd apps/frontend && bun run start
+	fuser -k 8080/tcp
 
 run-backend:
 	cd apps/api && ./mvnw spring-boot:run

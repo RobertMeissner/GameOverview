@@ -24,6 +24,7 @@ public class GamerCollectionController {
 
     @GetMapping("/collection")
     public List<CollectionGameView> getCollection(@RequestParam String userId) {
+        log.info("Collection for {}", userId);
         return service.getCollection(UUID.fromString(userId));
     }
 
