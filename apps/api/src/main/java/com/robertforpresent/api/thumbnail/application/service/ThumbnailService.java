@@ -64,7 +64,7 @@ public class ThumbnailService {
     }
 
     private Path getCacheFilePath(String gameId) {
-        return cacheConfig.getCachePath().resolve(gameId.toString() + ".jpg");
+        return cacheConfig.getCachePath().resolve(gameId + ".jpg");
     }
 
     private Optional<byte[]> readFromCache(Path cachedFile) {
