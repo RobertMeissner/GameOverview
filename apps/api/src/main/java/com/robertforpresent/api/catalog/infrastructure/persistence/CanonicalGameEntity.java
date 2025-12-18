@@ -34,6 +34,7 @@ public class CanonicalGameEntity {
 
     @Getter
     @Setter
+    @Column(name = "thumbnail_url")
     private String thumbnailUrl;
 
     public CanonicalGameEntity(UUID id, String name, SteamRatingEmbeddable steamRating, String thumbnailUrl) {

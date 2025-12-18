@@ -19,28 +19,28 @@ public class PersonalizedGameEntity {
 
     @Getter
     @Setter
-    @Column(nullable = false)
+    @Column(name = "gamer_id", nullable = false)
     private UUID gamerId;
 
     @Getter
     @Setter
-    @Column(nullable = false)
+    @Column(name = "canonical_game_id", nullable = false)
     private UUID canonicalGameId;
 
     @Getter
     @Setter
-    @Column(nullable = false)
+    @Column(name = "mark_as_played", nullable = false)
     private boolean markAsPlayed;
 
 
     @Getter
     @Setter
-    @Column(nullable = false)
+    @Column(name = "mark_as_hidden", nullable = false)
     private boolean markAsHidden;
 
     @Getter
     @Setter
-    @Column(nullable = false)
+    @Column(name = "mark_as_for_later", nullable = false)
     private boolean markAsForLater;
 
     public PersonalizedGameEntity(UUID gamerId, UUID canonicalGameId, boolean markAsPlayed, boolean markAsHidden, boolean markAsForLater) {
