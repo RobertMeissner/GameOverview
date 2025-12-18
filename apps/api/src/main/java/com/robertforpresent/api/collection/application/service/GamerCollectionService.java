@@ -10,17 +10,18 @@ import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class GamerCollectionService {
     private final CollectionRepository repository;
     private final CatalogService catalog;
 
-    public List<CollectionGameView> getCollection(String gamerId) {
+    public List<CollectionGameView> getCollection(UUID gamerId) {
         return repository.findByGamerId(gamerId).stream().map(this::toView).toList();
     }
 
-    public List<CollectionGameView> getTop3(String gamerId) {
+    public List<CollectionGameView> getTop3(UUID gamerId) {
         return getCollection(gamerId).stream()
                 .filter(game -> !game.markedAsPlayed() && !game.markedAsHidden() && !game.markedForLater())
                 .sorted(Comparator.comparing(CollectionGameView::rating).reversed())
@@ -40,7 +41,7 @@ public class GamerCollectionService {
                 pg.isMarkedAsPlayed(), pg.isMarkedAsHidden(), pg.isMarkedForLater());
     }
 
-    public CollectionGameView updateFlags(String gamerId, String canonicalGameId, UpdateFlagsRequest request) {
+    public CollectionGameView updateFlags(UUID gamerId, UUID canonicalGameId, UpdateFlagsRequest request) {
         PersonalizedGame game = repository.updateFlags(gamerId, canonicalGameId, request.markedAsPlayed(), request.markedAsHidden(), request.markedForLater());
         return toView(game);
     }

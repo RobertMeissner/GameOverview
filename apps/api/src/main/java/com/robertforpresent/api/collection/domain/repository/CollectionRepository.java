@@ -3,13 +3,14 @@ package com.robertforpresent.api.collection.domain.repository;
 import com.robertforpresent.api.collection.domain.model.PersonalizedGame;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface CollectionRepository {
     List<PersonalizedGame> findAll();
 
-    List<PersonalizedGame> findByGamerId(String id);
+    List<PersonalizedGame> findByGamerId(UUID id);
 
-    PersonalizedGame updateFlags(String gamerId, String canonicalGameId,
+    PersonalizedGame updateFlags(UUID gamerId, UUID canonicalGameId,
                                  boolean played, boolean hidden, boolean forLater);
 
     PersonalizedGame save(PersonalizedGame game);

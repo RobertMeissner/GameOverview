@@ -3,6 +3,8 @@ package com.robertforpresent.api.thumbnail.presentation.rest;
 
 import com.robertforpresent.api.thumbnail.application.service.ThumbnailService;
 import java.util.Optional;
+import java.util.UUID;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
@@ -22,7 +24,7 @@ public class ThumbnailController {
     private final ThumbnailService thumbnailService;
 
     @GetMapping("/{gameId}")
-    public ResponseEntity<byte[]> getThumbnail(@PathVariable String gameId) {
+    public ResponseEntity<byte[]> getThumbnail(@PathVariable UUID gameId) {
         Optional<byte[]> thumbnail = thumbnailService.getThumbnail(gameId);
 
         if (thumbnail.isEmpty()) {
@@ -39,7 +41,7 @@ public class ThumbnailController {
     }
 
     @GetMapping("/{gameId}/status")
-    public ResponseEntity<ThumbnailStatus> getThumbnailStatus(@PathVariable String gameId) {
+    public ResponseEntity<ThumbnailStatus> getThumbnailStatus(@PathVariable UUID gameId) {
         boolean cached = thumbnailService.isCached(gameId);
         return ResponseEntity.ok(new ThumbnailStatus(gameId, cached));
     }
@@ -57,7 +59,7 @@ public class ThumbnailController {
         return String.format("%.1f %s", bytes / Math.pow(1024, exp), pre);
     }
 
-    public record ThumbnailStatus(String gameId, boolean cached) {}
+    public record ThumbnailStatus(UUID gameId, boolean cached) {}
 
     public record CacheStats(long totalBytes, String formattedSize) {}
 }

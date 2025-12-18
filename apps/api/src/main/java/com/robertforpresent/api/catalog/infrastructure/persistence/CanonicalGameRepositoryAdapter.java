@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public class CanonicalGameRepositoryAdapter implements CanonicalGameRepository {
@@ -18,8 +19,8 @@ public class CanonicalGameRepositoryAdapter implements CanonicalGameRepository {
     }
 
     @Override
-    public Optional<CanonicalGame> findById(String id) {
-        return springDataRepository.findById(id).map(mapper::toDomain);
+    public Optional<CanonicalGame> findById(UUID id) {
+        return springDataRepository.findById(id.toString()).map(mapper::toDomain);
     }
 
 

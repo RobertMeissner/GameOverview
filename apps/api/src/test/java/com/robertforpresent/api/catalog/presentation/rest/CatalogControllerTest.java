@@ -13,6 +13,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.when;
@@ -103,7 +104,7 @@ class CatalogControllerTest {
     @DisplayName("GET /catalog returns game with generated UUID")
     void getCatalog_returnsGameWithId() throws Exception {
         // given
-        String fixedId = "550e8400-e29b-41d4-a716-446655440000";
+        UUID fixedId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
         CanonicalGame game = new CanonicalGame.Builder("Test Game")
                 .setId(fixedId)
                 .build();

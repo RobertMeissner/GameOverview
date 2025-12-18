@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.UUID;
 
 @Repository
 public class CollectionRepositoryAdapter implements CollectionRepository {
@@ -24,8 +25,8 @@ public class CollectionRepositoryAdapter implements CollectionRepository {
     }
 
     @Override
-    public List<PersonalizedGame> findByGamerId(String id) {
-        return jpaRepository.findByGamerId(id).stream().map(mapper::toDomain).toList();
+    public List<PersonalizedGame> findByGamerId(UUID id) {
+        return jpaRepository.findByGamerId(id.toString()).stream().map(mapper::toDomain).toList();
     }
 
     @Override
@@ -36,8 +37,8 @@ public class CollectionRepositoryAdapter implements CollectionRepository {
     }
 
 
-    public PersonalizedGame updateFlags(String gamerId, String canonicalGameId, boolean played, boolean hidden, boolean forLater) {
-        PersonalizedGameEntity entity = jpaRepository.findByGamerIdAndCanonicalGameId(gamerId, canonicalGameId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Game not in collection"));
+    public PersonalizedGame updateFlags(UUID gamerId, UUID canonicalGameId, boolean played, boolean hidden, boolean forLater) {
+        PersonalizedGameEntity entity = jpaRepository.findByGamerIdAndCanonicalGameId(gamerId.toString(), canonicalGameId.toString()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Game not in collection"));
 
         entity.setMarkAsPlayed(played);
         entity.setMarkAsHidden(hidden);

@@ -14,6 +14,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Optional;
+import java.util.UUID;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -36,7 +38,7 @@ public class ThumbnailService {
                         .build();
     }
 
-    public Optional<byte[]> getThumbnail(String gameId) {
+    public Optional<byte[]> getThumbnail(UUID gameId) {
         if (!cacheConfig.isEnabled()) {
             return Optional.empty();
         }
@@ -50,7 +52,7 @@ public class ThumbnailService {
         return downloadAndCache(gameId, cachedFile);
     }
 
-    public Optional<String> getContentType(String gameId) {
+    public Optional<String> getContentType(UUID gameId) {
         Path cachedFile = getCacheFilePath(gameId);
         if (Files.exists(cachedFile)) {
             try {
@@ -63,7 +65,7 @@ public class ThumbnailService {
         return Optional.of("image/jpeg");
     }
 
-    private Path getCacheFilePath(String gameId) {
+    private Path getCacheFilePath(UUID gameId) {
         return cacheConfig.getCachePath().resolve(gameId + ".jpg");
     }
 
@@ -77,7 +79,7 @@ public class ThumbnailService {
         }
     }
 
-    private Optional<byte[]> downloadAndCache(String gameId, Path cachedFile) {
+    private Optional<byte[]> downloadAndCache(UUID gameId, Path cachedFile) {
         Optional<CanonicalGame> gameOpt = gameRepository.findById(gameId);
         if (gameOpt.isEmpty()) {
             log.warn("Game not found for thumbnail: {}", gameId);
@@ -126,11 +128,11 @@ public class ThumbnailService {
         }
     }
 
-    public boolean isCached(String gameId) {
+    public boolean isCached(UUID gameId) {
         return Files.exists(getCacheFilePath(gameId));
     }
 
-    public void evict(String gameId) {
+    public void evict(UUID gameId) {
         Path cachedFile = getCacheFilePath(gameId);
         try {
             Files.deleteIfExists(cachedFile);

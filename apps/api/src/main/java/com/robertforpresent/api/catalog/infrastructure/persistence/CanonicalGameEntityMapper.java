@@ -6,19 +6,21 @@ import com.robertforpresent.api.catalog.infrastructure.persistence.steam.SteamRa
 import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 
 @Component
 public class CanonicalGameEntityMapper {
     public CanonicalGame toDomain(CanonicalGameEntity entity) {
         SteamRating steamRating = mapSteamRatingToDomain(entity.getSteamRating());
-        return new CanonicalGame.Builder(entity.getName()).setId(entity.getId()).setSteamRating(steamRating).setThumbnailUrl(entity.getThumbnailUrl()).build();
+        return new CanonicalGame.Builder(entity.getName()).setId(UUID.fromString(entity.getId())).setSteamRating(steamRating).setThumbnailUrl(entity.getThumbnailUrl()).build();
     }
 
     public CanonicalGameEntity toEntity(CanonicalGame domain) {
         SteamRatingEmbeddable steamRating = mapSteamRatingToEmbeddable(
                 domain.getRatings().steam()  // @Nullable field
         );
-        return new CanonicalGameEntity(domain.getId(), domain.getName(), steamRating, domain.getThumbnailUrl());
+        return new CanonicalGameEntity(domain.getId().toString(), domain.getName(), steamRating, domain.getThumbnailUrl());
     }
 
     @Nullable

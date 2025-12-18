@@ -37,7 +37,7 @@ public class CanonicalGame {
     private Instant updatedAt;
 
 
-    public String getId() {
+    public UUID getId() {
         return identity.id();
     }
 
@@ -62,7 +62,7 @@ public class CanonicalGame {
      */
     public static class Builder {
         private final String name;
-        private String id;
+        private UUID id;
         private String thumbnailUrl;
         private SteamRating steamRating;
 
@@ -72,12 +72,12 @@ public class CanonicalGame {
 
         public CanonicalGame build() {
             if (id == null) {
-                this.id = String.valueOf(UUID.randomUUID());
+                this.id = UUID.randomUUID();
             }
             return new CanonicalGame(this);
         }
 
-        public Builder setId(String id) {
+        public Builder setId(UUID id) {
             this.id = id;
             return this;
         }

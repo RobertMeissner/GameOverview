@@ -53,6 +53,6 @@ public class PersonalizedGameEntity {
     public PersonalizedGameEntity(){}
 
     public static PersonalizedGameEntity from(PersonalizedGame game){
-        return new PersonalizedGameEntity(game.getGamerId(), game.getCanonicalGameId(), game.isMarkedAsPlayed(), game.isMarkedAsHidden(), game.isMarkedForLater());
+        return new PersonalizedGameEntity(game.getGamerId().toString(), game.getCanonicalGameId().toString(), game.isMarkedAsPlayed(), game.isMarkedAsHidden(), game.isMarkedForLater());
     }
 }

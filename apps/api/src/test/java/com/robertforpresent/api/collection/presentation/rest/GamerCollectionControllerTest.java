@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -32,9 +33,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import({ObjectMapper.class})
 class GamerCollectionControllerTest {
 
-    private static final String TEST_USER_ID = "00000000-0000-0000-0000-000000000001";
-    private static final String GAME_ID_1 ="11111111-1111-1111-1111-111111111111";
-    private static final String GAME_ID_2 = "22222222-2222-2222-2222-222222222222";
+    private static final UUID TEST_USER_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
+    private static final UUID GAME_ID_1 = UUID.fromString("11111111-1111-1111-1111-111111111111");
+    private static final UUID GAME_ID_2 = UUID.fromString("22222222-2222-2222-2222-222222222222");
 
     @Autowired
     private MockMvc mockMvc;
@@ -64,7 +65,7 @@ class GamerCollectionControllerTest {
 
             // when/then
             mockMvc.perform(get("/collection")
-                            .param("userId", TEST_USER_ID))
+                            .param("userId", String.valueOf(TEST_USER_ID)))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType("application/json"))
                     .andExpect(jsonPath("$", hasSize(2)))
@@ -80,7 +81,7 @@ class GamerCollectionControllerTest {
 
             // when/then
             mockMvc.perform(get("/collection")
-                            .param("userId", TEST_USER_ID))
+                            .param("userId", String.valueOf(TEST_USER_ID)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(0)));
         }
@@ -95,7 +96,7 @@ class GamerCollectionControllerTest {
 
             // when/then
             mockMvc.perform(get("/collection")
-                            .param("userId", TEST_USER_ID))
+                            .param("userId", String.valueOf(TEST_USER_ID)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$[0].markedAsPlayed", is(true)))
                     .andExpect(jsonPath("$[0].markedAsHidden", is(false)))
@@ -133,7 +134,7 @@ class GamerCollectionControllerTest {
 
             // when/then
             mockMvc.perform(get("/collection/top")
-                            .param("userId", TEST_USER_ID))
+                            .param("userId", String.valueOf(TEST_USER_ID)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(2)))
                     .andExpect(jsonPath("$[0].name", is("Best Game")))
@@ -148,7 +149,7 @@ class GamerCollectionControllerTest {
 
             // when/then
             mockMvc.perform(get("/collection/top")
-                            .param("userId", TEST_USER_ID))
+                            .param("userId", String.valueOf(TEST_USER_ID)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(0)));
         }
@@ -169,7 +170,7 @@ class GamerCollectionControllerTest {
 
             // when/then
             mockMvc.perform(patch("/collection/games/{gameId}", GAME_ID_1)
-                            .param("userId", TEST_USER_ID)
+                            .param("userId", String.valueOf(TEST_USER_ID))
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
@@ -189,7 +190,7 @@ class GamerCollectionControllerTest {
 
             // when/then
             mockMvc.perform(patch("/collection/games/{gameId}", GAME_ID_1)
-                            .param("userId", TEST_USER_ID)
+                            .param("userId", String.valueOf(TEST_USER_ID))
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
@@ -207,7 +208,7 @@ class GamerCollectionControllerTest {
 
             // when/then
             mockMvc.perform(patch("/collection/games/{gameId}", GAME_ID_1)
-                            .param("userId", TEST_USER_ID)
+                            .param("userId", String.valueOf(TEST_USER_ID))
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
@@ -219,13 +220,13 @@ class GamerCollectionControllerTest {
         void requiresRequestBody() throws Exception {
             // when/then
             mockMvc.perform(patch("/collection/games/{gameId}", GAME_ID_1)
-                            .param("userId", TEST_USER_ID)
+                            .param("userId", String.valueOf(TEST_USER_ID))
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest());
         }
     }
 
-    private CollectionGameView createGameView(String id, String name, float rating,
+    private CollectionGameView createGameView(UUID id, String name, float rating,
                                                boolean played, boolean hidden, boolean later) {
         return new CollectionGameView(id, name, "https://example.com/" + id + ".jpg", rating, played, hidden, later);
     }

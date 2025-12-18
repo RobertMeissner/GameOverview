@@ -1,6 +1,8 @@
 package com.robertforpresent.api.catalog.domain.model;
 
-public record GameIdentity(String id,
+import java.util.UUID;
+
+public record GameIdentity(UUID id,
                            String name,
                            String slug) {
 
