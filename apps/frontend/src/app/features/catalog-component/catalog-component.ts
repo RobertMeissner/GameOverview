@@ -22,15 +22,17 @@ export class CatalogComponent implements OnInit {
   filterPlayed = signal(false);
   filterHidden = signal(false);
   filterForLater = signal(false);
+  filterUnflagged = signal(false);
 
   filteredGames = computed(() => {
     const allGames = this.games();
     const showPlayed = this.filterPlayed();
     const showHidden = this.filterHidden();
     const showForLater = this.filterForLater();
+    const showUnflagged = this.filterUnflagged();
 
     // If no filters are active, show all games
-    if (!showPlayed && !showHidden && !showForLater) {
+    if (!showPlayed && !showHidden && !showForLater && !showUnflagged) {
       return allGames;
     }
 
@@ -38,7 +40,7 @@ export class CatalogComponent implements OnInit {
     return allGames.filter(game =>
       (showPlayed && game.markedAsPlayed) ||
       (showHidden && game.markedAsHidden) ||
-      (showForLater && game.markedForLater)
+      (showForLater && game.markedForLater) || (showUnflagged && (!game.markedAsPlayed && !game.markedForLater && !game.markedAsHidden))
     );
   });
 
