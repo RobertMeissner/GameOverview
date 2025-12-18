@@ -28,6 +28,8 @@ public class CanonicalGame {
     GameIdentity identity;
     AggregatedRatings ratings;
     private final String thumbnailUrl;
+    private final Integer steamAppId;
+    private final String steamName;
 
     private CanonicalMetadata metadata;
 
@@ -57,6 +59,14 @@ public class CanonicalGame {
         return ratings;
     }
 
+    public Integer getSteamAppId() {
+        return steamAppId;
+    }
+
+    public String getSteamName() {
+        return steamName;
+    }
+
     /**
      * Explicit builder. Favoured over Lombok to have in-depth control
      */
@@ -65,6 +75,8 @@ public class CanonicalGame {
         private UUID id;
         private String thumbnailUrl;
         private SteamRating steamRating;
+        private Integer steamAppId;
+        private String steamName;
 
         public Builder(String name) {
             this.name = name;
@@ -91,11 +103,23 @@ public class CanonicalGame {
             this.steamRating = rating;
             return this;
         }
+
+        public Builder setSteamAppId(Integer steamAppId) {
+            this.steamAppId = steamAppId;
+            return this;
+        }
+
+        public Builder setSteamName(String steamName) {
+            this.steamName = steamName;
+            return this;
+        }
     }
 
     private CanonicalGame(Builder builder) {
         identity = new GameIdentity(builder.id, builder.name, builder.name);
         thumbnailUrl = builder.thumbnailUrl;
+        steamAppId = builder.steamAppId;
+        steamName = builder.steamName;
         storeData = Map.of();
         createdAt = Instant.now();
         updatedAt = Instant.now();

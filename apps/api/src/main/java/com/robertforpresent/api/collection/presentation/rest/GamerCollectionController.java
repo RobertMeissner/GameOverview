@@ -1,5 +1,6 @@
 package com.robertforpresent.api.collection.presentation.rest;
 
+import com.robertforpresent.api.collection.application.dto.AdminGameView;
 import com.robertforpresent.api.collection.application.dto.CollectionGameView;
 import com.robertforpresent.api.collection.application.service.GamerCollectionService;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +36,16 @@ public class GamerCollectionController {
     @PatchMapping("/collection/games/{gameId}")
     public CollectionGameView updateFlags(@PathVariable UUID gameId, @RequestParam UUID userId, @RequestBody UpdateFlagsRequest request) {
         return service.updateFlags(userId, gameId, request);
+    }
+
+    @GetMapping("/collection/admin")
+    public List<AdminGameView> getAdminCollection(@RequestParam UUID userId) {
+        return service.getAdminCollection(userId);
+    }
+
+    @GetMapping("/collection/backlog")
+    public List<CollectionGameView> getBacklog(@RequestParam UUID userId) {
+        return service.getBacklog(userId);
     }
 
 }

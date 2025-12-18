@@ -3,11 +3,10 @@ package com.robertforpresent.api.catalog.presentation.rest;
 import com.robertforpresent.api.catalog.application.service.CatalogService;
 import com.robertforpresent.api.catalog.domain.model.CanonicalGame;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -22,5 +21,10 @@ public class CatalogController {
     @GetMapping("/catalog")
     public List<CanonicalGame> games() {
         return service.getAllGames();
+    }
+
+    @PatchMapping("/catalog/games/{gameId}")
+    public CanonicalGame updateCatalogValues(@PathVariable UUID gameId, @RequestBody UpdateCatalogRequest request) {
+        return service.updateCatalogValues(gameId, request.steamAppId(), request.steamName());
     }
 }

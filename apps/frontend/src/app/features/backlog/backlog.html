@@ -1,0 +1,76 @@
+<div class="backlog-container">
+  <h2 class="section-title">Backlog</h2>
+  <p class="section-subtitle">Games you want to play later</p>
+
+  <div class="filter-section mb-3">
+    <div class="sort-row">
+      <span class="filter-label me-3">Sort by:</span>
+      <div class="sort-buttons">
+        <button type="button"
+                class="sort-btn"
+                [class.active]="sortField() === 'rating'"
+                (click)="setSortField('rating')">
+          <i class="bi" [class.bi-sort-down]="sortField() === 'rating' && sortDirection() === 'desc'"
+                        [class.bi-sort-up]="sortField() === 'rating' && sortDirection() === 'asc'"
+                        [class.bi-trophy]="sortField() !== 'rating'"></i>
+          Rating
+        </button>
+        <button type="button"
+                class="sort-btn"
+                [class.active]="sortField() === 'name'"
+                (click)="setSortField('name')">
+          <i class="bi" [class.bi-sort-alpha-down]="sortField() === 'name' && sortDirection() === 'desc'"
+                        [class.bi-sort-alpha-up]="sortField() === 'name' && sortDirection() === 'asc'"
+                        [class.bi-fonts]="sortField() !== 'name'"></i>
+          Name
+        </button>
+      </div>
+    </div>
+  </div>
+
+  @if (games().length === 0) {
+    <div class="empty-state">
+      <i class="bi bi-clock-history"></i>
+      <h3>No games in your backlog</h3>
+      <p>Mark games as "For Later" to add them to your backlog</p>
+    </div>
+  } @else {
+    <div class="game-grid">
+      @for (game of sortedGames(); track game.id ?? game.name) {
+        <div class="game-card">
+          <div class="game-thumbnail">
+            <img [src]="game.thumbnailUrl"
+                 [alt]="game.name"
+                 loading="lazy"/>
+          </div>
+          <div class="game-info">
+            <h3 class="game-title">{{ game.name }}</h3>
+            <div class="rating-container">
+              <div class="rating-bar">
+                <div class="rating-fill" [style.width.%]="game.rating"></div>
+              </div>
+              <span class="rating-score">{{ game.rating }}/100</span>
+            </div>
+            <div class="game-flags">
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" [id]="'played-'+game.id" [(ngModel)]="game.markedAsPlayed"
+                       (ngModelChange)="onFlagChange(game)">
+                <label class="form-check-label" [for]="'played-'+game.id">Played</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" [id]="'hide-'+game.id" [(ngModel)]="game.markedAsHidden"
+                       (ngModelChange)="onFlagChange(game)">
+                <label class="form-check-label" [for]="'hide-'+game.id">Hide</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" [id]="'later-'+game.id" [(ngModel)]="game.markedForLater"
+                       (ngModelChange)="onFlagChange(game)">
+                <label class="form-check-label" [for]="'later-'+game.id">For Later</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

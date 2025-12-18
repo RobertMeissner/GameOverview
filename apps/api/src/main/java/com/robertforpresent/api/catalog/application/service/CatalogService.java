@@ -22,4 +22,16 @@ public class CatalogService {
     public List<CanonicalGame> getAllGames() {
         return repository.findAll();
     }
+
+    public CanonicalGame updateCatalogValues(UUID id, Integer steamAppId, String steamName) {
+        CanonicalGame existing = repository.findById(id).orElseThrow();
+        CanonicalGame updated = new CanonicalGame.Builder(existing.getName())
+                .setId(existing.getId())
+                .setSteamRating(existing.getRatings().steam())
+                .setThumbnailUrl(existing.getThumbnailUrl())
+                .setSteamAppId(steamAppId != null ? steamAppId : existing.getSteamAppId())
+                .setSteamName(steamName != null ? steamName : existing.getSteamName())
+                .build();
+        return repository.save(updated);
+    }
 }

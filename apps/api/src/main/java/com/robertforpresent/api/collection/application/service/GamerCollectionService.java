@@ -2,6 +2,7 @@ package com.robertforpresent.api.collection.application.service;
 
 import com.robertforpresent.api.catalog.application.service.CatalogService;
 import com.robertforpresent.api.catalog.domain.model.CanonicalGame;
+import com.robertforpresent.api.collection.application.dto.AdminGameView;
 import com.robertforpresent.api.collection.application.dto.CollectionGameView;
 import com.robertforpresent.api.collection.domain.model.PersonalizedGame;
 import com.robertforpresent.api.collection.domain.repository.CollectionRepository;
@@ -44,5 +45,31 @@ public class GamerCollectionService {
     public CollectionGameView updateFlags(UUID gamerId, UUID canonicalGameId, UpdateFlagsRequest request) {
         PersonalizedGame game = repository.updateFlags(gamerId, canonicalGameId, request.markedAsPlayed(), request.markedAsHidden(), request.markedForLater());
         return toView(game);
+    }
+
+    public List<AdminGameView> getAdminCollection(UUID gamerId) {
+        return repository.findByGamerId(gamerId).stream().map(this::toAdminView).toList();
+    }
+
+    public List<CollectionGameView> getBacklog(UUID gamerId) {
+        return getCollection(gamerId).stream()
+                .filter(CollectionGameView::markedForLater)
+                .sorted(Comparator.comparing(CollectionGameView::rating).reversed())
+                .toList();
+    }
+
+    private AdminGameView toAdminView(PersonalizedGame pg) {
+        CanonicalGame canonical = catalog.get(pg.getCanonicalGameId());
+        return new AdminGameView(
+                pg.getCanonicalGameId(),
+                canonical.getName(),
+                canonical.getThumbnailUrl(),
+                canonical.getRating(),
+                pg.isMarkedAsPlayed(),
+                pg.isMarkedAsHidden(),
+                pg.isMarkedForLater(),
+                canonical.getSteamAppId(),
+                canonical.getSteamName()
+        );
     }
 }

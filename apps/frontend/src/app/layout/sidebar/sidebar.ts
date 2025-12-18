@@ -15,6 +15,8 @@ export class Sidebar {
   protected navItems = signal<NavItem[]>([
     {path: "/catalog", label: 'Catalog',icon:"bi-book"},
     {path: "/top-games", label: 'Top Games',icon: "bi-trophy"},
+    {path: "/backlog", label: 'Backlog',icon: "bi-clock-history"},
+    {path: "/admin", label: 'Admin',icon: "bi-gear-wide-connected"},
     {path: "/settings", label: 'Settings',icon: "bi-gear"},
     {path: "/about", label: 'About',icon:"bi-info-circle"},
   ])

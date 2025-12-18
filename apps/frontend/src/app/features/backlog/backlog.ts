@@ -1,0 +1,82 @@
+import {Component, computed, inject, OnInit, signal} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {FormsModule} from '@angular/forms';
+import {GamesService} from '../../services/games.service';
+import {CollectionEntry} from '../../domain/entities/CollectionEntry';
+
+export type SortField = 'name' | 'rating';
+export type SortDirection = 'asc' | 'desc';
+
+@Component({
+  selector: 'app-backlog',
+  imports: [CommonModule, FormsModule],
+  templateUrl: './backlog.html',
+  styleUrl: './backlog.scss',
+})
+export class Backlog implements OnInit {
+  ngOnInit(): void {
+    this.loadGames();
+  }
+
+  private gamesService = inject(GamesService);
+
+  games = signal<CollectionEntry[]>([]);
+
+  sortField = signal<SortField>('rating');
+  sortDirection = signal<SortDirection>('desc');
+
+  sortedGames = computed(() => {
+    const allGames = [...this.games()];
+    const field = this.sortField();
+    const direction = this.sortDirection();
+
+    allGames.sort((a, b) => {
+      let comparison = 0;
+      if (field === 'name') {
+        comparison = a.name.localeCompare(b.name);
+      } else if (field === 'rating') {
+        comparison = a.rating - b.rating;
+      }
+      return direction === 'asc' ? comparison : -comparison;
+    });
+
+    return allGames;
+  });
+
+  setSortField(field: SortField): void {
+    if (this.sortField() === field) {
+      this.sortDirection.update(dir => dir === 'asc' ? 'desc' : 'asc');
+    } else {
+      this.sortField.set(field);
+      this.sortDirection.set(field === 'rating' ? 'desc' : 'asc');
+    }
+  }
+
+  onFlagChange(game: CollectionEntry): void {
+    this.gamesService.updateGameFlags(game.id, {
+      markedAsPlayed: game.markedAsPlayed,
+      markedAsHidden: game.markedAsHidden,
+      markedForLater: game.markedForLater
+    }).subscribe({
+      next: () => {
+        if (!game.markedForLater) {
+          this.loadGames();
+        }
+      },
+      error: err => {
+        console.error(err);
+      }
+    });
+  }
+
+  private loadGames(): void {
+    this.gamesService.getBacklogGames().subscribe({
+      next: games => {
+        this.games.set(games);
+      },
+      error: err => {
+        console.error(err);
+      }
+    });
+  }
+}

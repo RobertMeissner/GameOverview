@@ -13,14 +13,20 @@ import java.util.UUID;
 public class CanonicalGameEntityMapper {
     public CanonicalGame toDomain(CanonicalGameEntity entity) {
         SteamRating steamRating = mapSteamRatingToDomain(entity.getSteamRating());
-        return new CanonicalGame.Builder(entity.getName()).setId(UUID.fromString(entity.getId())).setSteamRating(steamRating).setThumbnailUrl(entity.getThumbnailUrl()).build();
+        return new CanonicalGame.Builder(entity.getName())
+                .setId(UUID.fromString(entity.getId()))
+                .setSteamRating(steamRating)
+                .setThumbnailUrl(entity.getThumbnailUrl())
+                .setSteamAppId(entity.getSteamAppId())
+                .setSteamName(entity.getSteamName())
+                .build();
     }
 
     public CanonicalGameEntity toEntity(CanonicalGame domain) {
         SteamRatingEmbeddable steamRating = mapSteamRatingToEmbeddable(
                 domain.getRatings().steam()  // @Nullable field
         );
-        return new CanonicalGameEntity(domain.getId().toString(), domain.getName(), steamRating, domain.getThumbnailUrl());
+        return new CanonicalGameEntity(domain.getId().toString(), domain.getName(), steamRating, domain.getThumbnailUrl(), domain.getSteamAppId(), domain.getSteamName());
     }
 
     @Nullable

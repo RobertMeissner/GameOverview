@@ -1,0 +1,133 @@
+<div class="admin-container">
+  <h2 class="section-title">Admin Panel</h2>
+
+  <div class="filter-section mb-3">
+    <div class="filter-row">
+      <span class="filter-label me-3">Filter:</span>
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" id="filter-missing-appid" [(ngModel)]="filterMissingAppId">
+        <label class="form-check-label" for="filter-missing-appid">Missing App ID</label>
+      </div>
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" id="filter-name-mismatch" [(ngModel)]="filterNameMismatch">
+        <label class="form-check-label" for="filter-name-mismatch">Name Mismatch</label>
+      </div>
+    </div>
+
+    <div class="sort-row">
+      <span class="filter-label me-3">Sort by:</span>
+      <div class="sort-buttons">
+        <button type="button"
+                class="sort-btn"
+                [class.active]="sortField() === 'name'"
+                (click)="setSortField('name')">
+          <i class="bi" [class.bi-sort-alpha-down]="sortField() === 'name' && sortDirection() === 'desc'"
+                        [class.bi-sort-alpha-up]="sortField() === 'name' && sortDirection() === 'asc'"
+                        [class.bi-fonts]="sortField() !== 'name'"></i>
+          Name
+        </button>
+        <button type="button"
+                class="sort-btn"
+                [class.active]="sortField() === 'rating'"
+                (click)="setSortField('rating')">
+          <i class="bi" [class.bi-sort-down]="sortField() === 'rating' && sortDirection() === 'desc'"
+                        [class.bi-sort-up]="sortField() === 'rating' && sortDirection() === 'asc'"
+                        [class.bi-trophy]="sortField() !== 'rating'"></i>
+          Rating
+        </button>
+        <button type="button"
+                class="sort-btn"
+                [class.active]="sortField() === 'steamAppId'"
+                (click)="setSortField('steamAppId')">
+          <i class="bi bi-steam"></i>
+          App ID
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="game-table-container">
+    <table class="game-table">
+      <thead>
+        <tr>
+          <th class="col-thumbnail">Thumbnail</th>
+          <th class="col-name">Name</th>
+          <th class="col-rating">Rating</th>
+          <th class="col-steam">Steam App ID</th>
+          <th class="col-steam-name">Steam Name</th>
+          <th class="col-flags">Flags</th>
+          <th class="col-actions">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (game of filteredAndSortedGames(); track game.id) {
+          <tr [class.name-mismatch]="game.steamName && game.steamName !== game.name"
+              [class.missing-appid]="!game.steamAppId">
+            <td class="col-thumbnail">
+              <img [src]="game.thumbnailUrl" [alt]="game.name" class="thumbnail-img" loading="lazy"/>
+            </td>
+            <td class="col-name">{{ game.name }}</td>
+            <td class="col-rating">
+              <div class="rating-container">
+                <div class="rating-bar">
+                  <div class="rating-fill" [style.width.%]="game.rating"></div>
+                </div>
+                <span class="rating-score">{{ game.rating }}</span>
+              </div>
+            </td>
+            <td class="col-steam">
+              @if (editingGame()?.id === game.id) {
+                <input type="number" class="form-control form-control-sm" [(ngModel)]="editSteamAppId">
+              } @else {
+                <span [class.text-muted]="!game.steamAppId">{{ game.steamAppId ?? 'N/A' }}</span>
+              }
+            </td>
+            <td class="col-steam-name">
+              @if (editingGame()?.id === game.id) {
+                <input type="text" class="form-control form-control-sm" [(ngModel)]="editSteamName">
+              } @else {
+                <span [class.text-muted]="!game.steamName"
+                      [class.text-warning]="game.steamName && game.steamName !== game.name">
+                  {{ game.steamName ?? 'N/A' }}
+                </span>
+              }
+            </td>
+            <td class="col-flags">
+              <div class="flags-inline">
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="checkbox" [id]="'played-'+game.id" [(ngModel)]="game.markedAsPlayed"
+                         (ngModelChange)="onFlagChange(game)">
+                  <label class="form-check-label" [for]="'played-'+game.id"><i class="bi bi-check-circle"></i></label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="checkbox" [id]="'hide-'+game.id" [(ngModel)]="game.markedAsHidden"
+                         (ngModelChange)="onFlagChange(game)">
+                  <label class="form-check-label" [for]="'hide-'+game.id"><i class="bi bi-eye-slash"></i></label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="checkbox" [id]="'later-'+game.id" [(ngModel)]="game.markedForLater"
+                         (ngModelChange)="onFlagChange(game)">
+                  <label class="form-check-label" [for]="'later-'+game.id"><i class="bi bi-clock"></i></label>
+                </div>
+              </div>
+            </td>
+            <td class="col-actions">
+              @if (editingGame()?.id === game.id) {
+                <button class="btn btn-sm btn-success me-1" (click)="saveEdit()">
+                  <i class="bi bi-check"></i>
+                </button>
+                <button class="btn btn-sm btn-secondary" (click)="cancelEdit()">
+                  <i class="bi bi-x"></i>
+                </button>
+              } @else {
+                <button class="btn btn-sm btn-outline-primary" (click)="startEdit(game)">
+                  <i class="bi bi-pencil"></i>
+                </button>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

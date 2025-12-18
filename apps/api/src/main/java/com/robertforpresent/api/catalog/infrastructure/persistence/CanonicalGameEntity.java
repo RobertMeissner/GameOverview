@@ -36,11 +36,23 @@ public class CanonicalGameEntity {
     @Column(name = "thumbnail_url")
     private String thumbnailUrl;
 
-    public CanonicalGameEntity(String id, String name, SteamRatingEmbeddable steamRating, String thumbnailUrl) {
+    @Getter
+    @Setter
+    @Column(name = "steam_app_id")
+    private Integer steamAppId;
+
+    @Getter
+    @Setter
+    @Column(name = "steam_name")
+    private String steamName;
+
+    public CanonicalGameEntity(String id, String name, SteamRatingEmbeddable steamRating, String thumbnailUrl, Integer steamAppId, String steamName) {
         this.id = id;
         this.name = name;
         this.steamRating = steamRating;
         this.thumbnailUrl = thumbnailUrl;
+        this.steamAppId = steamAppId;
+        this.steamName = steamName;
     }
 
     public CanonicalGameEntity(){}

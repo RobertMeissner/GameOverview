@@ -4,6 +4,7 @@ import {HttpClient} from '@angular/common/http';
 import {map, Observable} from 'rxjs';
 import {environment} from '../../environments/environment';
 import {CollectionEntry} from '../domain/entities/CollectionEntry';
+import {AdminGameEntry} from '../domain/entities/AdminGameEntry';
 
 @Injectable({providedIn: 'root'})
 export class GamesService {
@@ -30,6 +31,23 @@ export class GamesService {
   }): Observable<CollectionEntry> {
     return this.http.patch<CollectionEntry>(`${this.apiUrl}/collection/games/${gameId}`, flags, {params: {"userId": this.userId}})
       .pipe(map(game => this.withCachedThumbnail(game)));
+  }
+
+  getAdminGames(): Observable<AdminGameEntry[]> {
+    return this.http.get<AdminGameEntry[]>(`${this.apiUrl}/collection/admin`, {params: {"userId": this.userId}})
+      .pipe(map(games => games.map(game => this.withCachedThumbnail(game))));
+  }
+
+  getBacklogGames(): Observable<CollectionEntry[]> {
+    return this.http.get<CollectionEntry[]>(`${this.apiUrl}/collection/backlog`, {params: {"userId": this.userId}})
+      .pipe(map(games => games.map(game => this.withCachedThumbnail(game))));
+  }
+
+  updateCatalogValues(gameId: string, values: {
+    steamAppId: number | null;
+    steamName: string | null;
+  }): Observable<void> {
+    return this.http.patch<void>(`${this.apiUrl}/catalog/games/${gameId}`, values);
   }
 
   private withCachedThumbnail<T extends { id: string; thumbnailUrl: string }>(game: T): T {
