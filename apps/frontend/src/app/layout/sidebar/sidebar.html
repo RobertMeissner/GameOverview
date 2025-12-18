@@ -18,4 +18,11 @@
       </a>
     }
   </nav>
+
+  <div class="sidebar-footer px-3">
+    <button class="theme-toggle" (click)="toggleTheme()" type="button" [title]="themeService.isDarkMode() ? 'Switch to light mode' : 'Switch to dark mode'">
+      <i class="bi nav-icon" [class.bi-sun-fill]="themeService.isDarkMode()" [class.bi-moon-fill]="!themeService.isDarkMode()"></i>
+      <span class="nav-label">{{ themeService.isDarkMode() ? 'Light Mode' : 'Dark Mode' }}</span>
+    </button>
+  </div>
 </aside>

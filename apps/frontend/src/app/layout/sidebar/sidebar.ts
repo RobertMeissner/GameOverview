@@ -1,6 +1,7 @@
-import {Component, signal, output} from '@angular/core';
+import {Component, signal, output, inject} from '@angular/core';
 import {RouterLink, RouterLinkActive} from '@angular/router';
 import {CommonModule} from '@angular/common';
+import {ThemeService} from '../../services/theme.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -9,6 +10,8 @@ import {CommonModule} from '@angular/common';
   styleUrl: './sidebar.scss',
 })
 export class Sidebar {
+  protected themeService = inject(ThemeService);
+
   protected navItems = signal<NavItem[]>([
     {path: "/catalog", label: 'Catalog',icon:"bi-book"},
     {path: "/top-games", label: 'Top Games',icon: "bi-trophy"},
@@ -22,6 +25,10 @@ export class Sidebar {
   protected toggleCollapse() {
     this.isCollapsed.update(v => !v);
     this.collapsedChange.emit(this.isCollapsed());
+  }
+
+  protected toggleTheme() {
+    this.themeService.toggleTheme();
   }
 }
 

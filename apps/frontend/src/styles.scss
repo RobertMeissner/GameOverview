@@ -1,2 +1,81 @@
 @use "bootstrap/dist/css/bootstrap.min.css";
 @use "bootstrap-icons/font/bootstrap-icons";
+
+// Theme CSS Variables
+:root {
+  // Light theme (default)
+  --bg-primary: white;
+  --bg-secondary: oklch(95% 0.01 300);
+  --bg-hover: oklch(95% 0.02 300);
+  --bg-body: oklch(97% 0.01 300);
+
+  --text-primary: oklch(20% 0.02 280);
+  --text-secondary: oklch(45% 0.02 280);
+
+  --border-color: oklch(90% 0.01 300);
+
+  --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06);
+  --card-shadow-hover: 0 12px 24px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.08);
+
+  // Accent colors (same for both themes)
+  --electric-violet: oklch(55% 0.25 290);
+  --gray-900: oklch(20% 0.02 280);
+  --gray-700: oklch(45% 0.02 280);
+
+  // Gradients
+  --red-to-pink-to-purple-horizontal-gradient: linear-gradient(
+    to right,
+    oklch(65% 0.2 25),
+    oklch(65% 0.22 350),
+    oklch(55% 0.25 290)
+  );
+  --red-to-pink-to-purple-vertical-gradient: linear-gradient(
+    to bottom,
+    oklch(65% 0.2 25),
+    oklch(65% 0.22 350),
+    oklch(55% 0.25 290)
+  );
+}
+
+// Dark theme
+[data-theme="dark"] {
+  --bg-primary: oklch(20% 0.02 280);
+  --bg-secondary: oklch(25% 0.02 280);
+  --bg-hover: oklch(30% 0.03 280);
+  --bg-body: oklch(15% 0.02 280);
+
+  --text-primary: oklch(95% 0.01 280);
+  --text-secondary: oklch(70% 0.02 280);
+
+  --border-color: oklch(35% 0.02 280);
+
+  --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
+  --card-shadow-hover: 0 12px 24px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3);
+
+  --gray-900: oklch(95% 0.01 280);
+  --gray-700: oklch(70% 0.02 280);
+}
+
+// Global body styles
+body {
+  background: var(--bg-body);
+  color: var(--text-primary);
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+// Override Bootstrap form controls for dark mode
+[data-theme="dark"] {
+  .form-check-input {
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+
+    &:checked {
+      background-color: var(--electric-violet);
+      border-color: var(--electric-violet);
+    }
+  }
+
+  .form-check-label {
+    color: var(--text-secondary);
+  }
+}
