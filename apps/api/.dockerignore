@@ -1,8 +1,0 @@
-target/
-!target/*.jar
-.git
-.gitignore
-.idea
-*.md
-*.iml
-data/
