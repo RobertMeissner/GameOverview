@@ -1,44 +1,19 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: gameoverview-db
-    environment:
-      POSTGRES_DB: gamedb
-      POSTGRES_USER: gameuser
-      POSTGRES_PASSWORD: gamepass
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U gameuser -d gamedb"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
   api:
     build:
       context: ./apps/api
       dockerfile: Dockerfile
     container_name: gameoverview-api
-    depends_on:
-      postgres:
-        condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_NAME: gamedb
-      DB_USERNAME: gameuser
-      DB_PASSWORD: gamepass
+      DB_PATH: /app/data/gamedb.sqlite
       THUMBNAIL_CACHE_DIR: /app/data/thumbnails
     ports:
       - "8080:8080"
     volumes:
-      - thumbnail_cache:/app/data/thumbnails
+      - app_data:/app/data
 
 volumes:
-  postgres_data:
-  thumbnail_cache:
+  app_data:
