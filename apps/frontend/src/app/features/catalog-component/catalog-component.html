@@ -23,23 +23,36 @@
   <div class="game-grid">
     @for (game of filteredGames(); track game.id ?? game.name) {
       <div class="game-card">
-        <h3>{{ game.name }}: {{ game.rating }}</h3>
-        <div class="form-check form-check-inline">
-          <input class="form-check-input" type="checkbox" [id]="'played-'+game.id" [(ngModel)]="game.markedAsPlayed"
-                 (ngModelChange)="onFlagChange(game)">
-          <label class="form-check-label" for="'played-'+game.id">Played</label>
-
+        <div class="game-thumbnail">
+          <img [src]="game.thumbnailUrl"
+               [alt]="game.name"
+               loading="lazy"/>
         </div>
-        <div class="form-check form-check-inline">
-          <input class="form-check-input" type="checkbox" [id]="'hide-'+game.id" [(ngModel)]="game.markedAsHidden"
-                 (ngModelChange)="onFlagChange(game)">
-          <label class="form-check-label" for="'hide-'+game.id">Hide</label>
-
-        </div>
-        <div class="form-check form-check-inline">
-          <input class="form-check-input" type="checkbox" [id]="'later-'+game.id" [(ngModel)]="game.markedForLater"
-                 (ngModelChange)="onFlagChange(game)">
-          <label class="form-check-label" for="'later-'+game.id">For Later</label>
+        <div class="game-info">
+          <h3 class="game-title">{{ game.name }}</h3>
+          <div class="rating-container">
+            <div class="rating-bar">
+              <div class="rating-fill" [style.width.%]="game.rating"></div>
+            </div>
+            <span class="rating-score">{{ game.rating }}/100</span>
+          </div>
+          <div class="game-flags">
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" [id]="'played-'+game.id" [(ngModel)]="game.markedAsPlayed"
+                     (ngModelChange)="onFlagChange(game)">
+              <label class="form-check-label" [for]="'played-'+game.id">Played</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" [id]="'hide-'+game.id" [(ngModel)]="game.markedAsHidden"
+                     (ngModelChange)="onFlagChange(game)">
+              <label class="form-check-label" [for]="'hide-'+game.id">Hide</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" [id]="'later-'+game.id" [(ngModel)]="game.markedForLater"
+                     (ngModelChange)="onFlagChange(game)">
+              <label class="form-check-label" [for]="'later-'+game.id">For Later</label>
+            </div>
+          </div>
         </div>
       </div>
     }
