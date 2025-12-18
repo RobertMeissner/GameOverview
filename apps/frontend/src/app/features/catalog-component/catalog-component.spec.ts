@@ -30,6 +30,11 @@ describe('CatalogComponent', () => {
     markedAsPlayed: false,
     markedAsHidden: false,
     markedForLater: false,
+    storeLinks: {
+      steamLink: null,
+      gogLink: null,
+      metacriticLink: null,
+    },
     ...overrides,
   });
 

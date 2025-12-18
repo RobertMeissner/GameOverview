@@ -5,6 +5,7 @@ import { describe, beforeEach, it, afterEach, expect } from 'vitest';
 
 import { GamesService } from './games.service';
 import { CollectionEntry } from '../domain/entities/CollectionEntry';
+import { AdminGameEntry } from '../domain/entities/AdminGameEntry';
 import { Game } from '../domain/entities/game.model';
 import { environment } from '../../environments/environment';
 
@@ -30,6 +31,11 @@ describe('GamesService', () => {
     markedAsPlayed: false,
     markedAsHidden: false,
     markedForLater: false,
+    storeLinks: {
+      steamLink: 'https://store.steampowered.com/app/413150',
+      gogLink: null,
+      metacriticLink: null,
+    },
   };
 
   const mockGame: Game = {
@@ -37,6 +43,25 @@ describe('GamesService', () => {
     name: 'Stardew Valley',
     rating: 0.95,
     thumbnailUrl: 'https://example.com/stardew.jpg',
+  };
+
+  const mockAdminGameEntry: AdminGameEntry = {
+    id: 'game-123',
+    name: 'Stardew Valley',
+    rating: 0.95,
+    thumbnailUrl: 'https://example.com/stardew.jpg',
+    markedAsPlayed: false,
+    markedAsHidden: false,
+    markedForLater: false,
+    steamAppId: 413150,
+    steamName: 'Stardew Valley',
+    steamLink: 'https://store.steampowered.com/app/413150',
+    gogId: 1453375253,
+    gogName: 'Stardew Valley',
+    gogLink: 'https://www.gog.com/game/stardew_valley',
+    metacriticScore: 89,
+    metacriticName: 'stardew-valley',
+    metacriticLink: 'https://www.metacritic.com/game/stardew-valley',
   };
 
   beforeEach(() => {
@@ -172,6 +197,151 @@ describe('GamesService', () => {
 
       // then
       const req = httpMock.expectOne((r) => r.url.includes(`/collection/games/${gameId}`));
+      req.flush('Game not found', { status: 404, statusText: 'Not Found' });
+    });
+  });
+
+  describe('getAdminGames()', () => {
+    it('should fetch admin games from correct endpoint and transform thumbnail URLs', () => {
+      // given
+      const mockResponse: AdminGameEntry[] = [mockAdminGameEntry];
+
+      // when
+      service.getAdminGames().subscribe((games) => {
+        expect(games.length).toBe(1);
+        expect(games[0].thumbnailUrl).toBe(`${environment.apiUrl}/thumbnails/${mockAdminGameEntry.id}`);
+        expect(games[0].steamAppId).toBe(413150);
+        expect(games[0].gogId).toBe(1453375253);
+        expect(games[0].metacriticScore).toBe(89);
+      });
+
+      // then
+      const req = httpMock.expectOne(
+        (request) =>
+          request.url === `${environment.apiUrl}/collection/admin` &&
+          request.params.get('userId') === environment.userId
+      );
+      expect(req.request.method).toBe('GET');
+      req.flush(mockResponse);
+    });
+
+    it('should return empty array when no admin games', () => {
+      // when
+      service.getAdminGames().subscribe((games) => {
+        expect(games).toEqual([]);
+      });
+
+      // then
+      const req = httpMock.expectOne((r) => r.url.includes('/collection/admin'));
+      req.flush([]);
+    });
+  });
+
+  describe('getBacklogGames()', () => {
+    it('should fetch backlog games from correct endpoint and transform thumbnail URLs', () => {
+      // given
+      const backlogEntry: CollectionEntry = {
+        ...mockCollectionEntry,
+        markedForLater: true,
+      };
+      const mockResponse: CollectionEntry[] = [backlogEntry];
+
+      // when
+      service.getBacklogGames().subscribe((games) => {
+        expect(games.length).toBe(1);
+        expect(games[0].thumbnailUrl).toBe(`${environment.apiUrl}/thumbnails/${backlogEntry.id}`);
+        expect(games[0].markedForLater).toBe(true);
+        expect(games[0].storeLinks.steamLink).toBe('https://store.steampowered.com/app/413150');
+      });
+
+      // then
+      const req = httpMock.expectOne(
+        (request) =>
+          request.url === `${environment.apiUrl}/collection/backlog` &&
+          request.params.get('userId') === environment.userId
+      );
+      expect(req.request.method).toBe('GET');
+      req.flush(mockResponse);
+    });
+
+    it('should return empty array when no backlog games', () => {
+      // when
+      service.getBacklogGames().subscribe((games) => {
+        expect(games).toEqual([]);
+      });
+
+      // then
+      const req = httpMock.expectOne((r) => r.url.includes('/collection/backlog'));
+      req.flush([]);
+    });
+  });
+
+  describe('updateCatalogValues()', () => {
+    it('should send PATCH request with all store data fields', () => {
+      // given
+      const gameId = 'game-123';
+      const values = {
+        steamAppId: 413150,
+        steamName: 'Stardew Valley',
+        gogId: 1453375253,
+        gogName: 'Stardew Valley',
+        metacriticScore: 89,
+        metacriticName: 'stardew-valley',
+      };
+
+      // when
+      service.updateCatalogValues(gameId, values).subscribe();
+
+      // then
+      const req = httpMock.expectOne(`${environment.apiUrl}/catalog/games/${gameId}`);
+      expect(req.request.method).toBe('PATCH');
+      expect(req.request.body).toEqual(values);
+      req.flush(null);
+    });
+
+    it('should allow null values for store fields', () => {
+      // given
+      const gameId = 'game-456';
+      const values = {
+        steamAppId: null,
+        steamName: null,
+        gogId: null,
+        gogName: null,
+        metacriticScore: null,
+        metacriticName: null,
+      };
+
+      // when
+      service.updateCatalogValues(gameId, values).subscribe();
+
+      // then
+      const req = httpMock.expectOne(`${environment.apiUrl}/catalog/games/${gameId}`);
+      expect(req.request.body).toEqual(values);
+      req.flush(null);
+    });
+
+    it('should handle catalog update errors', () => {
+      // given
+      const gameId = 'nonexistent';
+      const values = {
+        steamAppId: 123,
+        steamName: 'Test',
+        gogId: null,
+        gogName: null,
+        metacriticScore: null,
+        metacriticName: null,
+      };
+
+      // when
+      service.updateCatalogValues(gameId, values).subscribe({
+        next: () => expect.fail('should have failed'),
+        error: (error) => {
+          expect(error.status).toBe(404);
+        },
+      });
+
+      // then
+      const req = httpMock.expectOne(`${environment.apiUrl}/catalog/games/${gameId}`);
       req.flush('Game not found', { status: 404, statusText: 'Not Found' });
     });
   });
