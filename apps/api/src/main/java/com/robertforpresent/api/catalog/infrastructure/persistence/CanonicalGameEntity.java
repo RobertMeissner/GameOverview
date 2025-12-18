@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.UUID;
 
 @Entity
 @Table(name = "canonical_games")
@@ -14,7 +13,7 @@ public class CanonicalGameEntity {
     @Getter
     @Setter
     @Id
-    private UUID id;
+    private String id;
 
 
     @Getter
@@ -34,9 +33,10 @@ public class CanonicalGameEntity {
 
     @Getter
     @Setter
+    @Column(name = "thumbnail_url")
     private String thumbnailUrl;
 
-    public CanonicalGameEntity(UUID id, String name, SteamRatingEmbeddable steamRating, String thumbnailUrl) {
+    public CanonicalGameEntity(String id, String name, SteamRatingEmbeddable steamRating, String thumbnailUrl) {
         this.id = id;
         this.name = name;
         this.steamRating = steamRating;

@@ -5,8 +5,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.UUID;
-
 @Entity
 @Table(name = "personalized_games")
 public class PersonalizedGameEntity {
@@ -15,35 +13,35 @@ public class PersonalizedGameEntity {
     @Setter
     @Id
     @GeneratedValue
-    private UUID id;
+    private String id;
 
     @Getter
     @Setter
-    @Column(nullable = false)
-    private UUID gamerId;
+    @Column(name = "gamer_id", nullable = false)
+    private String gamerId;
 
     @Getter
     @Setter
-    @Column(nullable = false)
-    private UUID canonicalGameId;
+    @Column(name = "canonical_game_id", nullable = false)
+    private String canonicalGameId;
 
     @Getter
     @Setter
-    @Column(nullable = false)
+    @Column(name = "mark_as_played", nullable = false)
     private boolean markAsPlayed;
 
 
     @Getter
     @Setter
-    @Column(nullable = false)
+    @Column(name = "mark_as_hidden", nullable = false)
     private boolean markAsHidden;
 
     @Getter
     @Setter
-    @Column(nullable = false)
+    @Column(name = "mark_as_for_later", nullable = false)
     private boolean markAsForLater;
 
-    public PersonalizedGameEntity(UUID gamerId, UUID canonicalGameId, boolean markAsPlayed, boolean markAsHidden, boolean markAsForLater) {
+    public PersonalizedGameEntity(String gamerId, String canonicalGameId, boolean markAsPlayed, boolean markAsHidden, boolean markAsForLater) {
         this.gamerId = gamerId;
         this.canonicalGameId = canonicalGameId;
         this.markAsPlayed = markAsPlayed;
@@ -55,6 +53,6 @@ public class PersonalizedGameEntity {
     public PersonalizedGameEntity(){}
 
     public static PersonalizedGameEntity from(PersonalizedGame game){
-        return new PersonalizedGameEntity(game.getGamerId(), game.getCanonicalGameId(), game.isMarkedAsPlayed(), game.isMarkedAsHidden(), game.isMarkedForLater());
+        return new PersonalizedGameEntity(game.getGamerId().toString(), game.getCanonicalGameId().toString(), game.isMarkedAsPlayed(), game.isMarkedAsHidden(), game.isMarkedForLater());
     }
 }

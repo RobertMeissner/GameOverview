@@ -20,7 +20,7 @@ public class CanonicalGameRepositoryAdapter implements CanonicalGameRepository {
 
     @Override
     public Optional<CanonicalGame> findById(UUID id) {
-        return springDataRepository.findById(id).map(mapper::toDomain);
+        return springDataRepository.findById(id.toString()).map(mapper::toDomain);
     }
 
 

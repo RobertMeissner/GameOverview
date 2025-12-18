@@ -1,11 +1,9 @@
 package com.robertforpresent.api.catalog.domain.model;
 
-import com.robertforpresent.api.catalog.domain.model.steam.ReviewSentiment;
 import com.robertforpresent.api.catalog.domain.model.steam.SteamRating;
 
 import java.time.Instant;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 /**

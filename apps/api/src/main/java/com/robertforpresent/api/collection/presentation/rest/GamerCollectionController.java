@@ -23,18 +23,18 @@ public class GamerCollectionController {
     }
 
     @GetMapping("/collection")
-    public List<CollectionGameView> getCollection(@RequestParam String userId) {
-        return service.getCollection(UUID.fromString(userId));
+    public List<CollectionGameView> getCollection(@RequestParam UUID userId) {
+        return service.getCollection(userId);
     }
 
     @GetMapping("/collection/top")
-    public List<TopRankedDTO> getTop3(@RequestParam String userId) {
-        return service.getTop3(UUID.fromString(userId)).stream().map(mapper::toDto).toList();
+    public List<TopRankedDTO> getTop3(@RequestParam UUID userId) {
+        return service.getTop3(userId).stream().map(mapper::toDto).toList();
     }
 
     @PatchMapping("/collection/games/{gameId}")
-    public CollectionGameView updateFlags(@PathVariable UUID gameId, @RequestParam String userId, @RequestBody UpdateFlagsRequest request) {
-        return service.updateFlags(UUID.fromString(userId), gameId, request);
+    public CollectionGameView updateFlags(@PathVariable UUID gameId, @RequestParam UUID userId, @RequestBody UpdateFlagsRequest request) {
+        return service.updateFlags(userId, gameId, request);
     }
 
 }

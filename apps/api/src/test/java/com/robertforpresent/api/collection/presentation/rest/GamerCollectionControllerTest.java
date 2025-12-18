@@ -65,7 +65,7 @@ class GamerCollectionControllerTest {
 
             // when/then
             mockMvc.perform(get("/collection")
-                            .param("userId", TEST_USER_ID.toString()))
+                            .param("userId", String.valueOf(TEST_USER_ID)))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType("application/json"))
                     .andExpect(jsonPath("$", hasSize(2)))
@@ -81,7 +81,7 @@ class GamerCollectionControllerTest {
 
             // when/then
             mockMvc.perform(get("/collection")
-                            .param("userId", TEST_USER_ID.toString()))
+                            .param("userId", String.valueOf(TEST_USER_ID)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(0)));
         }
@@ -96,7 +96,7 @@ class GamerCollectionControllerTest {
 
             // when/then
             mockMvc.perform(get("/collection")
-                            .param("userId", TEST_USER_ID.toString()))
+                            .param("userId", String.valueOf(TEST_USER_ID)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$[0].markedAsPlayed", is(true)))
                     .andExpect(jsonPath("$[0].markedAsHidden", is(false)))
@@ -134,7 +134,7 @@ class GamerCollectionControllerTest {
 
             // when/then
             mockMvc.perform(get("/collection/top")
-                            .param("userId", TEST_USER_ID.toString()))
+                            .param("userId", String.valueOf(TEST_USER_ID)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(2)))
                     .andExpect(jsonPath("$[0].name", is("Best Game")))
@@ -149,7 +149,7 @@ class GamerCollectionControllerTest {
 
             // when/then
             mockMvc.perform(get("/collection/top")
-                            .param("userId", TEST_USER_ID.toString()))
+                            .param("userId", String.valueOf(TEST_USER_ID)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(0)));
         }
@@ -170,7 +170,7 @@ class GamerCollectionControllerTest {
 
             // when/then
             mockMvc.perform(patch("/collection/games/{gameId}", GAME_ID_1)
-                            .param("userId", TEST_USER_ID.toString())
+                            .param("userId", String.valueOf(TEST_USER_ID))
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
@@ -190,7 +190,7 @@ class GamerCollectionControllerTest {
 
             // when/then
             mockMvc.perform(patch("/collection/games/{gameId}", GAME_ID_1)
-                            .param("userId", TEST_USER_ID.toString())
+                            .param("userId", String.valueOf(TEST_USER_ID))
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
@@ -208,7 +208,7 @@ class GamerCollectionControllerTest {
 
             // when/then
             mockMvc.perform(patch("/collection/games/{gameId}", GAME_ID_1)
-                            .param("userId", TEST_USER_ID.toString())
+                            .param("userId", String.valueOf(TEST_USER_ID))
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
@@ -220,7 +220,7 @@ class GamerCollectionControllerTest {
         void requiresRequestBody() throws Exception {
             // when/then
             mockMvc.perform(patch("/collection/games/{gameId}", GAME_ID_1)
-                            .param("userId", TEST_USER_ID.toString())
+                            .param("userId", String.valueOf(TEST_USER_ID))
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest());
         }
