@@ -5,8 +5,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.UUID;
-
 @Entity
 @Table(name = "personalized_games")
 public class PersonalizedGameEntity {
@@ -15,17 +13,17 @@ public class PersonalizedGameEntity {
     @Setter
     @Id
     @GeneratedValue
-    private UUID id;
+    private String id;
 
     @Getter
     @Setter
     @Column(name = "gamer_id", nullable = false)
-    private UUID gamerId;
+    private String gamerId;
 
     @Getter
     @Setter
     @Column(name = "canonical_game_id", nullable = false)
-    private UUID canonicalGameId;
+    private String canonicalGameId;
 
     @Getter
     @Setter
@@ -43,7 +41,7 @@ public class PersonalizedGameEntity {
     @Column(name = "mark_as_for_later", nullable = false)
     private boolean markAsForLater;
 
-    public PersonalizedGameEntity(UUID gamerId, UUID canonicalGameId, boolean markAsPlayed, boolean markAsHidden, boolean markAsForLater) {
+    public PersonalizedGameEntity(String gamerId, String canonicalGameId, boolean markAsPlayed, boolean markAsHidden, boolean markAsForLater) {
         this.gamerId = gamerId;
         this.canonicalGameId = canonicalGameId;
         this.markAsPlayed = markAsPlayed;

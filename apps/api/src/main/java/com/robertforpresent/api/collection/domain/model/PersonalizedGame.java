@@ -1,13 +1,11 @@
 package com.robertforpresent.api.collection.domain.model;
 
-import java.util.UUID;
-
 /**
  * A game owned by a user. It holds user-specific data and links to exactly one non-user-specific {@code CanonicalGame}
  */
 public class PersonalizedGame {
-    private final UUID canonicalGameId;
-    private final UUID gamerId;
+    private final String canonicalGameId;
+    private final String gamerId;
     private boolean markedAsPlayed;
     private boolean markedAsHidden;
     private boolean markedForLater;
@@ -22,11 +20,11 @@ public class PersonalizedGame {
         this.markedForLater = builder.markAsForLater;
     }
 
-    public UUID getCanonicalGameId() {
+    public String getCanonicalGameId() {
         return canonicalGameId;
     }
 
-    public UUID getGamerId() {
+    public String getGamerId() {
         return gamerId;
     }
 
@@ -71,8 +69,8 @@ public class PersonalizedGame {
      * Explicit builder. Favoured over Lombok to have in-depth control
      */
     public static class Builder {
-        private UUID canonicalId;
-        private UUID gamerId;
+        private String canonicalId;
+        private String gamerId;
         private boolean markAsPlayed;
         private boolean markAsHidden;
         private boolean markAsForLater;
@@ -85,12 +83,12 @@ public class PersonalizedGame {
             return new PersonalizedGame(this);
         }
 
-        public PersonalizedGame.Builder setCanonicalId(UUID id) {
+        public PersonalizedGame.Builder setCanonicalId(String id) {
             this.canonicalId = id;
             return this;
         }
 
-        public PersonalizedGame.Builder setGamerId(UUID gamerId) {
+        public PersonalizedGame.Builder setGamerId(String gamerId) {
             this.gamerId = gamerId;
             return this;
         }

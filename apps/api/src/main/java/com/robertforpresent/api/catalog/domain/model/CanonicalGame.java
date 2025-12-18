@@ -1,11 +1,9 @@
 package com.robertforpresent.api.catalog.domain.model;
 
-import com.robertforpresent.api.catalog.domain.model.steam.ReviewSentiment;
 import com.robertforpresent.api.catalog.domain.model.steam.SteamRating;
 
 import java.time.Instant;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -39,7 +37,7 @@ public class CanonicalGame {
     private Instant updatedAt;
 
 
-    public UUID getId() {
+    public String getId() {
         return identity.id();
     }
 
@@ -64,7 +62,7 @@ public class CanonicalGame {
      */
     public static class Builder {
         private final String name;
-        private UUID id;
+        private String id;
         private String thumbnailUrl;
         private SteamRating steamRating;
 
@@ -74,12 +72,12 @@ public class CanonicalGame {
 
         public CanonicalGame build() {
             if (id == null) {
-                this.id = UUID.randomUUID();
+                this.id = String.valueOf(UUID.randomUUID());
             }
             return new CanonicalGame(this);
         }
 
-        public Builder setId(UUID id) {
+        public Builder setId(String id) {
             this.id = id;
             return this;
         }
