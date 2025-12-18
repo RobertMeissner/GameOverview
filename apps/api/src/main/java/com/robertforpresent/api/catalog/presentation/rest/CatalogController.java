@@ -25,6 +25,6 @@ public class CatalogController {
 
     @PatchMapping("/catalog/games/{gameId}")
     public CanonicalGame updateCatalogValues(@PathVariable UUID gameId, @RequestBody UpdateCatalogRequest request) {
-        return service.updateCatalogValues(gameId, request.steamAppId(), request.steamName());
+        return service.updateCatalogValues(gameId, request);
     }
 }

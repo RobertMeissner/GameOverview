@@ -53,8 +53,13 @@
           <th class="col-thumbnail">Thumbnail</th>
           <th class="col-name">Name</th>
           <th class="col-rating">Rating</th>
+          <th class="col-links">Links</th>
           <th class="col-steam">Steam App ID</th>
           <th class="col-steam-name">Steam Name</th>
+          <th class="col-gog">GoG ID</th>
+          <th class="col-gog-name">GoG Name</th>
+          <th class="col-metacritic">MC Score</th>
+          <th class="col-metacritic-name">MC Name</th>
           <th class="col-flags">Flags</th>
           <th class="col-actions">Actions</th>
         </tr>
@@ -75,6 +80,25 @@
                 <span class="rating-score">{{ game.rating }}</span>
               </div>
             </td>
+            <td class="col-links">
+              <div class="store-links">
+                @if (game.steamLink) {
+                  <a [href]="game.steamLink" target="_blank" rel="noopener" class="store-link steam" title="View on Steam">
+                    <i class="bi bi-steam"></i>
+                  </a>
+                }
+                @if (game.gogLink) {
+                  <a [href]="game.gogLink" target="_blank" rel="noopener" class="store-link gog" title="View on GoG">
+                    <span class="gog-icon">GOG</span>
+                  </a>
+                }
+                @if (game.metacriticLink) {
+                  <a [href]="game.metacriticLink" target="_blank" rel="noopener" class="store-link metacritic" title="View on Metacritic">
+                    <span class="mc-icon">MC</span>
+                  </a>
+                }
+              </div>
+            </td>
             <td class="col-steam">
               @if (editingGame()?.id === game.id) {
                 <input type="number" class="form-control form-control-sm" [(ngModel)]="editSteamAppId">
@@ -90,6 +114,34 @@
                       [class.text-warning]="game.steamName && game.steamName !== game.name">
                   {{ game.steamName ?? 'N/A' }}
                 </span>
+              }
+            </td>
+            <td class="col-gog">
+              @if (editingGame()?.id === game.id) {
+                <input type="number" class="form-control form-control-sm" [(ngModel)]="editGogId">
+              } @else {
+                <span [class.text-muted]="!game.gogId">{{ game.gogId ?? 'N/A' }}</span>
+              }
+            </td>
+            <td class="col-gog-name">
+              @if (editingGame()?.id === game.id) {
+                <input type="text" class="form-control form-control-sm" [(ngModel)]="editGogName">
+              } @else {
+                <span [class.text-muted]="!game.gogName">{{ game.gogName ?? 'N/A' }}</span>
+              }
+            </td>
+            <td class="col-metacritic">
+              @if (editingGame()?.id === game.id) {
+                <input type="number" class="form-control form-control-sm" [(ngModel)]="editMetacriticScore">
+              } @else {
+                <span [class.text-muted]="game.metacriticScore === null">{{ game.metacriticScore ?? 'N/A' }}</span>
+              }
+            </td>
+            <td class="col-metacritic-name">
+              @if (editingGame()?.id === game.id) {
+                <input type="text" class="form-control form-control-sm" [(ngModel)]="editMetacriticName">
+              } @else {
+                <span [class.text-muted]="!game.metacriticName">{{ game.metacriticName ?? 'N/A' }}</span>
               }
             </td>
             <td class="col-flags">

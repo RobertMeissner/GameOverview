@@ -24,6 +24,10 @@ export class AdminPanel implements OnInit {
   editingGame = signal<AdminGameEntry | null>(null);
   editSteamAppId = signal<number | null>(null);
   editSteamName = signal<string | null>(null);
+  editGogId = signal<number | null>(null);
+  editGogName = signal<string | null>(null);
+  editMetacriticScore = signal<number | null>(null);
+  editMetacriticName = signal<string | null>(null);
 
   filterMissingAppId = signal(false);
   filterNameMismatch = signal(false);
@@ -78,12 +82,20 @@ export class AdminPanel implements OnInit {
     this.editingGame.set(game);
     this.editSteamAppId.set(game.steamAppId);
     this.editSteamName.set(game.steamName);
+    this.editGogId.set(game.gogId);
+    this.editGogName.set(game.gogName);
+    this.editMetacriticScore.set(game.metacriticScore);
+    this.editMetacriticName.set(game.metacriticName);
   }
 
   cancelEdit(): void {
     this.editingGame.set(null);
     this.editSteamAppId.set(null);
     this.editSteamName.set(null);
+    this.editGogId.set(null);
+    this.editGogName.set(null);
+    this.editMetacriticScore.set(null);
+    this.editMetacriticName.set(null);
   }
 
   saveEdit(): void {
@@ -92,7 +104,11 @@ export class AdminPanel implements OnInit {
 
     this.gamesService.updateCatalogValues(game.id, {
       steamAppId: this.editSteamAppId(),
-      steamName: this.editSteamName()
+      steamName: this.editSteamName(),
+      gogId: this.editGogId(),
+      gogName: this.editGogName(),
+      metacriticScore: this.editMetacriticScore(),
+      metacriticName: this.editMetacriticName()
     }).subscribe({
       next: () => {
         this.loadGames();

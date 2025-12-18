@@ -10,7 +10,17 @@ public record AdminGameView(
         boolean markedAsPlayed,
         boolean markedAsHidden,
         boolean markedForLater,
+        // Steam data
         Integer steamAppId,
-        String steamName
+        String steamName,
+        String steamLink,
+        // GoG data
+        Long gogId,
+        String gogName,
+        String gogLink,
+        // Metacritic data
+        Integer metacriticScore,
+        String metacriticName,
+        String metacriticLink
 ) {
 }

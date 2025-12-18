@@ -46,13 +46,54 @@ public class CanonicalGameEntity {
     @Column(name = "steam_name")
     private String steamName;
 
-    public CanonicalGameEntity(String id, String name, SteamRatingEmbeddable steamRating, String thumbnailUrl, Integer steamAppId, String steamName) {
+    // GOG store data
+    @Getter
+    @Setter
+    @Column(name = "gog_id")
+    private Long gogId;
+
+    @Getter
+    @Setter
+    @Column(name = "gog_name")
+    private String gogName;
+
+    @Getter
+    @Setter
+    @Column(name = "gog_link")
+    private String gogLink;
+
+    // Metacritic data
+    @Getter
+    @Setter
+    @Column(name = "metacritic_score")
+    private Integer metacriticScore;
+
+    @Getter
+    @Setter
+    @Column(name = "metacritic_name")
+    private String metacriticName;
+
+    @Getter
+    @Setter
+    @Column(name = "metacritic_link")
+    private String metacriticLink;
+
+    public CanonicalGameEntity(String id, String name, SteamRatingEmbeddable steamRating, String thumbnailUrl,
+                               Integer steamAppId, String steamName,
+                               Long gogId, String gogName, String gogLink,
+                               Integer metacriticScore, String metacriticName, String metacriticLink) {
         this.id = id;
         this.name = name;
         this.steamRating = steamRating;
         this.thumbnailUrl = thumbnailUrl;
         this.steamAppId = steamAppId;
         this.steamName = steamName;
+        this.gogId = gogId;
+        this.gogName = gogName;
+        this.gogLink = gogLink;
+        this.metacriticScore = metacriticScore;
+        this.metacriticName = metacriticName;
+        this.metacriticLink = metacriticLink;
     }
 
     public CanonicalGameEntity(){}

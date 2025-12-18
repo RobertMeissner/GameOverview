@@ -46,6 +46,10 @@ export class GamesService {
   updateCatalogValues(gameId: string, values: {
     steamAppId: number | null;
     steamName: string | null;
+    gogId: number | null;
+    gogName: string | null;
+    metacriticScore: number | null;
+    metacriticName: string | null;
   }): Observable<void> {
     return this.http.patch<void>(`${this.apiUrl}/catalog/games/${gameId}`, values);
   }

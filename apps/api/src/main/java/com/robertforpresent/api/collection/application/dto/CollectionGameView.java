@@ -9,6 +9,7 @@ public record CollectionGameView(
         float rating,
         boolean markedAsPlayed,
         boolean markedAsHidden,
-        boolean markedForLater
+        boolean markedForLater,
+        StoreLinksDTO storeLinks
 ) {
 }
