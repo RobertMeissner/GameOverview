@@ -22,7 +22,11 @@ public class GamerCollectionService {
     }
 
     public List<CollectionGameView> getTop3(UUID gamerId) {
-        return getCollection(gamerId).stream().sorted(Comparator.comparing(CollectionGameView::rating).reversed()).limit(3).toList();
+        return getCollection(gamerId).stream()
+                .filter(game -> !game.markedAsPlayed() && !game.markedAsHidden() && !game.markedForLater())
+                .sorted(Comparator.comparing(CollectionGameView::rating).reversed())
+                .limit(3)
+                .toList();
     }
 
     public GamerCollectionService(CollectionRepository repository, CatalogService catalog) {
