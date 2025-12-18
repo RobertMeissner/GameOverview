@@ -1,7 +1,27 @@
 <div class="catalog-container">
 
+  <div class="filter-section mb-3">
+    <span class="filter-label me-3">Show games with:</span>
+    <div class="form-check form-check-inline">
+      <input class="form-check-input" type="checkbox" id="filter-played" [(ngModel)]="filterPlayed">
+      <label class="form-check-label" for="filter-played">Played</label>
+    </div>
+    <div class="form-check form-check-inline">
+      <input class="form-check-input" type="checkbox" id="filter-hidden" [(ngModel)]="filterHidden">
+      <label class="form-check-label" for="filter-hidden">Hidden</label>
+    </div>
+    <div class="form-check form-check-inline">
+      <input class="form-check-input" type="checkbox" id="filter-forlater" [(ngModel)]="filterForLater">
+      <label class="form-check-label" for="filter-forlater">For Later</label>
+    </div>
+    <div class="form-check form-check-inline">
+      <input class="form-check-input" type="checkbox" id="filter-unflagged" [(ngModel)]="filterUnflagged">
+      <label class="form-check-label" for="filter-unflagged">No flags</label>
+    </div>
+  </div>
+
   <div class="game-grid">
-    @for (game of games(); track game.id ?? game.name) {
+    @for (game of filteredGames(); track game.id ?? game.name) {
       <div class="game-card">
         <h3>{{ game.name }}: {{ game.rating }}</h3>
         <div class="form-check form-check-inline">
