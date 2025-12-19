@@ -1,0 +1,249 @@
+{
+  "type" : "record",
+  "name" : "schema",
+  "fields" : [ {
+    "name" : "name",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "store",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "played",
+    "type" : [ "null", "boolean" ],
+    "default" : null
+  }, {
+    "name" : "app_id",
+    "type" : [ "null", "long" ],
+    "default" : null
+  }, {
+    "name" : "backgroundImage",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "cdKey",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "textInformation",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "downloads",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "galaxyDownloads",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "extras",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "dlcs",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "tags",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "isPreOrder",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "releaseTimestamp",
+    "type" : [ "null", "long" ],
+    "default" : null
+  }, {
+    "name" : "messages",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "changelog",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "forumLink",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "isBaseProductMissing",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "missingBaseProduct",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "features",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "simpleGalaxyInstallers",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "num_reviews",
+    "type" : [ "null", "long" ],
+    "default" : null
+  }, {
+    "name" : "review_score",
+    "type" : [ "null", "long" ],
+    "default" : null
+  }, {
+    "name" : "total_positive",
+    "type" : [ "null", "long" ],
+    "default" : null
+  }, {
+    "name" : "total_negative",
+    "type" : [ "null", "long" ],
+    "default" : null
+  }, {
+    "name" : "total_reviews",
+    "type" : [ "null", "long" ],
+    "default" : null
+  }, {
+    "name" : "found_game_name",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "rating",
+    "type" : [ "null", "float" ],
+    "default" : null
+  }, {
+    "name" : "review_score_desc",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "hide",
+    "type" : [ "null", "boolean" ],
+    "default" : null
+  }, {
+    "name" : "url",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "corrected_app_id",
+    "type" : [ "null", "long" ],
+    "default" : null
+  }, {
+    "name" : "playtime_forever",
+    "type" : [ "null", "long" ],
+    "default" : null
+  }, {
+    "name" : "img_icon_url",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "has_community_visible_stats",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "playtime_windows_forever",
+    "type" : [ "null", "long" ],
+    "default" : null
+  }, {
+    "name" : "playtime_mac_forever",
+    "type" : [ "null", "long" ],
+    "default" : null
+  }, {
+    "name" : "playtime_linux_forever",
+    "type" : [ "null", "long" ],
+    "default" : null
+  }, {
+    "name" : "playtime_deck_forever",
+    "type" : [ "null", "long" ],
+    "default" : null
+  }, {
+    "name" : "rtime_last_played",
+    "type" : [ "null", "long" ],
+    "default" : null
+  }, {
+    "name" : "playtime_disconnected",
+    "type" : [ "null", "long" ],
+    "default" : null
+  }, {
+    "name" : "has_leaderboards",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "content_descriptorids",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "playtime_2weeks",
+    "type" : [ "null", "long" ],
+    "default" : null
+  }, {
+    "name" : "game_hash",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "gog_id",
+    "type" : [ "null", "long" ],
+    "default" : null
+  }, {
+    "name" : "title",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "reviewsRating",
+    "type" : [ "null", "long" ],
+    "default" : null
+  }, {
+    "name" : "coverVertical",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "coverHorizontal",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "storeLink",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "later",
+    "type" : [ "null", "boolean" ],
+    "default" : null
+  }, {
+    "name" : "thumbnail_url",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "metacritic_score",
+    "type" : [ "null", "long" ],
+    "default" : null
+  }, {
+    "name" : "metacritic_game_name",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "hltb_main_story",
+    "type" : [ "null", "double" ],
+    "default" : null
+  }, {
+    "name" : "hltb_main_extra",
+    "type" : [ "null", "long" ],
+    "default" : null
+  }, {
+    "name" : "hltb_completionist",
+    "type" : [ "null", "long" ],
+    "default" : null
+  }, {
+    "name" : "hltb_game_id",
+    "type" : [ "null", "long" ],
+    "default" : null
+  }, {
+    "name" : "hltb_similarity",
+    "type" : [ "null", "long" ],
+    "default" : null
+  }, {
+    "name" : "mc_hltb_ratio",
+    "type" : [ "null", "double" ],
+    "default" : null
+  } ]
+}
