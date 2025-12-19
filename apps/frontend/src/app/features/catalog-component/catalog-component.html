@@ -62,6 +62,23 @@
             </div>
             <span class="rating-score">{{ game.rating }}/100</span>
           </div>
+          <div class="store-links">
+            @if (game.storeLinks?.steamLink) {
+              <a [href]="game.storeLinks.steamLink" target="_blank" rel="noopener" class="store-link steam" title="View on Steam">
+                <i class="bi bi-steam"></i>
+              </a>
+            }
+            @if (game.storeLinks?.gogLink) {
+              <a [href]="game.storeLinks.gogLink" target="_blank" rel="noopener" class="store-link gog" title="View on GOG">
+                <span class="gog-icon">GOG</span>
+              </a>
+            }
+            @if (game.storeLinks?.metacriticLink) {
+              <a [href]="game.storeLinks.metacriticLink" target="_blank" rel="noopener" class="store-link metacritic" title="View on Metacritic">
+                <span class="mc-icon">MC</span>
+              </a>
+            }
+          </div>
           <div class="game-flags">
             <div class="form-check form-check-inline">
               <input class="form-check-input" type="checkbox" [id]="'played-'+game.id" [(ngModel)]="game.markedAsPlayed"

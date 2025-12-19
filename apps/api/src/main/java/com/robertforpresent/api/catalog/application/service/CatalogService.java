@@ -1,7 +1,8 @@
 package com.robertforpresent.api.catalog.application.service;
 
-import com.robertforpresent.api.catalog.domain.model.CanonicalGame;
+import com.robertforpresent.api.catalog.domain.model.*;
 import com.robertforpresent.api.catalog.domain.repository.CanonicalGameRepository;
+import com.robertforpresent.api.catalog.presentation.rest.UpdateCatalogRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,5 +22,42 @@ public class CatalogService {
 
     public List<CanonicalGame> getAllGames() {
         return repository.findAll();
+    }
+
+    public CanonicalGame updateCatalogValues(UUID id, UpdateCatalogRequest request) {
+        CanonicalGame existing = repository.findById(id).orElseThrow();
+
+        // Build updated Steam data
+        SteamGameData existingSteam = existing.getSteamData();
+        SteamGameData newSteamData = new SteamGameData(
+                request.steamAppId() != null ? request.steamAppId() : (existingSteam != null ? existingSteam.appId() : null),
+                request.steamName() != null ? request.steamName() : (existingSteam != null ? existingSteam.name() : null)
+        );
+
+        // Build updated GoG data
+        GogGameData existingGog = existing.getGogData();
+        GogGameData newGogData = new GogGameData(
+                request.gogId() != null ? request.gogId() : (existingGog != null ? existingGog.gogId() : null),
+                request.gogName() != null ? request.gogName() : (existingGog != null ? existingGog.name() : null),
+                request.gogLink() != null ? request.gogLink() : (existingGog != null ? existingGog.link() : null)
+        );
+
+        // Build updated Metacritic data
+        MetacriticGameData existingMc = existing.getMetacriticData();
+        MetacriticGameData newMetacriticData = new MetacriticGameData(
+                request.metacriticScore() != null ? request.metacriticScore() : (existingMc != null ? existingMc.score() : null),
+                request.metacriticName() != null ? request.metacriticName() : (existingMc != null ? existingMc.gameName() : null),
+                request.metacriticLink() != null ? request.metacriticLink() : (existingMc != null ? existingMc.link() : null)
+        );
+
+        CanonicalGame updated = new CanonicalGame.Builder(existing.getName())
+                .setId(existing.getId())
+                .setSteamRating(existing.getRatings().steam())
+                .setThumbnailUrl(existing.getThumbnailUrl())
+                .setSteamData(newSteamData)
+                .setGogData(newGogData)
+                .setMetacriticData(newMetacriticData)
+                .build();
+        return repository.save(updated);
     }
 }

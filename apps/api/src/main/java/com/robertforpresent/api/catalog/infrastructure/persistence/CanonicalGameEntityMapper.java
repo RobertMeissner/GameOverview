@@ -1,6 +1,9 @@
 package com.robertforpresent.api.catalog.infrastructure.persistence;
 
 import com.robertforpresent.api.catalog.domain.model.CanonicalGame;
+import com.robertforpresent.api.catalog.domain.model.GogGameData;
+import com.robertforpresent.api.catalog.domain.model.MetacriticGameData;
+import com.robertforpresent.api.catalog.domain.model.SteamGameData;
 import com.robertforpresent.api.catalog.domain.model.steam.SteamRating;
 import com.robertforpresent.api.catalog.infrastructure.persistence.steam.SteamRatingEmbeddable;
 import org.jspecify.annotations.Nullable;
@@ -13,14 +16,67 @@ import java.util.UUID;
 public class CanonicalGameEntityMapper {
     public CanonicalGame toDomain(CanonicalGameEntity entity) {
         SteamRating steamRating = mapSteamRatingToDomain(entity.getSteamRating());
-        return new CanonicalGame.Builder(entity.getName()).setId(UUID.fromString(entity.getId())).setSteamRating(steamRating).setThumbnailUrl(entity.getThumbnailUrl()).build();
+        SteamGameData steamData = mapSteamDataToDomain(entity);
+        GogGameData gogData = mapGogDataToDomain(entity);
+        MetacriticGameData metacriticData = mapMetacriticDataToDomain(entity);
+
+        return new CanonicalGame.Builder(entity.getName())
+                .setId(UUID.fromString(entity.getId()))
+                .setSteamRating(steamRating)
+                .setThumbnailUrl(entity.getThumbnailUrl())
+                .setSteamData(steamData)
+                .setGogData(gogData)
+                .setMetacriticData(metacriticData)
+                .build();
     }
 
     public CanonicalGameEntity toEntity(CanonicalGame domain) {
         SteamRatingEmbeddable steamRating = mapSteamRatingToEmbeddable(
-                domain.getRatings().steam()  // @Nullable field
+                domain.getRatings().steam()
         );
-        return new CanonicalGameEntity(domain.getId().toString(), domain.getName(), steamRating, domain.getThumbnailUrl());
+
+        SteamGameData steamData = domain.getSteamData();
+        GogGameData gogData = domain.getGogData();
+        MetacriticGameData metacriticData = domain.getMetacriticData();
+
+        return new CanonicalGameEntity(
+                domain.getId().toString(),
+                domain.getName(),
+                steamRating,
+                domain.getThumbnailUrl(),
+                steamData != null ? steamData.appId() : null,
+                steamData != null ? steamData.name() : null,
+                gogData != null ? gogData.gogId() : null,
+                gogData != null ? gogData.name() : null,
+                gogData != null ? gogData.link() : null,
+                metacriticData != null ? metacriticData.score() : null,
+                metacriticData != null ? metacriticData.gameName() : null,
+                metacriticData != null ? metacriticData.link() : null
+        );
+    }
+
+    @Nullable
+    private SteamGameData mapSteamDataToDomain(CanonicalGameEntity entity) {
+        if (entity.getSteamAppId() == null && entity.getSteamName() == null) {
+            return null;
+        }
+        return new SteamGameData(entity.getSteamAppId(), entity.getSteamName());
+    }
+
+    @Nullable
+    private GogGameData mapGogDataToDomain(CanonicalGameEntity entity) {
+        if (entity.getGogId() == null && entity.getGogName() == null && entity.getGogLink() == null) {
+            return null;
+        }
+        return new GogGameData(entity.getGogId(), entity.getGogName(), entity.getGogLink());
+    }
+
+    @Nullable
+    private MetacriticGameData mapMetacriticDataToDomain(CanonicalGameEntity entity) {
+        if (entity.getMetacriticScore() == null && entity.getMetacriticName() == null && entity.getMetacriticLink() == null) {
+            return null;
+        }
+        return new MetacriticGameData(entity.getMetacriticScore(), entity.getMetacriticName(), entity.getMetacriticLink());
     }
 
     @Nullable

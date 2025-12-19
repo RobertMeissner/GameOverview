@@ -1,9 +1,9 @@
 package com.robertforpresent.api.catalog.domain.model;
 
 import com.robertforpresent.api.catalog.domain.model.steam.SteamRating;
+import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;
-import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -29,9 +29,12 @@ public class CanonicalGame {
     AggregatedRatings ratings;
     private final String thumbnailUrl;
 
-    private CanonicalMetadata metadata;
+    // Store-specific data
+    private final @Nullable SteamGameData steamData;
+    private final @Nullable GogGameData gogData;
+    private final @Nullable MetacriticGameData metacriticData;
 
-    private final Map<GameStore, StoreGameData> storeData;
+    private CanonicalMetadata metadata;
 
     private Instant createdAt;
     private Instant updatedAt;
@@ -57,6 +60,27 @@ public class CanonicalGame {
         return ratings;
     }
 
+    public @Nullable SteamGameData getSteamData() {
+        return steamData;
+    }
+
+    public @Nullable GogGameData getGogData() {
+        return gogData;
+    }
+
+    public @Nullable MetacriticGameData getMetacriticData() {
+        return metacriticData;
+    }
+
+    // Convenience methods for backward compatibility
+    public @Nullable Integer getSteamAppId() {
+        return steamData != null ? steamData.appId() : null;
+    }
+
+    public @Nullable String getSteamName() {
+        return steamData != null ? steamData.name() : null;
+    }
+
     /**
      * Explicit builder. Favoured over Lombok to have in-depth control
      */
@@ -65,6 +89,9 @@ public class CanonicalGame {
         private UUID id;
         private String thumbnailUrl;
         private SteamRating steamRating;
+        private SteamGameData steamData;
+        private GogGameData gogData;
+        private MetacriticGameData metacriticData;
 
         public Builder(String name) {
             this.name = name;
@@ -91,12 +118,48 @@ public class CanonicalGame {
             this.steamRating = rating;
             return this;
         }
+
+        public Builder setSteamData(SteamGameData steamData) {
+            this.steamData = steamData;
+            return this;
+        }
+
+        public Builder setGogData(GogGameData gogData) {
+            this.gogData = gogData;
+            return this;
+        }
+
+        public Builder setMetacriticData(MetacriticGameData metacriticData) {
+            this.metacriticData = metacriticData;
+            return this;
+        }
+
+        // Convenience methods for backward compatibility
+        public Builder setSteamAppId(Integer steamAppId) {
+            if (this.steamData == null) {
+                this.steamData = new SteamGameData(steamAppId, null);
+            } else {
+                this.steamData = new SteamGameData(steamAppId, this.steamData.name());
+            }
+            return this;
+        }
+
+        public Builder setSteamName(String steamName) {
+            if (this.steamData == null) {
+                this.steamData = new SteamGameData(null, steamName);
+            } else {
+                this.steamData = new SteamGameData(this.steamData.appId(), steamName);
+            }
+            return this;
+        }
     }
 
     private CanonicalGame(Builder builder) {
         identity = new GameIdentity(builder.id, builder.name, builder.name);
         thumbnailUrl = builder.thumbnailUrl;
-        storeData = Map.of();
+        steamData = builder.steamData;
+        gogData = builder.gogData;
+        metacriticData = builder.metacriticData;
         createdAt = Instant.now();
         updatedAt = Instant.now();
         ratings = new AggregatedRatings(builder.steamRating);
