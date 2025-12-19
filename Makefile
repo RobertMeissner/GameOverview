@@ -4,9 +4,9 @@ compile:
 	cd apps/api && ./mvnw clean package -DskipTests
 
 run:
-	fuser -k 8080/tcp
+	fuser -k 8080/tcp & \
 	cd apps/api && ./mvnw spring-boot:run & \
-	cd apps/frontend && bun run start
+	cd apps/frontend && bun run start & \
 	fuser -k 8080/tcp
 
 run-backend:

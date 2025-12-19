@@ -5,8 +5,9 @@ import com.robertforpresent.api.catalog.domain.model.CanonicalGame;
 import com.robertforpresent.api.catalog.domain.model.GogGameData;
 import com.robertforpresent.api.catalog.domain.model.MetacriticGameData;
 import com.robertforpresent.api.catalog.domain.model.SteamGameData;
+import com.robertforpresent.api.catalog.domain.model.steam.ReviewSentiment;
+import com.robertforpresent.api.catalog.domain.model.steam.SteamRating;
 import com.robertforpresent.api.collection.application.dto.AdminGameView;
-import com.robertforpresent.api.collection.application.dto.CollectionGameView;
 import com.robertforpresent.api.collection.domain.model.PersonalizedGame;
 import com.robertforpresent.api.collection.domain.repository.CollectionRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -327,13 +328,14 @@ class GamerCollectionServiceTest {
     // Helper methods
 
     private PersonalizedGame createPersonalizedGame(UUID gameId, boolean played, boolean hidden, boolean later) {
-        return new PersonalizedGame(GAMER_ID, gameId, played, hidden, later);
+        return new PersonalizedGame.Builder().setGamerId(GAMER_ID).setCanonicalId(gameId).setMarkAsPlayed(played).setMarkAsHidden(hidden).setMarkAsForLater(later).build();
     }
 
     private CanonicalGame createCanonicalGame(UUID id, String name, float rating) {
+        SteamRating steamRating = SteamRating.of((int) (rating * 100), (int) ((1 - rating) * 100), ReviewSentiment.MIXED);
         return new CanonicalGame.Builder(name)
                 .setId(id)
-                .setRating(rating)
+                .setSteamRating(steamRating)
                 .setThumbnailUrl("https://example.com/" + id + ".jpg")
                 .build();
     }
@@ -341,9 +343,10 @@ class GamerCollectionServiceTest {
     private CanonicalGame createCanonicalGameWithStoreData(
             UUID id, String name, float rating,
             SteamGameData steamData, GogGameData gogData, MetacriticGameData metacriticData) {
+        SteamRating steamRating = SteamRating.of((int) (rating * 100), (int) ((1 - rating) * 100), ReviewSentiment.MIXED);
         return new CanonicalGame.Builder(name)
                 .setId(id)
-                .setRating(rating)
+                .setSteamRating(steamRating)
                 .setThumbnailUrl("https://example.com/" + id + ".jpg")
                 .setSteamData(steamData)
                 .setGogData(gogData)
