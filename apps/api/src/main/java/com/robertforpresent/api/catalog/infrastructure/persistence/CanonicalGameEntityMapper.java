@@ -1,6 +1,7 @@
 package com.robertforpresent.api.catalog.infrastructure.persistence;
 
 import com.robertforpresent.api.catalog.domain.model.CanonicalGame;
+import com.robertforpresent.api.catalog.domain.model.EpicGameData;
 import com.robertforpresent.api.catalog.domain.model.GogGameData;
 import com.robertforpresent.api.catalog.domain.model.MetacriticGameData;
 import com.robertforpresent.api.catalog.domain.model.SteamGameData;
@@ -18,6 +19,7 @@ public class CanonicalGameEntityMapper {
         SteamRating steamRating = mapSteamRatingToDomain(entity.getSteamRating());
         SteamGameData steamData = mapSteamDataToDomain(entity);
         GogGameData gogData = mapGogDataToDomain(entity);
+        EpicGameData epicData = mapEpicDataToDomain(entity);
         MetacriticGameData metacriticData = mapMetacriticDataToDomain(entity);
 
         return new CanonicalGame.Builder(entity.getName())
@@ -26,6 +28,7 @@ public class CanonicalGameEntityMapper {
                 .setThumbnailUrl(entity.getThumbnailUrl())
                 .setSteamData(steamData)
                 .setGogData(gogData)
+                .setEpicData(epicData)
                 .setMetacriticData(metacriticData)
                 .build();
     }
@@ -37,6 +40,7 @@ public class CanonicalGameEntityMapper {
 
         SteamGameData steamData = domain.getSteamData();
         GogGameData gogData = domain.getGogData();
+        EpicGameData epicData = domain.getEpicData();
         MetacriticGameData metacriticData = domain.getMetacriticData();
 
         return new CanonicalGameEntity(
@@ -49,6 +53,9 @@ public class CanonicalGameEntityMapper {
                 gogData != null ? gogData.gogId() : null,
                 gogData != null ? gogData.name() : null,
                 gogData != null ? gogData.link() : null,
+                epicData != null ? epicData.epicId() : null,
+                epicData != null ? epicData.name() : null,
+                epicData != null ? epicData.link() : null,
                 metacriticData != null ? metacriticData.score() : null,
                 metacriticData != null ? metacriticData.gameName() : null,
                 metacriticData != null ? metacriticData.link() : null
@@ -69,6 +76,14 @@ public class CanonicalGameEntityMapper {
             return null;
         }
         return new GogGameData(entity.getGogId(), entity.getGogName(), entity.getGogLink());
+    }
+
+    @Nullable
+    private EpicGameData mapEpicDataToDomain(CanonicalGameEntity entity) {
+        if (entity.getEpicId() == null && entity.getEpicName() == null && entity.getEpicLink() == null) {
+            return null;
+        }
+        return new EpicGameData(entity.getEpicId(), entity.getEpicName(), entity.getEpicLink());
     }
 
     @Nullable

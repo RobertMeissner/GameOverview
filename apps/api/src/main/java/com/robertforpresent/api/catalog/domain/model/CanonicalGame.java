@@ -32,6 +32,7 @@ public class CanonicalGame {
     // Store-specific data
     private final @Nullable SteamGameData steamData;
     private final @Nullable GogGameData gogData;
+    private final @Nullable EpicGameData epicData;
     private final @Nullable MetacriticGameData metacriticData;
 
     private CanonicalMetadata metadata;
@@ -72,6 +73,10 @@ public class CanonicalGame {
         return metacriticData;
     }
 
+    public @Nullable EpicGameData getEpicData() {
+        return epicData;
+    }
+
     // Convenience methods for backward compatibility
     public @Nullable Integer getSteamAppId() {
         return steamData != null ? steamData.appId() : null;
@@ -91,6 +96,7 @@ public class CanonicalGame {
         private SteamRating steamRating;
         private SteamGameData steamData;
         private GogGameData gogData;
+        private EpicGameData epicData;
         private MetacriticGameData metacriticData;
 
         public Builder(String name) {
@@ -134,6 +140,11 @@ public class CanonicalGame {
             return this;
         }
 
+        public Builder setEpicData(EpicGameData epicData) {
+            this.epicData = epicData;
+            return this;
+        }
+
         // Convenience methods for backward compatibility
         public Builder setSteamAppId(Integer steamAppId) {
             if (this.steamData == null) {
@@ -159,6 +170,7 @@ public class CanonicalGame {
         thumbnailUrl = builder.thumbnailUrl;
         steamData = builder.steamData;
         gogData = builder.gogData;
+        epicData = builder.epicData;
         metacriticData = builder.metacriticData;
         createdAt = Instant.now();
         updatedAt = Instant.now();

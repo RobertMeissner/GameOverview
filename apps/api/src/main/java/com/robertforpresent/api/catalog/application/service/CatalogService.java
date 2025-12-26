@@ -6,6 +6,7 @@ import com.robertforpresent.api.catalog.presentation.rest.UpdateCatalogRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -22,6 +23,16 @@ public class CatalogService {
 
     public List<CanonicalGame> getAllGames() {
         return repository.findAll();
+    }
+
+    public Optional<CanonicalGame> findByName(String name) {
+        return repository.findAll().stream()
+                .filter(g -> g.getName().equalsIgnoreCase(name))
+                .findFirst();
+    }
+
+    public CanonicalGame save(CanonicalGame game) {
+        return repository.save(game);
     }
 
     public CanonicalGame updateCatalogValues(UUID id, UpdateCatalogRequest request) {
@@ -42,6 +53,14 @@ public class CatalogService {
                 request.gogLink() != null ? request.gogLink() : (existingGog != null ? existingGog.link() : null)
         );
 
+        // Build updated Epic Games data
+        EpicGameData existingEpic = existing.getEpicData();
+        EpicGameData newEpicData = new EpicGameData(
+                request.epicId() != null ? request.epicId() : (existingEpic != null ? existingEpic.epicId() : null),
+                request.epicName() != null ? request.epicName() : (existingEpic != null ? existingEpic.name() : null),
+                request.epicLink() != null ? request.epicLink() : (existingEpic != null ? existingEpic.link() : null)
+        );
+
         // Build updated Metacritic data
         MetacriticGameData existingMc = existing.getMetacriticData();
         MetacriticGameData newMetacriticData = new MetacriticGameData(
@@ -56,6 +75,7 @@ public class CatalogService {
                 .setThumbnailUrl(existing.getThumbnailUrl())
                 .setSteamData(newSteamData)
                 .setGogData(newGogData)
+                .setEpicData(newEpicData)
                 .setMetacriticData(newMetacriticData)
                 .build();
         return repository.save(updated);
