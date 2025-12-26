@@ -1,0 +1,196 @@
+<div class="scraper-container">
+  <h2 class="section-title">Game Scraper</h2>
+
+  <!-- Status Banner -->
+  @if (status(); as scraperStatus) {
+    <div class="status-banner" [class.status-enabled]="scraperStatus.enabled" [class.status-disabled]="!scraperStatus.enabled">
+      <i class="bi" [class.bi-check-circle-fill]="scraperStatus.enabled" [class.bi-exclamation-triangle-fill]="!scraperStatus.enabled"></i>
+      <span>{{ scraperStatus.message }}</span>
+    </div>
+  }
+
+  <!-- Search Section -->
+  <div class="search-section">
+    <div class="search-row">
+      <div class="search-input-wrapper">
+        <i class="bi bi-search search-icon"></i>
+        <input
+          type="text"
+          class="form-control search-input"
+          placeholder="Enter game name to search..."
+          [(ngModel)]="searchQuery"
+          (keyup.enter)="searchGames()"
+          [disabled]="isLoading()">
+      </div>
+      <button
+        class="btn btn-primary search-btn"
+        (click)="searchGames()"
+        [disabled]="isLoading() || !searchQuery().trim()">
+        @if (isLoading()) {
+          <span class="spinner-border spinner-border-sm me-1"></span>
+          Searching...
+        } @else {
+          <i class="bi bi-search me-1"></i>
+          Search IGDB
+        }
+      </button>
+      <button
+        class="btn btn-outline-secondary"
+        (click)="openIgdbLink()"
+        [disabled]="!searchQuery().trim()"
+        title="Open search on IGDB website">
+        <i class="bi bi-box-arrow-up-right"></i>
+      </button>
+    </div>
+
+    @if (searchResults().length > 0) {
+      <button class="btn btn-sm btn-outline-secondary mt-2" (click)="clearResults()">
+        <i class="bi bi-x-circle me-1"></i>
+        Clear Results
+      </button>
+    }
+  </div>
+
+  <!-- Error Message -->
+  @if (errorMessage(); as error) {
+    <div class="alert alert-warning mt-3">
+      <i class="bi bi-exclamation-triangle me-2"></i>
+      {{ error }}
+    </div>
+  }
+
+  <!-- Results Section -->
+  <div class="results-section">
+    @if (selectedGame(); as game) {
+      <!-- Game Details View -->
+      <div class="game-details">
+        <button class="btn btn-sm btn-outline-secondary mb-3" (click)="clearSelection()">
+          <i class="bi bi-arrow-left me-1"></i>
+          Back to Results
+        </button>
+
+        <div class="game-detail-card">
+          <div class="game-detail-header">
+            @if (game.coverUrl) {
+              <img [src]="game.coverUrl" [alt]="game.name" class="game-cover-large">
+            } @else {
+              <div class="game-cover-placeholder">
+                <i class="bi bi-controller"></i>
+              </div>
+            }
+            <div class="game-header-info">
+              <h3 class="game-title">{{ game.name }}</h3>
+              @if (game.releaseYear) {
+                <span class="release-year">{{ game.releaseYear }}</span>
+              }
+              @if (game.rating) {
+                <div class="rating-badge">
+                  <i class="bi bi-star-fill"></i>
+                  {{ game.rating | number:'1.0-0' }}%
+                </div>
+              }
+            </div>
+          </div>
+
+          @if (game.summary) {
+            <div class="game-summary">
+              <h4>Summary</h4>
+              <p>{{ game.summary }}</p>
+            </div>
+          }
+
+          @if (game.genres.length > 0) {
+            <div class="game-meta">
+              <h4>Genres</h4>
+              <div class="tag-list">
+                @for (genre of game.genres; track genre) {
+                  <span class="tag">{{ genre }}</span>
+                }
+              </div>
+            </div>
+          }
+
+          @if (game.platforms.length > 0) {
+            <div class="game-meta">
+              <h4>Platforms</h4>
+              <div class="tag-list">
+                @for (platform of game.platforms; track platform) {
+                  <span class="tag platform-tag">{{ platform }}</span>
+                }
+              </div>
+            </div>
+          }
+
+          @if (game.storeLinks.length > 0) {
+            <div class="game-meta">
+              <h4>Store Links</h4>
+              <div class="store-links">
+                @for (link of game.storeLinks; track link.url) {
+                  <a [href]="link.url" target="_blank" rel="noopener" class="store-link-btn"
+                     [class.steam]="link.storeName === 'Steam'"
+                     [class.gog]="link.storeName === 'GOG'"
+                     [class.epic]="link.storeName === 'Epic Games'">
+                    @if (link.storeName === 'Steam') {
+                      <i class="bi bi-steam"></i>
+                    }
+                    {{ link.storeName }}
+                    @if (link.storeId) {
+                      <span class="store-id">({{ link.storeId }})</span>
+                    }
+                  </a>
+                }
+              </div>
+            </div>
+          }
+
+          <div class="game-actions mt-4">
+            <small class="text-muted">
+              IGDB ID: {{ game.externalId }} | Source: {{ game.source }}
+            </small>
+          </div>
+        </div>
+      </div>
+    } @else if (searchResults().length > 0) {
+      <!-- Search Results List -->
+      <div class="results-grid">
+        @for (game of searchResults(); track game.externalId) {
+          <div class="result-card" (click)="selectGame(game)">
+            @if (game.coverUrl) {
+              <img [src]="game.coverUrl" [alt]="game.name" class="game-cover">
+            } @else {
+              <div class="game-cover placeholder">
+                <i class="bi bi-controller"></i>
+              </div>
+            }
+            <div class="result-info">
+              <h4 class="result-name">{{ game.name }}</h4>
+              <div class="result-meta">
+                @if (game.releaseYear) {
+                  <span class="year">{{ game.releaseYear }}</span>
+                }
+                @if (game.rating) {
+                  <span class="rating">
+                    <i class="bi bi-star-fill"></i>
+                    {{ game.rating | number:'1.0-0' }}%
+                  </span>
+                }
+              </div>
+              @if (game.genres.length > 0) {
+                <div class="result-genres">
+                  {{ game.genres.slice(0, 3).join(', ') }}
+                </div>
+              }
+              <div class="result-stores">
+                @for (link of game.storeLinks.slice(0, 3); track link.url) {
+                  <span class="store-badge" [class.steam]="link.storeName === 'Steam'">
+                    {{ link.storeName }}
+                  </span>
+                }
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>
