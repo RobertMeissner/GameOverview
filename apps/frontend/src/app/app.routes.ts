@@ -16,7 +16,7 @@ export const routes: Routes = [
         {path: "top-games", component: TopGames},
         {path: "backlog", component: Backlog},
         {path: "admin", component: AdminPanel},
-        {path: "deduplication", component: GameDeduplication}
+        {path: "deduplication", component: GameDeduplication},
         {path: "scraper", component: GameScraper}
       ]
     },

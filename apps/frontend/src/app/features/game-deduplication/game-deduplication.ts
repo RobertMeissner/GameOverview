@@ -27,7 +27,7 @@ export class GameDeduplication implements OnInit {
   targetGame = signal<AdminGameEntry | null>(null);
 
   // Configurable thresholds
-  nameSimilarityThreshold = signal(0.7);
+  nameSimilarityThreshold = signal(0.95);
   minMatchCriteria = signal(1);
 
   // Filter options
