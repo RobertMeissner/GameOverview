@@ -14,8 +14,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Application service for catalog operations.
@@ -48,10 +50,20 @@ public class CatalogService {
         return repository.findAll();
     }
 
+    /**
+     * Get multiple games by their IDs in a single query (batch loading).
+     * Returns a map for efficient lookup.
+     */
+    public Map<UUID, CanonicalGame> getByIds(List<UUID> ids) {
+        if (ids.isEmpty()) {
+            return Map.of();
+        }
+        return repository.findAllByIds(ids).stream()
+                .collect(Collectors.toMap(CanonicalGame::getId, game -> game));
+    }
+
     public Optional<CanonicalGame> findByName(String name) {
-        return repository.findAll().stream()
-                .filter(g -> g.getName().equalsIgnoreCase(name))
-                .findFirst();
+        return repository.findByNameIgnoreCase(name);
     }
 
     public CanonicalGame save(CanonicalGame game) {

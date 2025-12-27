@@ -102,9 +102,7 @@ public class GameImportService {
     }
 
     private Optional<CanonicalGame> findByName(String name) {
-        return gameRepository.findAll().stream()
-                .filter(g -> g.getName().equalsIgnoreCase(name))
-                .findFirst();
+        return gameRepository.findByNameIgnoreCase(name);
     }
 
     private void applyStoreData(CanonicalGame.Builder builder, ImportGameCommand command) {

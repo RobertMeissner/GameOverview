@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -23,7 +24,15 @@ public class GamerCollectionService {
     private final CatalogService catalog;
 
     public List<CollectionGameView> getCollection(UUID gamerId) {
-        return repository.findByGamerId(gamerId).stream().map(this::toView).toList();
+        List<PersonalizedGame> personalizedGames = repository.findByGamerId(gamerId);
+        List<UUID> canonicalIds = personalizedGames.stream()
+                .map(PersonalizedGame::getCanonicalGameId)
+                .toList();
+        Map<UUID, CanonicalGame> gamesById = catalog.getByIds(canonicalIds);
+
+        return personalizedGames.stream()
+                .map(pg -> toView(pg, gamesById.get(pg.getCanonicalGameId())))
+                .toList();
     }
 
     public List<CollectionGameView> getTop3(UUID gamerId) {
@@ -39,8 +48,7 @@ public class GamerCollectionService {
         this.catalog = catalog;
     }
 
-    private CollectionGameView toView(PersonalizedGame pg) {
-        CanonicalGame canonical = catalog.get(pg.getCanonicalGameId());
+    private CollectionGameView toView(PersonalizedGame pg, CanonicalGame canonical) {
         StoreLinksDTO storeLinks = buildStoreLinks(canonical);
         return new CollectionGameView(
                 pg.getCanonicalGameId(),
@@ -56,11 +64,20 @@ public class GamerCollectionService {
 
     public CollectionGameView updateFlags(UUID gamerId, UUID canonicalGameId, UpdateFlagsRequest request) {
         PersonalizedGame game = repository.updateFlags(gamerId, canonicalGameId, request.markedAsPlayed(), request.markedAsHidden(), request.markedForLater());
-        return toView(game);
+        CanonicalGame canonical = catalog.get(game.getCanonicalGameId());
+        return toView(game, canonical);
     }
 
     public List<AdminGameView> getAdminCollection(UUID gamerId) {
-        return repository.findByGamerId(gamerId).stream().map(this::toAdminView).toList();
+        List<PersonalizedGame> personalizedGames = repository.findByGamerId(gamerId);
+        List<UUID> canonicalIds = personalizedGames.stream()
+                .map(PersonalizedGame::getCanonicalGameId)
+                .toList();
+        Map<UUID, CanonicalGame> gamesById = catalog.getByIds(canonicalIds);
+
+        return personalizedGames.stream()
+                .map(pg -> toAdminView(pg, gamesById.get(pg.getCanonicalGameId())))
+                .toList();
     }
 
     public List<CollectionGameView> getBacklog(UUID gamerId) {
@@ -70,8 +87,7 @@ public class GamerCollectionService {
                 .toList();
     }
 
-    private AdminGameView toAdminView(PersonalizedGame pg) {
-        CanonicalGame canonical = catalog.get(pg.getCanonicalGameId());
+    private AdminGameView toAdminView(PersonalizedGame pg, CanonicalGame canonical) {
         SteamGameData steamData = canonical.getSteamData();
         GogGameData gogData = canonical.getGogData();
         MetacriticGameData metacriticData = canonical.getMetacriticData();
