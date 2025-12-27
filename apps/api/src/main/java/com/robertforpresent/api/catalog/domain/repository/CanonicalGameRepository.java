@@ -14,4 +14,8 @@ public interface CanonicalGameRepository {
     CanonicalGame save(CanonicalGame game);
 
     List<CanonicalGame> findAll();
+
+    Optional<CanonicalGame> findBySteamAppId(Integer steamAppId);
+
+    List<CanonicalGame> findByNameContainingIgnoreCase(String name);
 }

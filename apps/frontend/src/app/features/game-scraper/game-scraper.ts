@@ -2,7 +2,7 @@ import {Component, inject, OnInit, signal} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {ScraperService} from '../../services/scraper.service';
-import {ScrapedGameInfo, ScraperStatus} from '../../domain/entities/ScrapedGameInfo';
+import {EnrichedGameInfo, ScraperStatus} from '../../domain/entities/ScrapedGameInfo';
 
 @Component({
   selector: 'app-game-scraper',
@@ -14,11 +14,13 @@ export class GameScraper implements OnInit {
   private scraperService = inject(ScraperService);
 
   searchQuery = signal('');
-  searchResults = signal<ScrapedGameInfo[]>([]);
+  searchResults = signal<EnrichedGameInfo[]>([]);
   isLoading = signal(false);
+  isAdding = signal<number | null>(null);
   errorMessage = signal<string | null>(null);
+  successMessage = signal<string | null>(null);
   status = signal<ScraperStatus | null>(null);
-  selectedGame = signal<ScrapedGameInfo | null>(null);
+  selectedGame = signal<EnrichedGameInfo | null>(null);
 
   ngOnInit(): void {
     this.loadStatus();
@@ -41,9 +43,10 @@ export class GameScraper implements OnInit {
 
     this.isLoading.set(true);
     this.errorMessage.set(null);
+    this.successMessage.set(null);
     this.selectedGame.set(null);
 
-    this.scraperService.searchGames(query, 10).subscribe({
+    this.scraperService.searchGamesEnriched(query, 10).subscribe({
       next: result => {
         this.searchResults.set(result.results);
         this.isLoading.set(false);
@@ -59,7 +62,7 @@ export class GameScraper implements OnInit {
     });
   }
 
-  selectGame(game: ScrapedGameInfo): void {
+  selectGame(game: EnrichedGameInfo): void {
     this.selectedGame.set(game);
   }
 
@@ -71,6 +74,44 @@ export class GameScraper implements OnInit {
     this.searchResults.set([]);
     this.selectedGame.set(null);
     this.errorMessage.set(null);
+    this.successMessage.set(null);
+  }
+
+  addGameToLibrary(game: EnrichedGameInfo, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+
+    const externalId = game.gameInfo.externalId;
+    this.isAdding.set(externalId);
+    this.errorMessage.set(null);
+    this.successMessage.set(null);
+
+    this.scraperService.addGameToLibrary(externalId).subscribe({
+      next: result => {
+        this.isAdding.set(null);
+        this.successMessage.set(`"${game.gameInfo.name}" added to your library!`);
+
+        // Update the search results to mark this game as in library
+        this.searchResults.update(results =>
+          results.map(r =>
+            r.gameInfo.externalId === externalId
+              ? {...r, inLibrary: true, catalogGameId: result.canonicalGameId}
+              : r
+          )
+        );
+
+        // Update selected game if it's the one we just added
+        if (this.selectedGame()?.gameInfo.externalId === externalId) {
+          this.selectedGame.update(g => g ? {...g, inLibrary: true, catalogGameId: result.canonicalGameId} : null);
+        }
+      },
+      error: err => {
+        console.error('Failed to add game', err);
+        this.isAdding.set(null);
+        this.errorMessage.set(`Failed to add "${game.gameInfo.name}" to library.`);
+      }
+    });
   }
 
   openIgdbLink(): void {

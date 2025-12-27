@@ -1,14 +1,17 @@
 package com.robertforpresent.api.scraper.presentation.rest;
 
 import com.robertforpresent.api.scraper.application.service.GameScraperService;
+import com.robertforpresent.api.scraper.domain.model.EnrichedSearchResult;
 import com.robertforpresent.api.scraper.domain.model.GameSearchResult;
 import com.robertforpresent.api.scraper.domain.model.ScrapedGameInfo;
+import com.robertforpresent.api.scraper.domain.port.GameCatalogWriter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * REST controller for game scraping/search operations.
@@ -25,7 +28,7 @@ public class GameScraperController {
     }
 
     /**
-     * Search for games by name on IGDB.
+     * Search for games by name (basic search without library status).
      *
      * @param query The game name to search for
      * @param limit Maximum number of results (default 10, max 20)
@@ -50,6 +53,32 @@ public class GameScraperController {
     }
 
     /**
+     * Search for games by name with library/catalog status.
+     * Results include whether each game is already in the user's library.
+     *
+     * @param query The game name to search for
+     * @param limit Maximum number of results (default 10, max 20)
+     * @return Enriched search results with library status
+     */
+    @GetMapping("/search/enriched")
+    public ResponseEntity<EnrichedSearchResult> searchGamesEnriched(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "10") int limit) {
+        log.info("Searching for games with library status: '{}'", query);
+
+        if (query == null || query.isBlank()) {
+            return ResponseEntity.badRequest().body(
+                    new EnrichedSearchResult("", java.util.List.of(), "igdb")
+            );
+        }
+
+        EnrichedSearchResult result = scraperService.searchGamesWithLibraryStatus(query.trim(), Math.min(limit, 20));
+        log.info("Found {} results for '{}', checking library status", result.results().size(), query);
+
+        return ResponseEntity.ok(result);
+    }
+
+    /**
      * Get detailed information for a specific game by IGDB ID.
      *
      * @param igdbId The IGDB game ID
@@ -63,6 +92,29 @@ public class GameScraperController {
 
         return result.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * Add a game to the user's library by its external ID.
+     *
+     * @param externalId The IGDB game ID
+     * @param userId The user's ID
+     * @return Result of the add operation
+     */
+    @PostMapping("/games/{externalId}/add")
+    public ResponseEntity<Map<String, Object>> addGameToLibrary(
+            @PathVariable long externalId,
+            @RequestParam UUID userId) {
+        log.info("Adding game {} to library for user {}", externalId, userId);
+
+        Optional<GameCatalogWriter.AddGameResult> result = scraperService.addGameToLibrary(externalId, userId);
+
+        return result.map(addResult -> ResponseEntity.ok(Map.of(
+                "success", true,
+                "canonicalGameId", addResult.canonicalGameId().toString(),
+                "created", addResult.created(),
+                "message", addResult.created() ? "Game added to catalog and library" : "Game added to library (already in catalog)"
+        ))).orElse(ResponseEntity.notFound().build());
     }
 
     /**
