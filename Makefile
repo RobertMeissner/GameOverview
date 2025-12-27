@@ -1,11 +1,5 @@
 .PHONY: setup run clean check dev test compile run-backend run-frontend
 
-# Load .env file if it exists
-ifneq (,$(wildcard apps/api/.env))
-    include apps/api/.env
-    export
-endif
-
 compile:
 	cd apps/api && ./mvnw clean package -DskipTests
 
