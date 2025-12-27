@@ -12,6 +12,9 @@ Usage:
 
 Example:
     python import_legacy_data.py ~/games_data.parquet --db-path ./data/gamedb.sqlite
+
+
+    uv run import_legacy_data.py ../data/legacy_data.parquet --db-path ../apps/api/data/gamedb.sqlite --dry-run
 """
 
 import argparse
@@ -351,17 +354,38 @@ def transform_to_personalized_game(
 # Database Operations
 # =============================================================================
 
+def get_existing_columns(conn: sqlite3.Connection, table_name: str) -> set[str]:
+    """Get the set of existing column names for a table."""
+    cursor = conn.cursor()
+    cursor.execute(f"PRAGMA table_info({table_name})")
+    return {row[1] for row in cursor.fetchall()}
+
+
+def add_column_if_missing(conn: sqlite3.Connection, table: str, column: str, col_type: str, default: str = None):
+    """Add a column to a table if it doesn't exist."""
+    existing = get_existing_columns(conn, table)
+    if column not in existing:
+        default_clause = f" DEFAULT {default}" if default else ""
+        conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {col_type}{default_clause}")
+        print(f"  Added column: {table}.{column}")
+
+
 def create_tables(conn: sqlite3.Connection):
-    """Create database tables if they don't exist."""
+    """Create database tables if they don't exist, and migrate existing tables."""
     cursor = conn.cursor()
 
-    # CanonicalGame table (extended from current schema)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS canonical_games (
-            id TEXT PRIMARY KEY,
-            name TEXT NOT NULL,
-            thumbnail_url TEXT,
-            release_timestamp INTEGER,
+    # Check if canonical_games table exists
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='canonical_games'")
+    table_exists = cursor.fetchone() is not None
+
+    if not table_exists:
+        # Create fresh table with full schema
+        cursor.execute("""
+            CREATE TABLE canonical_games (
+                id TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                thumbnail_url TEXT,
+                release_timestamp INTEGER,
 
             -- Steam data
             steam_app_id INTEGER,
@@ -390,17 +414,44 @@ def create_tables(conn: sqlite3.Connection):
             hltb_completionist_hours REAL,
             hltb_similarity INTEGER,
 
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-            updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+    else:
+        # Migrate existing table - add new columns if missing
+        print("Migrating canonical_games table...")
+        # Note: SQLite doesn't allow non-constant defaults in ALTER TABLE,
+        # so created_at/updated_at will be NULL for migrated rows (acceptable)
+        new_columns = [
+            ("release_timestamp", "INTEGER", None),
+            ("steam_positive", "INTEGER", None),
+            ("steam_negative", "INTEGER", None),
+            ("steam_sentiment", "TEXT", None),
+            ("gog_rating", "INTEGER", None),
+            ("gog_cover_vertical", "TEXT", None),
+            ("gog_cover_horizontal", "TEXT", None),
+            ("hltb_id", "INTEGER", None),
+            ("hltb_main_story_hours", "REAL", None),
+            ("hltb_main_extra_hours", "REAL", None),
+            ("hltb_completionist_hours", "REAL", None),
+            ("hltb_similarity", "INTEGER", None),
+            ("created_at", "TEXT", None),
+            ("updated_at", "TEXT", None),
+        ]
+        for col_name, col_type, default in new_columns:
+            add_column_if_missing(conn, "canonical_games", col_name, col_type, default)
 
-    # PersonalizedGame table (extended from current schema)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS personalized_games (
-            id TEXT PRIMARY KEY,
-            gamer_id TEXT NOT NULL,
-            canonical_game_id TEXT NOT NULL,
+    # PersonalizedGame table - check if exists
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='personalized_games'")
+    pg_table_exists = cursor.fetchone() is not None
+
+    if not pg_table_exists:
+        cursor.execute("""
+            CREATE TABLE personalized_games (
+                id TEXT PRIMARY KEY,
+                gamer_id TEXT NOT NULL,
+                canonical_game_id TEXT NOT NULL,
 
             -- Ownership
             store_owned TEXT,
@@ -427,9 +478,30 @@ def create_tables(conn: sqlite3.Connection):
             created_at TEXT DEFAULT CURRENT_TIMESTAMP,
             updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
 
-            FOREIGN KEY (canonical_game_id) REFERENCES canonical_games(id)
-        )
-    """)
+                FOREIGN KEY (canonical_game_id) REFERENCES canonical_games(id)
+            )
+        """)
+    else:
+        # Migrate existing table - add new columns if missing
+        # Note: SQLite doesn't allow non-constant defaults in ALTER TABLE
+        print("Migrating personalized_games table...")
+        new_pg_columns = [
+            ("store_owned", "TEXT", None),
+            ("cd_key", "TEXT", None),
+            ("notes", "TEXT", None),
+            ("playtime_total_minutes", "INTEGER", "0"),
+            ("playtime_windows_minutes", "INTEGER", "0"),
+            ("playtime_mac_minutes", "INTEGER", "0"),
+            ("playtime_linux_minutes", "INTEGER", "0"),
+            ("playtime_deck_minutes", "INTEGER", "0"),
+            ("playtime_disconnected_minutes", "INTEGER", "0"),
+            ("playtime_last_played_timestamp", "INTEGER", None),
+            ("playtime_2weeks_minutes", "INTEGER", "0"),
+            ("created_at", "TEXT", None),
+            ("updated_at", "TEXT", None),
+        ]
+        for col_name, col_type, default in new_pg_columns:
+            add_column_if_missing(conn, "personalized_games", col_name, col_type, default)
 
     # Create indexes
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_canonical_steam_id ON canonical_games(steam_app_id)")
