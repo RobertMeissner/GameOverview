@@ -4,6 +4,12 @@ import com.robertforpresent.api.catalog.application.command.UpdateCatalogCommand
 import com.robertforpresent.api.catalog.domain.model.*;
 import com.robertforpresent.api.catalog.domain.port.GameCollectionPort;
 import com.robertforpresent.api.catalog.domain.repository.CanonicalGameRepository;
+import com.robertforpresent.api.catalog.presentation.rest.RescrapeRequest;
+import com.robertforpresent.api.catalog.presentation.rest.RescrapeResult;
+import com.robertforpresent.api.scraper.application.service.GameScraperService;
+import com.robertforpresent.api.scraper.domain.model.ScrapedGameInfo;
+import com.robertforpresent.api.thumbnail.application.service.ThumbnailService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,13 +22,22 @@ import java.util.UUID;
  * Contains business logic for managing the game catalog.
  */
 @Service
+@Slf4j
 public class CatalogService {
     private final CanonicalGameRepository repository;
     private final GameCollectionPort collectionPort;
+    private final GameScraperService scraperService;
+    private final ThumbnailService thumbnailService;
 
-    public CatalogService(CanonicalGameRepository repository, GameCollectionPort collectionPort) {
+    public CatalogService(
+            CanonicalGameRepository repository,
+            GameCollectionPort collectionPort,
+            GameScraperService scraperService,
+            ThumbnailService thumbnailService) {
         this.repository = repository;
         this.collectionPort = collectionPort;
+        this.scraperService = scraperService;
+        this.thumbnailService = thumbnailService;
     }
 
     public CanonicalGame get(UUID id) {
@@ -111,5 +126,118 @@ public class CatalogService {
             // Delete the source canonical game
             repository.deleteById(sourceId);
         }
+    }
+
+    /**
+     * Rescrape game data from IGDB and update the catalog entry.
+     *
+     * @param gameId The ID of the game to rescrape
+     * @param request The rescrape request containing optional IGDB ID
+     * @return Result of the rescrape operation
+     */
+    @Transactional
+    public RescrapeResult rescrapeGame(UUID gameId, RescrapeRequest request) {
+        log.debug("Rescraping game {} with request: {}", gameId, request);
+
+        CanonicalGame existing = repository.findById(gameId).orElseThrow();
+        String gameName = existing.getName();
+
+        // Get scraped data from IGDB
+        Optional<ScrapedGameInfo> scrapedData;
+        if (request.igdbId() != null) {
+            // Fetch by IGDB ID directly
+            scrapedData = scraperService.getGameDetails(request.igdbId());
+        } else {
+            // Search by game name and take first result
+            var searchResult = scraperService.searchGames(gameName, 1);
+            scrapedData = searchResult.results().isEmpty()
+                    ? Optional.empty()
+                    : Optional.of(searchResult.results().get(0));
+        }
+
+        if (scrapedData.isEmpty()) {
+            log.debug("No scraped data found for game {}", gameName);
+            return RescrapeResult.failure(gameId.toString(), gameName, "No matching game found in IGDB");
+        }
+
+        ScrapedGameInfo info = scrapedData.get();
+        log.debug("Found IGDB data for {}: coverUrl={}, storeLinks={}", gameName, info.coverUrl(), info.storeLinks());
+
+        // Extract store links from scraped data
+        Integer steamAppId = null;
+        String steamLink = null;
+        String gogLink = null;
+        String epicLink = null;
+
+        for (ScrapedGameInfo.StoreLink link : info.storeLinks()) {
+            switch (link.storeName()) {
+                case "Steam" -> {
+                    steamLink = link.url();
+                    if (link.storeId() != null) {
+                        try {
+                            steamAppId = Integer.parseInt(link.storeId());
+                        } catch (NumberFormatException e) {
+                            log.debug("Could not parse Steam app ID: {}", link.storeId());
+                        }
+                    }
+                }
+                case "GOG" -> gogLink = link.url();
+                case "Epic Games" -> epicLink = link.url();
+            }
+        }
+
+        // Build updated game - preserve existing data if scraped data is null
+        SteamGameData existingSteam = existing.getSteamData();
+        SteamGameData newSteamData = new SteamGameData(
+                steamAppId != null ? steamAppId : (existingSteam != null ? existingSteam.appId() : null),
+                existingSteam != null ? existingSteam.name() : null
+        );
+
+        GogGameData existingGog = existing.getGogData();
+        GogGameData newGogData = new GogGameData(
+                existingGog != null ? existingGog.gogId() : null,
+                existingGog != null ? existingGog.name() : null,
+                gogLink != null ? gogLink : (existingGog != null ? existingGog.link() : null)
+        );
+
+        EpicGameData existingEpic = existing.getEpicData();
+        EpicGameData newEpicData = new EpicGameData(
+                existingEpic != null ? existingEpic.epicId() : null,
+                existingEpic != null ? existingEpic.name() : null,
+                epicLink != null ? epicLink : (existingEpic != null ? existingEpic.link() : null)
+        );
+
+        String newThumbnailUrl = info.coverUrl() != null ? info.coverUrl() : existing.getThumbnailUrl();
+
+        CanonicalGame updated = new CanonicalGame.Builder(existing.getName())
+                .setId(existing.getId())
+                .setSteamRating(existing.getRatings().steam())
+                .setThumbnailUrl(newThumbnailUrl)
+                .setSteamData(newSteamData)
+                .setGogData(newGogData)
+                .setEpicData(newEpicData)
+                .setMetacriticData(existing.getMetacriticData())
+                .build();
+
+        repository.save(updated);
+
+        // Evict cached thumbnail so it will be re-downloaded with new URL
+        if (info.coverUrl() != null && !info.coverUrl().equals(existing.getThumbnailUrl())) {
+            thumbnailService.evict(gameId);
+            log.debug("Evicted cached thumbnail for game {} to download new image", gameName);
+        }
+
+        RescrapeResult.UpdatedFields fields = new RescrapeResult.UpdatedFields(
+                info.coverUrl(),
+                steamAppId,
+                steamLink,
+                gogLink,
+                epicLink,
+                info.rating(),
+                info.genres()
+        );
+
+        log.debug("Successfully rescraped game {}", gameName);
+        return RescrapeResult.success(gameId.toString(), gameName, fields);
     }
 }

@@ -45,14 +45,14 @@ public class GameCatalogWriterAdapter implements GameCatalogWriter {
         if (existingMatch.isPresent()) {
             canonicalGameId = existingMatch.get().gameId();
             created = false;
-            log.info("Found existing game in catalog: {} ({})", gameInfo.name(), canonicalGameId);
+            log.debug("Found existing game in catalog: {} ({})", gameInfo.name(), canonicalGameId);
         } else {
             // Create new canonical game
             CanonicalGame newGame = createCanonicalGame(gameInfo);
             CanonicalGame savedGame = catalogRepository.save(newGame);
             canonicalGameId = savedGame.getId();
             created = true;
-            log.info("Created new game in catalog: {} ({})", gameInfo.name(), canonicalGameId);
+            log.debug("Created new game in catalog: {} ({})", gameInfo.name(), canonicalGameId);
         }
 
         // Create personalized game entry for the user
@@ -65,7 +65,7 @@ public class GameCatalogWriterAdapter implements GameCatalogWriter {
                 .build();
 
         PersonalizedGame savedPersonalized = collectionRepository.save(personalizedGame);
-        log.info("Added game to user's collection: {} -> user {}", gameInfo.name(), gamerId);
+        log.debug("Added game to user's collection: {} -> user {}", gameInfo.name(), gamerId);
 
         return new AddGameResult(canonicalGameId, savedPersonalized.getCanonicalGameId(), created);
     }
