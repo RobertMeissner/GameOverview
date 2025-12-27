@@ -10,11 +10,12 @@ public class CollectionEntityMapper {
     public PersonalizedGame toDomain(PersonalizedGameEntity entity) {
         return new PersonalizedGame.Builder().setCanonicalId(UUID.fromString(entity.getCanonicalGameId())).setGamerId(UUID.fromString(entity.getGamerId()))
                 .setMarkAsPlayed(entity.isMarkAsPlayed()).setMarkAsHidden(entity.isMarkAsHidden()).setMarkAsForLater(entity.isMarkAsForLater())
+                .setSteamPlaytimeMinutes(entity.getSteamPlaytimeMinutes())
                 .build();
     }
 
     public PersonalizedGameEntity toEntity(PersonalizedGame domain) {
         return new PersonalizedGameEntity(domain.getGamerId().toString(), domain.getCanonicalGameId().toString(),
-                domain.isMarkedAsPlayed(), domain.isMarkedAsHidden(), domain.isMarkedForLater());
+                domain.isMarkedAsPlayed(), domain.isMarkedAsHidden(), domain.isMarkedForLater(), domain.getSteamPlaytimeMinutes());
     }
 }

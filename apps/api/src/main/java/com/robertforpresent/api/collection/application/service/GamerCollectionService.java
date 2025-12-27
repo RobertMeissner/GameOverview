@@ -50,7 +50,8 @@ public class GamerCollectionService {
                 pg.isMarkedAsPlayed(),
                 pg.isMarkedAsHidden(),
                 pg.isMarkedForLater(),
-                storeLinks
+                storeLinks,
+                pg.getSteamPlaytimeMinutes()
         );
     }
 

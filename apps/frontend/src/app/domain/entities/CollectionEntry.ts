@@ -13,4 +13,5 @@ export interface CollectionEntry {
   markedAsHidden: boolean;
   markedForLater: boolean;
   storeLinks: StoreLinks;
+  steamPlaytimeMinutes?: number | null; // Steam playtime in minutes
 }

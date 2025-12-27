@@ -11,6 +11,7 @@ public class PersonalizedGame {
     private boolean markedAsPlayed;
     private boolean markedAsHidden;
     private boolean markedForLater;
+    private Integer steamPlaytimeMinutes; // Total playtime from Steam in minutes
 
     private PersonalizedGame(Builder builder) {
         if (builder.gamerId == null || builder.canonicalId == null)
@@ -20,6 +21,7 @@ public class PersonalizedGame {
         this.markedAsPlayed = builder.markAsPlayed;
         this.markedAsHidden = builder.markAsHidden;
         this.markedForLater = builder.markAsForLater;
+        this.steamPlaytimeMinutes = builder.steamPlaytimeMinutes;
     }
 
     public UUID getCanonicalGameId() {
@@ -54,6 +56,14 @@ public class PersonalizedGame {
         this.markedAsPlayed = markedAsPlayed;
     }
 
+    public Integer getSteamPlaytimeMinutes() {
+        return steamPlaytimeMinutes;
+    }
+
+    public void setSteamPlaytimeMinutes(Integer steamPlaytimeMinutes) {
+        this.steamPlaytimeMinutes = steamPlaytimeMinutes;
+    }
+
     /**
      * To implement
      * addGame
@@ -76,6 +86,7 @@ public class PersonalizedGame {
         private boolean markAsPlayed;
         private boolean markAsHidden;
         private boolean markAsForLater;
+        private Integer steamPlaytimeMinutes;
 
         public Builder() {
 
@@ -107,6 +118,11 @@ public class PersonalizedGame {
 
         public Builder setMarkAsPlayed(boolean markAsPlayed) {
             this.markAsPlayed = markAsPlayed;
+            return this;
+        }
+
+        public Builder setSteamPlaytimeMinutes(Integer steamPlaytimeMinutes) {
+            this.steamPlaytimeMinutes = steamPlaytimeMinutes;
             return this;
         }
     }

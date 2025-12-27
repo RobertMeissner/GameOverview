@@ -41,18 +41,24 @@ public class PersonalizedGameEntity {
     @Column(name = "mark_as_for_later", nullable = false)
     private boolean markAsForLater;
 
-    public PersonalizedGameEntity(String gamerId, String canonicalGameId, boolean markAsPlayed, boolean markAsHidden, boolean markAsForLater) {
+    @Getter
+    @Setter
+    @Column(name = "steam_playtime_minutes")
+    private Integer steamPlaytimeMinutes;
+
+    public PersonalizedGameEntity(String gamerId, String canonicalGameId, boolean markAsPlayed, boolean markAsHidden, boolean markAsForLater, Integer steamPlaytimeMinutes) {
         this.gamerId = gamerId;
         this.canonicalGameId = canonicalGameId;
         this.markAsPlayed = markAsPlayed;
         this.markAsHidden = markAsHidden;
         this.markAsForLater = markAsForLater;
+        this.steamPlaytimeMinutes = steamPlaytimeMinutes;
 
     }
 
     public PersonalizedGameEntity(){}
 
     public static PersonalizedGameEntity from(PersonalizedGame game){
-        return new PersonalizedGameEntity(game.getGamerId().toString(), game.getCanonicalGameId().toString(), game.isMarkedAsPlayed(), game.isMarkedAsHidden(), game.isMarkedForLater());
+        return new PersonalizedGameEntity(game.getGamerId().toString(), game.getCanonicalGameId().toString(), game.isMarkedAsPlayed(), game.isMarkedAsHidden(), game.isMarkedForLater(), game.getSteamPlaytimeMinutes());
     }
 }
