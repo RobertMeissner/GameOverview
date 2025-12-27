@@ -32,7 +32,7 @@ public class StoreService {
             "https://www.gog.com/favicon.ico");
         initStoreIfMissing("epic", "Epic Games", "https://www.epicgames.com",
             "https://www.epicgames.com/favicon.ico");
-        initStoreIfMissing("family", "Steam Family Sharing", "https://store.steampowered.com",
+        initStoreIfMissing("steam-family", "Steam Family Sharing", "https://store.steampowered.com",
             "https://store.steampowered.com/favicon.ico");
         initStoreIfMissing("metacritic", "Metacritic", "https://www.metacritic.com",
             "https://www.metacritic.com/favicon.ico");

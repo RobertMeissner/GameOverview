@@ -8,7 +8,7 @@ import java.util.UUID;
  */
 public record Store(
     UUID id,
-    String code,           // e.g., "steam", "gog", "epic", "family"
+    String code,           // e.g., "steam", "gog", "epic", "steam-family"
     String name,           // e.g., "Steam", "GOG", "Epic Games", "Steam Family Sharing"
     String url,            // e.g., "https://store.steampowered.com"
     String iconUrl,        // Optional icon URL
