@@ -14,4 +14,6 @@ public interface CanonicalGameRepository {
     CanonicalGame save(CanonicalGame game);
 
     List<CanonicalGame> findAll();
+
+    void deleteById(UUID id);
 }

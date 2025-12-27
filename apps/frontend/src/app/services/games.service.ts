@@ -54,6 +54,10 @@ export class GamesService {
     return this.http.patch<void>(`${this.apiUrl}/catalog/games/${gameId}`, values);
   }
 
+  mergeGames(targetId: string, sourceIds: string[]): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/catalog/games/${targetId}/merge`, {sourceIds});
+  }
+
   private withCachedThumbnail<T extends { id: string; thumbnailUrl: string }>(game: T): T {
     return {
       ...game,

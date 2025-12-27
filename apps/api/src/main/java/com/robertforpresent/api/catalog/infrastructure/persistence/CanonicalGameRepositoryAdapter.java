@@ -35,4 +35,9 @@ public class CanonicalGameRepositoryAdapter implements CanonicalGameRepository {
     public List<CanonicalGame> findAll() {
         return springDataRepository.findAll().stream().map(mapper::toDomain).toList();
     }
+
+    @Override
+    public void deleteById(UUID id) {
+        springDataRepository.deleteById(id.toString());
+    }
 }

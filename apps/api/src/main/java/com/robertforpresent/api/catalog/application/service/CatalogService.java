@@ -3,7 +3,9 @@ package com.robertforpresent.api.catalog.application.service;
 import com.robertforpresent.api.catalog.domain.model.*;
 import com.robertforpresent.api.catalog.domain.repository.CanonicalGameRepository;
 import com.robertforpresent.api.catalog.presentation.rest.UpdateCatalogRequest;
+import com.robertforpresent.api.collection.infrastructure.persistence.SpringDataCollectionRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -11,13 +13,15 @@ import java.util.UUID;
 @Service
 public class CatalogService {
     private final CanonicalGameRepository repository;
+    private final SpringDataCollectionRepository collectionRepository;
 
     public CanonicalGame get(UUID id) {
         return repository.findById(id).orElseThrow();
     }
 
-    public CatalogService(CanonicalGameRepository repository) {
+    public CatalogService(CanonicalGameRepository repository, SpringDataCollectionRepository collectionRepository) {
         this.repository = repository;
+        this.collectionRepository = collectionRepository;
     }
 
     public List<CanonicalGame> getAllGames() {
@@ -59,5 +63,22 @@ public class CatalogService {
                 .setMetacriticData(newMetacriticData)
                 .build();
         return repository.save(updated);
+    }
+
+    @Transactional
+    public void mergeGames(UUID targetId, List<UUID> sourceIds) {
+        // Verify target exists
+        CanonicalGame target = repository.findById(targetId).orElseThrow();
+
+        for (UUID sourceId : sourceIds) {
+            // Verify source exists
+            repository.findById(sourceId).orElseThrow();
+
+            // Update all personalized game references to point to target
+            collectionRepository.updateCanonicalGameReferences(sourceId.toString(), targetId.toString());
+
+            // Delete the source canonical game
+            repository.deleteById(sourceId);
+        }
     }
 }
