@@ -109,12 +109,14 @@ public class GameScraperController {
 
         Optional<GameCatalogWriter.AddGameResult> result = scraperService.addGameToLibrary(externalId, userId);
 
-        return result.map(addResult -> ResponseEntity.ok(Map.of(
-                "success", true,
-                "canonicalGameId", addResult.canonicalGameId().toString(),
-                "created", addResult.created(),
-                "message", addResult.created() ? "Game added to catalog and library" : "Game added to library (already in catalog)"
-        ))).orElse(ResponseEntity.notFound().build());
+        return result.map(addResult -> {
+            Map<String, Object> response = new java.util.HashMap<>();
+            response.put("success", true);
+            response.put("canonicalGameId", addResult.canonicalGameId().toString());
+            response.put("created", addResult.created());
+            response.put("message", addResult.created() ? "Game added to catalog and library" : "Game added to library (already in catalog)");
+            return ResponseEntity.ok(response);
+        }).orElse(ResponseEntity.notFound().build());
     }
 
     /**
@@ -124,12 +126,12 @@ public class GameScraperController {
     public ResponseEntity<Map<String, Object>> getStatus() {
         boolean enabled = scraperService.isEnabled();
         String provider = scraperService.getProviderName();
-        return ResponseEntity.ok(Map.of(
-                "enabled", enabled,
-                "source", provider,
-                "message", enabled
-                        ? provider.toUpperCase() + " integration is configured and ready"
-                        : provider.toUpperCase() + " integration is not configured. Set igdb.client-id and igdb.client-secret in application.properties"
-        ));
+        Map<String, Object> status = new java.util.HashMap<>();
+        status.put("enabled", enabled);
+        status.put("source", provider);
+        status.put("message", enabled
+                ? provider.toUpperCase() + " integration is configured and ready"
+                : provider.toUpperCase() + " integration is not configured. Set igdb.client-id and igdb.client-secret in application.properties");
+        return ResponseEntity.ok(status);
     }
 }
