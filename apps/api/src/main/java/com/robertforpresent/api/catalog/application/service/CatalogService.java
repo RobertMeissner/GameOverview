@@ -1,11 +1,11 @@
 package com.robertforpresent.api.catalog.application.service;
 
+import com.robertforpresent.api.catalog.application.command.UpdateCatalogCommand;
 import com.robertforpresent.api.catalog.domain.model.*;
+import com.robertforpresent.api.catalog.domain.port.GameCollectionPort;
 import com.robertforpresent.api.catalog.domain.repository.CanonicalGameRepository;
 import com.robertforpresent.api.catalog.presentation.rest.RescrapeRequest;
 import com.robertforpresent.api.catalog.presentation.rest.RescrapeResult;
-import com.robertforpresent.api.catalog.presentation.rest.UpdateCatalogRequest;
-import com.robertforpresent.api.collection.infrastructure.persistence.SpringDataCollectionRepository;
 import com.robertforpresent.api.scraper.application.service.GameScraperService;
 import com.robertforpresent.api.scraper.domain.model.ScrapedGameInfo;
 import com.robertforpresent.api.thumbnail.application.service.ThumbnailService;
@@ -17,57 +17,86 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Application service for catalog operations.
+ * Contains business logic for managing the game catalog.
+ */
 @Service
 @Slf4j
 public class CatalogService {
     private final CanonicalGameRepository repository;
-    private final SpringDataCollectionRepository collectionRepository;
+    private final GameCollectionPort collectionPort;
     private final GameScraperService scraperService;
     private final ThumbnailService thumbnailService;
 
-    public CanonicalGame get(UUID id) {
-        return repository.findById(id).orElseThrow();
-    }
-
     public CatalogService(
             CanonicalGameRepository repository,
-            SpringDataCollectionRepository collectionRepository,
+            GameCollectionPort collectionPort,
             GameScraperService scraperService,
             ThumbnailService thumbnailService) {
         this.repository = repository;
-        this.collectionRepository = collectionRepository;
+        this.collectionPort = collectionPort;
         this.scraperService = scraperService;
         this.thumbnailService = thumbnailService;
+    }
+
+    public CanonicalGame get(UUID id) {
+        return repository.findById(id).orElseThrow();
     }
 
     public List<CanonicalGame> getAllGames() {
         return repository.findAll();
     }
 
-    public CanonicalGame updateCatalogValues(UUID id, UpdateCatalogRequest request) {
+    public Optional<CanonicalGame> findByName(String name) {
+        return repository.findAll().stream()
+                .filter(g -> g.getName().equalsIgnoreCase(name))
+                .findFirst();
+    }
+
+    public CanonicalGame save(CanonicalGame game) {
+        return repository.save(game);
+    }
+
+    /**
+     * Update catalog values for a game.
+     *
+     * @param id      The game ID
+     * @param command The update command with new values
+     * @return The updated game
+     */
+    public CanonicalGame updateCatalogValues(UUID id, UpdateCatalogCommand command) {
         CanonicalGame existing = repository.findById(id).orElseThrow();
 
         // Build updated Steam data
         SteamGameData existingSteam = existing.getSteamData();
         SteamGameData newSteamData = new SteamGameData(
-                request.steamAppId() != null ? request.steamAppId() : (existingSteam != null ? existingSteam.appId() : null),
-                request.steamName() != null ? request.steamName() : (existingSteam != null ? existingSteam.name() : null)
+                command.steamAppId() != null ? command.steamAppId() : (existingSteam != null ? existingSteam.appId() : null),
+                command.steamName() != null ? command.steamName() : (existingSteam != null ? existingSteam.name() : null)
         );
 
         // Build updated GoG data
         GogGameData existingGog = existing.getGogData();
         GogGameData newGogData = new GogGameData(
-                request.gogId() != null ? request.gogId() : (existingGog != null ? existingGog.gogId() : null),
-                request.gogName() != null ? request.gogName() : (existingGog != null ? existingGog.name() : null),
-                request.gogLink() != null ? request.gogLink() : (existingGog != null ? existingGog.link() : null)
+                command.gogId() != null ? command.gogId() : (existingGog != null ? existingGog.gogId() : null),
+                command.gogName() != null ? command.gogName() : (existingGog != null ? existingGog.name() : null),
+                command.gogLink() != null ? command.gogLink() : (existingGog != null ? existingGog.link() : null)
+        );
+
+        // Build updated Epic Games data
+        EpicGameData existingEpic = existing.getEpicData();
+        EpicGameData newEpicData = new EpicGameData(
+                command.epicId() != null ? command.epicId() : (existingEpic != null ? existingEpic.epicId() : null),
+                command.epicName() != null ? command.epicName() : (existingEpic != null ? existingEpic.name() : null),
+                command.epicLink() != null ? command.epicLink() : (existingEpic != null ? existingEpic.link() : null)
         );
 
         // Build updated Metacritic data
         MetacriticGameData existingMc = existing.getMetacriticData();
         MetacriticGameData newMetacriticData = new MetacriticGameData(
-                request.metacriticScore() != null ? request.metacriticScore() : (existingMc != null ? existingMc.score() : null),
-                request.metacriticName() != null ? request.metacriticName() : (existingMc != null ? existingMc.gameName() : null),
-                request.metacriticLink() != null ? request.metacriticLink() : (existingMc != null ? existingMc.link() : null)
+                command.metacriticScore() != null ? command.metacriticScore() : (existingMc != null ? existingMc.score() : null),
+                command.metacriticName() != null ? command.metacriticName() : (existingMc != null ? existingMc.gameName() : null),
+                command.metacriticLink() != null ? command.metacriticLink() : (existingMc != null ? existingMc.link() : null)
         );
 
         CanonicalGame updated = new CanonicalGame.Builder(existing.getName())
@@ -76,6 +105,7 @@ public class CatalogService {
                 .setThumbnailUrl(existing.getThumbnailUrl())
                 .setSteamData(newSteamData)
                 .setGogData(newGogData)
+                .setEpicData(newEpicData)
                 .setMetacriticData(newMetacriticData)
                 .build();
         return repository.save(updated);
@@ -84,14 +114,14 @@ public class CatalogService {
     @Transactional
     public void mergeGames(UUID targetId, List<UUID> sourceIds) {
         // Verify target exists
-        CanonicalGame target = repository.findById(targetId).orElseThrow();
+        repository.findById(targetId).orElseThrow();
 
         for (UUID sourceId : sourceIds) {
             // Verify source exists
             repository.findById(sourceId).orElseThrow();
 
             // Update all personalized game references to point to target
-            collectionRepository.updateCanonicalGameReferences(sourceId.toString(), targetId.toString());
+            collectionPort.updateCanonicalGameReferences(sourceId, targetId);
 
             // Delete the source canonical game
             repository.deleteById(sourceId);
@@ -107,7 +137,7 @@ public class CatalogService {
      */
     @Transactional
     public RescrapeResult rescrapeGame(UUID gameId, RescrapeRequest request) {
-        log.info("Rescraping game {} with request: {}", gameId, request);
+        log.debug("Rescraping game {} with request: {}", gameId, request);
 
         CanonicalGame existing = repository.findById(gameId).orElseThrow();
         String gameName = existing.getName();
@@ -126,12 +156,12 @@ public class CatalogService {
         }
 
         if (scrapedData.isEmpty()) {
-            log.warn("No scraped data found for game {}", gameName);
+            log.debug("No scraped data found for game {}", gameName);
             return RescrapeResult.failure(gameId.toString(), gameName, "No matching game found in IGDB");
         }
 
         ScrapedGameInfo info = scrapedData.get();
-        log.info("Found IGDB data for {}: coverUrl={}, storeLinks={}", gameName, info.coverUrl(), info.storeLinks());
+        log.debug("Found IGDB data for {}: coverUrl={}, storeLinks={}", gameName, info.coverUrl(), info.storeLinks());
 
         // Extract store links from scraped data
         Integer steamAppId = null;
@@ -170,6 +200,13 @@ public class CatalogService {
                 gogLink != null ? gogLink : (existingGog != null ? existingGog.link() : null)
         );
 
+        EpicGameData existingEpic = existing.getEpicData();
+        EpicGameData newEpicData = new EpicGameData(
+                existingEpic != null ? existingEpic.epicId() : null,
+                existingEpic != null ? existingEpic.name() : null,
+                epicLink != null ? epicLink : (existingEpic != null ? existingEpic.link() : null)
+        );
+
         String newThumbnailUrl = info.coverUrl() != null ? info.coverUrl() : existing.getThumbnailUrl();
 
         CanonicalGame updated = new CanonicalGame.Builder(existing.getName())
@@ -178,6 +215,7 @@ public class CatalogService {
                 .setThumbnailUrl(newThumbnailUrl)
                 .setSteamData(newSteamData)
                 .setGogData(newGogData)
+                .setEpicData(newEpicData)
                 .setMetacriticData(existing.getMetacriticData())
                 .build();
 
@@ -186,7 +224,7 @@ public class CatalogService {
         // Evict cached thumbnail so it will be re-downloaded with new URL
         if (info.coverUrl() != null && !info.coverUrl().equals(existing.getThumbnailUrl())) {
             thumbnailService.evict(gameId);
-            log.info("Evicted cached thumbnail for game {} to download new image", gameName);
+            log.debug("Evicted cached thumbnail for game {} to download new image", gameName);
         }
 
         RescrapeResult.UpdatedFields fields = new RescrapeResult.UpdatedFields(
@@ -199,7 +237,7 @@ public class CatalogService {
                 info.genres()
         );
 
-        log.info("Successfully rescraped game {}", gameName);
+        log.debug("Successfully rescraped game {}", gameName);
         return RescrapeResult.success(gameId.toString(), gameName, fields);
     }
 }

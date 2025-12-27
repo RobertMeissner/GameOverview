@@ -46,4 +46,9 @@ public class CollectionRepositoryAdapter implements CollectionRepository {
         PersonalizedGameEntity saved = jpaRepository.save(entity);
         return mapper.toDomain(saved);
     }
+
+    @Override
+    public void updateCanonicalGameReferences(UUID sourceGameId, UUID targetGameId) {
+        jpaRepository.updateCanonicalGameReferences(sourceGameId.toString(), targetGameId.toString());
+    }
 }

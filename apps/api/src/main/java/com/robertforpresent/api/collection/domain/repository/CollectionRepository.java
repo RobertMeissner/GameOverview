@@ -14,4 +14,13 @@ public interface CollectionRepository {
                                  boolean played, boolean hidden, boolean forLater);
 
     PersonalizedGame save(PersonalizedGame game);
+
+    /**
+     * Update all collection entries from source game to target game.
+     * Used when merging duplicate games.
+     *
+     * @param sourceGameId The source game ID to update from
+     * @param targetGameId The target game ID to update to
+     */
+    void updateCanonicalGameReferences(UUID sourceGameId, UUID targetGameId);
 }

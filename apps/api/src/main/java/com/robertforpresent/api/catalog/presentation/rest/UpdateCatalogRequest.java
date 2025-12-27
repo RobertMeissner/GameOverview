@@ -8,6 +8,10 @@ public record UpdateCatalogRequest(
         Long gogId,
         String gogName,
         String gogLink,
+        // Epic Games data
+        String epicId,
+        String epicName,
+        String epicLink,
         // Metacritic data
         Integer metacriticScore,
         String metacriticName,

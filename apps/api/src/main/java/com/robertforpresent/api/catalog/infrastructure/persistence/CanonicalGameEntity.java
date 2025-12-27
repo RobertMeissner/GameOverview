@@ -62,6 +62,22 @@ public class CanonicalGameEntity {
     @Column(name = "gog_link")
     private String gogLink;
 
+    // Epic Games store data
+    @Getter
+    @Setter
+    @Column(name = "epic_id")
+    private String epicId;
+
+    @Getter
+    @Setter
+    @Column(name = "epic_name")
+    private String epicName;
+
+    @Getter
+    @Setter
+    @Column(name = "epic_link")
+    private String epicLink;
+
     // Metacritic data
     @Getter
     @Setter
@@ -81,6 +97,7 @@ public class CanonicalGameEntity {
     public CanonicalGameEntity(String id, String name, SteamRatingEmbeddable steamRating, String thumbnailUrl,
                                Integer steamAppId, String steamName,
                                Long gogId, String gogName, String gogLink,
+                               String epicId, String epicName, String epicLink,
                                Integer metacriticScore, String metacriticName, String metacriticLink) {
         this.id = id;
         this.name = name;
@@ -91,6 +108,9 @@ public class CanonicalGameEntity {
         this.gogId = gogId;
         this.gogName = gogName;
         this.gogLink = gogLink;
+        this.epicId = epicId;
+        this.epicName = epicName;
+        this.epicLink = epicLink;
         this.metacriticScore = metacriticScore;
         this.metacriticName = metacriticName;
         this.metacriticLink = metacriticLink;
