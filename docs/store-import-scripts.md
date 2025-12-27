@@ -19,9 +19,8 @@ const fetchGamesList = async (pageToken = '', existingList = []) => {
 };
 
 fetchGamesList().then(games => {
-  console.log("Total games found: " + games.length);
-  copy(games.join("\n"));
-  console.log("Copied to clipboard! Paste into import.");
+  console.log("=== EPIC GAMES (" + games.length + ") ===");
+  console.log(games.join("\n"));
 });
 ```
 
@@ -31,7 +30,7 @@ fetchGamesList().then(games => {
 3. If prompted, type `allow pasting` and press Enter
 4. Paste the script and press Enter
 5. Wait for it to fetch all pages (you'll see progress in console)
-6. The game list is copied to your clipboard
+6. Copy the game list from the console output
 
 **Note:** Some free games may not appear if they didn't generate an order record.
 
@@ -51,11 +50,19 @@ Navigate to: `https://steamcommunity.com/id/YOUR_STEAM_ID/games/?tab=all`
 **Important:** Scroll all the way to the bottom first to load ALL games!
 
 ```javascript
-var games = Array.from(document.getElementsByClassName("gameslistitems_GameName_22awl"));
-var gameNames = games.map(g => g.innerHTML.trim());
-console.log("Found " + gameNames.length + " games");
-copy(gameNames.join("\n"));
-console.log("Copied to clipboard! Paste into import.");
+let games = document.querySelectorAll('.gameListRowItemName');
+if (!games.length) games = document.querySelectorAll('[class*="GameName"]');
+if (!games.length) games = document.querySelectorAll('[class*="gamename"]');
+
+if (!games.length) {
+  console.log("No games found. Try the manual method:");
+  console.log("1. Go to https://store.steampowered.com/account/licenses/");
+  console.log("2. Select and copy the game names manually");
+} else {
+  const names = [...games].map(g => g.textContent.trim());
+  console.log("=== STEAM GAMES (" + names.length + ") ===");
+  console.log(names.join("\n"));
+}
 ```
 
 **Troubleshooting:**
@@ -72,39 +79,58 @@ http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=YOUR_API_KEY
 
 See: [Steam Web API Documentation](https://developer.valvesoftware.com/wiki/Steam_Web_API)
 
+### Steam Family Sharing
+
+For games shared via Steam Family Sharing, use the same export methods above but select "Steam Family Sharing" as the store when importing. This helps track which games you own vs. which are shared.
+
 ## GOG Library Export
 
 Navigate to: `https://www.gog.com/en/account`
 
+This script fetches ALL pages automatically:
+
 ```javascript
-var games = gogData.accountProducts.map(p => p.title);
-console.log("Found " + games.length + " games:");
-console.log(games);
-copy(games.join("\n"));
-console.log("Copied to clipboard! Paste into import.");
+async function fetchAllGogGames() {
+  let page = 1;
+  let allGames = [];
+  let totalPages = 1;
+
+  do {
+    const response = await fetch(`https://www.gog.com/account/getFilteredProducts?mediaType=1&page=${page}`);
+    const data = await response.json();
+    totalPages = data.totalPages;
+    const games = data.products.map(p => p.title);
+    allGames = allGames.concat(games);
+    console.log(`Page ${page}/${totalPages}: Found ${games.length} games`);
+    page++;
+  } while (page <= totalPages);
+
+  console.log("=== GOG GAMES (" + allGames.length + ") ===");
+  console.log(allGames.join("\n"));
+}
+
+fetchAllGogGames();
 ```
 
-**Note:** This only exports games visible on the current page. If you have multiple pages of games, you need to run this script on each page.
-
-### Alternative: Full GOG Export with Pagination
-
-For a complete export including all pages, you can save the entire `gogData` object:
-```javascript
-console.log(JSON.stringify(gogData, null, 2));
-```
-
-Then extract the game titles from the JSON.
+**How to use:**
+1. Go to `https://www.gog.com/en/account`
+2. Make sure you're logged in
+3. Open browser DevTools (F12) → Console tab
+4. Paste the script and press Enter
+5. Wait for all pages to be fetched
+6. Copy the game list from the console output
 
 ## Using the Exported Data
 
 After running any of these scripts:
 
-1. The game list is copied to your clipboard (one game per line)
-2. Go to your GameOverview app's **Store Dashboard** (`/stores`)
-3. Click **Bulk Import**
-4. Select the appropriate store (Steam, GOG, or Epic)
-5. Paste the copied text into the text area
-6. Click **Import Games**
+1. The game list is logged to the console (one game per line)
+2. Select and copy the game names from the console output
+3. Go to your GameOverview app's **Store Dashboard** (`/stores`)
+4. Click **Bulk Import**
+5. Select the appropriate store (Steam, GOG, Epic, or Steam Family Sharing)
+6. Paste the copied text into the text area
+7. Click **Import Games**
 
 The import will:
 - Create new games if they don't exist in your catalog
@@ -112,15 +138,6 @@ The import will:
 - Add new games to your collection automatically
 
 ## Troubleshooting
-
-### "copy is not defined"
-The `copy()` function is a Chrome DevTools feature. For other browsers:
-```javascript
-navigator.clipboard.writeText(output).then(() => console.log('Copied!'));
-```
-
-### "allow pasting" prompt
-In Chrome, you may need to type `allow pasting` in the console first before pasting scripts.
 
 ### Scripts return 0 games
 - Website structures change frequently
@@ -132,6 +149,9 @@ In Chrome, you may need to type `allow pasting` in the console first before past
 - Free games may not generate order records (Epic)
 - DLCs may be listed separately
 - Some games may have different names across platforms
+
+### "allow pasting" prompt
+In Chrome, you may need to type `allow pasting` in the console first before pasting scripts.
 
 ## External Tools
 

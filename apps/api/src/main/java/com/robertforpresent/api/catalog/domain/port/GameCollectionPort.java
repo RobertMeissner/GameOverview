@@ -25,4 +25,13 @@ public interface GameCollectionPort {
      * @return true if the game is in the collection
      */
     boolean isGameInCollection(UUID gamerId, UUID gameId);
+
+    /**
+     * Update all collection references from source game to target game.
+     * Used when merging duplicate games.
+     *
+     * @param sourceGameId The source game ID to update from
+     * @param targetGameId The target game ID to update to
+     */
+    void updateCanonicalGameReferences(UUID sourceGameId, UUID targetGameId);
 }

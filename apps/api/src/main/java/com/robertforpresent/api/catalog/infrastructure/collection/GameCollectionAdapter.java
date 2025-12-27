@@ -35,4 +35,9 @@ public class GameCollectionAdapter implements GameCollectionPort {
         return collectionRepository.findByGamerId(gamerId).stream()
                 .anyMatch(pg -> pg.getCanonicalGameId().equals(gameId));
     }
+
+    @Override
+    public void updateCanonicalGameReferences(UUID sourceGameId, UUID targetGameId) {
+        collectionRepository.updateCanonicalGameReferences(sourceGameId, targetGameId);
+    }
 }

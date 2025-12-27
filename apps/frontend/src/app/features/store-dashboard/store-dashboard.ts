@@ -20,7 +20,7 @@ export class StoreDashboard implements OnInit {
   // Import state
   importMode = signal<'none' | 'single' | 'bulk'>('none');
   bulkImportText = signal('');
-  selectedStore = signal<'steam' | 'gog' | 'epic'>('steam');
+  selectedStore = signal<'steam' | 'gog' | 'epic' | 'family'>('steam');
   importResults = signal<BulkImportResponse | null>(null);
   isImporting = signal(false);
 
@@ -138,69 +138,65 @@ export class StoreDashboard implements OnInit {
 
     switch (store) {
       case 'steam':
-        script = `// Steam Library Export - Manual Method
-// 1. Go to: https://store.steampowered.com/account/licenses/
-// 2. Select all game names (Ctrl+A on the game list area)
-// 3. Copy and paste into the import text area (one game per line)
-//
-// Alternative: Steam Community Games Page
-// Go to: https://steamcommunity.com/id/YOUR_ID/games/?tab=all
-// Scroll to bottom to load ALL games, then run:
+        script = `// Steam Library Export Script
+// Run on: https://steamcommunity.com/id/YOUR_ID/games/?tab=all
+// IMPORTANT: Scroll to the very bottom first to load ALL games!
 
-var games = Array.from(document.getElementsByClassName("gameslistitems_GameName_22awl"));
-var gameNames = games.map(g => g.innerHTML.trim());
-console.log("Found " + gameNames.length + " games");
-copy(gameNames.join("\\n"));
-console.log("Copied to clipboard! Paste into import.");`;
+// Try multiple selectors (Steam changes these frequently)
+let games = document.querySelectorAll('.gameListRowItemName');
+if (!games.length) games = document.querySelectorAll('[class*="GameName"]');
+if (!games.length) games = document.querySelectorAll('[class*="gamename"]');
+
+if (!games.length) {
+  console.log("No games found. Try the manual method:");
+  console.log("1. Go to https://store.steampowered.com/account/licenses/");
+  console.log("2. Select and copy the game names manually");
+} else {
+  const names = [...games].map(g => g.textContent.trim());
+  console.log("=== STEAM GAMES (" + names.length + ") ===");
+  console.log(names.join("\\n"));
+}`;
         break;
 
       case 'gog':
         script = `// GOG Library Export Script - Fetches ALL pages
-// Run this on: https://www.gog.com/en/account
+// Run on: https://www.gog.com/en/account
 
 const fetchAllGogGames = async () => {
-  let page = 1;
-  let allGames = [];
-  let totalPages = 1;
-
+  let page = 1, allGames = [], totalPages = 1;
   do {
     const response = await fetch(\`https://www.gog.com/account/getFilteredProducts?hiddenFlag=0&mediaType=1&page=\${page}&sortBy=title\`);
     const data = await response.json();
-    const games = data.products.map(p => p.title);
-    allGames = [...allGames, ...games];
+    allGames = [...allGames, ...data.products.map(p => p.title)];
     totalPages = data.totalPages;
-    console.log(\`Page \${page}/\${totalPages}: Found \${games.length} games (Total: \${allGames.length})\`);
+    console.log(\`Page \${page}/\${totalPages}: \${allGames.length} total\`);
     page++;
   } while (page <= totalPages);
-
   return allGames;
 };
 
 fetchAllGogGames().then(games => {
-  console.log("Total GOG games found: " + games.length);
-  copy(games.join("\\n"));
-  console.log("Copied to clipboard! Paste into import.");
+  console.log("=== GOG GAMES (" + games.length + ") ===");
+  console.log(games.join("\\n"));
 });`;
         break;
 
       case 'epic':
         script = `// Epic Games Library Export Script
-// Run this on: https://www.epicgames.com/account/transactions
-// This fetches ALL pages automatically via the API.
+// Run on: https://www.epicgames.com/account/transactions
 
 const fetchGamesList = async (pageToken = '', existingList = []) => {
   const data = await (await fetch(\`https://www.epicgames.com/account/v2/payment/ajaxGetOrderHistory?sortDir=DESC&sortBy=DATE&nextPageToken=\${pageToken}&locale=en-US\`)).json();
   const gamesList = data.orders.reduce((acc, value) => [...acc, ...value.items.map(v => v.description)], []);
-  console.log(\`Games on this page: \${gamesList.length}, Next page: \${data.nextPageToken || 'none'}\`);
+  console.log(\`Fetched \${gamesList.length} games, next: \${data.nextPageToken || 'done'}\`);
   const newList = [...existingList, ...gamesList];
   if (!data.nextPageToken) return newList;
   return await fetchGamesList(data.nextPageToken, newList);
 };
 
 fetchGamesList().then(games => {
-  console.log("Total games found: " + games.length);
-  copy(games.join("\\n"));
-  console.log("Copied to clipboard! Paste into import.");
+  console.log("=== EPIC GAMES (" + games.length + ") ===");
+  console.log(games.join("\\n"));
 });`;
         break;
     }

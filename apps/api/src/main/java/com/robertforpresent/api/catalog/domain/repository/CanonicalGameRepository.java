@@ -18,4 +18,6 @@ public interface CanonicalGameRepository {
     Optional<CanonicalGame> findBySteamAppId(Integer steamAppId);
 
     List<CanonicalGame> findByNameContainingIgnoreCase(String name);
+
+    void deleteById(UUID id);
 }

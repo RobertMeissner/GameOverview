@@ -19,6 +19,7 @@ export class Sidebar {
     {path: "/stores", label: 'Stores',icon: "bi-shop"},
     {path: "/scraper", label: 'Game Scraper',icon: "bi-search"},
     {path: "/admin", label: 'Admin',icon: "bi-gear-wide-connected"},
+    {path: "/deduplication", label: 'Deduplication',icon: "bi-arrows-collapse"},
     {path: "/settings", label: 'Settings',icon: "bi-gear"},
     {path: "/about", label: 'About',icon:"bi-info-circle"},
   ])

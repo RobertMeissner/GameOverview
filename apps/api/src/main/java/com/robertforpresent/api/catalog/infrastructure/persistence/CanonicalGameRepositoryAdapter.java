@@ -47,4 +47,9 @@ public class CanonicalGameRepositoryAdapter implements CanonicalGameRepository {
                 .map(mapper::toDomain)
                 .toList();
     }
+
+    @Override
+    public void deleteById(UUID id) {
+        springDataRepository.deleteById(id.toString());
+    }
 }

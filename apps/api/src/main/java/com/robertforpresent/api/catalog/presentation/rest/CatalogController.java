@@ -45,4 +45,10 @@ public class CatalogController {
         );
         return service.updateCatalogValues(gameId, command);
     }
+
+    @PostMapping("/catalog/games/{targetId}/merge")
+    public void mergeGames(@PathVariable UUID targetId, @RequestBody MergeGamesRequest request) {
+        List<UUID> sourceIds = request.sourceIds().stream().map(UUID::fromString).toList();
+        service.mergeGames(targetId, sourceIds);
+    }
 }

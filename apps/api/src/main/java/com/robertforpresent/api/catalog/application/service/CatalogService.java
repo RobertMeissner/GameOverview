@@ -2,8 +2,10 @@ package com.robertforpresent.api.catalog.application.service;
 
 import com.robertforpresent.api.catalog.application.command.UpdateCatalogCommand;
 import com.robertforpresent.api.catalog.domain.model.*;
+import com.robertforpresent.api.catalog.domain.port.GameCollectionPort;
 import com.robertforpresent.api.catalog.domain.repository.CanonicalGameRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,9 +18,11 @@ import java.util.UUID;
 @Service
 public class CatalogService {
     private final CanonicalGameRepository repository;
+    private final GameCollectionPort collectionPort;
 
-    public CatalogService(CanonicalGameRepository repository) {
+    public CatalogService(CanonicalGameRepository repository, GameCollectionPort collectionPort) {
         this.repository = repository;
+        this.collectionPort = collectionPort;
     }
 
     public CanonicalGame get(UUID id) {
@@ -90,5 +94,22 @@ public class CatalogService {
                 .setMetacriticData(newMetacriticData)
                 .build();
         return repository.save(updated);
+    }
+
+    @Transactional
+    public void mergeGames(UUID targetId, List<UUID> sourceIds) {
+        // Verify target exists
+        repository.findById(targetId).orElseThrow();
+
+        for (UUID sourceId : sourceIds) {
+            // Verify source exists
+            repository.findById(sourceId).orElseThrow();
+
+            // Update all personalized game references to point to target
+            collectionPort.updateCanonicalGameReferences(sourceId, targetId);
+
+            // Delete the source canonical game
+            repository.deleteById(sourceId);
+        }
     }
 }
