@@ -27,4 +27,10 @@ public class CatalogController {
     public CanonicalGame updateCatalogValues(@PathVariable UUID gameId, @RequestBody UpdateCatalogRequest request) {
         return service.updateCatalogValues(gameId, request);
     }
+
+    @PostMapping("/catalog/games/{targetId}/merge")
+    public void mergeGames(@PathVariable UUID targetId, @RequestBody MergeGamesRequest request) {
+        List<UUID> sourceIds = request.sourceIds().stream().map(UUID::fromString).toList();
+        service.mergeGames(targetId, sourceIds);
+    }
 }
