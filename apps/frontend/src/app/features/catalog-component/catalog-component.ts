@@ -2,6 +2,7 @@ import {Component, computed, inject, OnInit, signal} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {GamesService} from '../../services/games.service';
+import {ExportService} from '../../services/export.service';
 import {CollectionEntry} from '../../domain/entities/CollectionEntry';
 
 export type SortField = 'name' | 'rating';
@@ -19,6 +20,7 @@ export class CatalogComponent implements OnInit {
   }
 
   private gamesService = inject(GamesService);
+  private exportService = inject(ExportService);
 
   games = signal<CollectionEntry[]>([]);
 
@@ -101,5 +103,9 @@ export class CatalogComponent implements OnInit {
         console.error(err);
       }
     })
+  }
+
+  exportToMarkdown(): void {
+    this.exportService.exportToMarkdown(this.games());
   }
 }

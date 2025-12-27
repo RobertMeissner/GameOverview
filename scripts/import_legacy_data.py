@@ -384,32 +384,32 @@ def create_tables(conn: sqlite3.Connection):
                 thumbnail_url TEXT,
                 release_timestamp INTEGER,
 
-                -- Steam data
-                steam_app_id INTEGER,
-                steam_name TEXT,
-                steam_positive INTEGER,
-                steam_negative INTEGER,
-                steam_sentiment TEXT,
+            -- Steam data
+            steam_app_id INTEGER,
+            steam_name TEXT,
+            steam_positive INTEGER,
+            steam_negative INTEGER,
+            steam_sentiment TEXT,
 
-                -- GOG data
-                gog_id INTEGER,
-                gog_name TEXT,
-                gog_link TEXT,
-                gog_rating INTEGER,
-                gog_cover_vertical TEXT,
-                gog_cover_horizontal TEXT,
+            -- GOG data
+            gog_id INTEGER,
+            gog_name TEXT,
+            gog_link TEXT,
+            gog_rating INTEGER,
+            gog_cover_vertical TEXT,
+            gog_cover_horizontal TEXT,
 
-                -- Metacritic data
-                metacritic_score INTEGER,
-                metacritic_name TEXT,
-                metacritic_link TEXT,
+            -- Metacritic data
+            metacritic_score INTEGER,
+            metacritic_name TEXT,
+            metacritic_link TEXT,
 
-                -- HLTB data
-                hltb_id INTEGER,
-                hltb_main_story_hours REAL,
-                hltb_main_extra_hours REAL,
-                hltb_completionist_hours REAL,
-                hltb_similarity INTEGER,
+            -- HLTB data
+            hltb_id INTEGER,
+            hltb_main_story_hours REAL,
+            hltb_main_extra_hours REAL,
+            hltb_completionist_hours REAL,
+            hltb_similarity INTEGER,
 
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP,
                 updated_at TEXT DEFAULT CURRENT_TIMESTAMP
@@ -448,30 +448,30 @@ def create_tables(conn: sqlite3.Connection):
                 gamer_id TEXT NOT NULL,
                 canonical_game_id TEXT NOT NULL,
 
-                -- Ownership
-                store_owned TEXT,
-                cd_key TEXT,
+            -- Ownership
+            store_owned TEXT,
+            cd_key TEXT,
 
-                -- Flags
-                mark_as_played INTEGER DEFAULT 0,
-                mark_as_hidden INTEGER DEFAULT 0,
-                mark_as_for_later INTEGER DEFAULT 0,
+            -- Flags
+            mark_as_played INTEGER DEFAULT 0,
+            mark_as_hidden INTEGER DEFAULT 0,
+            mark_as_for_later INTEGER DEFAULT 0,
 
-                -- User data
-                notes TEXT,
+            -- User data
+            notes TEXT,
 
-                -- Playtime
-                playtime_total_minutes INTEGER DEFAULT 0,
-                playtime_windows_minutes INTEGER DEFAULT 0,
-                playtime_mac_minutes INTEGER DEFAULT 0,
-                playtime_linux_minutes INTEGER DEFAULT 0,
-                playtime_deck_minutes INTEGER DEFAULT 0,
-                playtime_disconnected_minutes INTEGER DEFAULT 0,
-                playtime_last_played_timestamp INTEGER,
-                playtime_2weeks_minutes INTEGER DEFAULT 0,
+            -- Playtime
+            playtime_total_minutes INTEGER DEFAULT 0,
+            playtime_windows_minutes INTEGER DEFAULT 0,
+            playtime_mac_minutes INTEGER DEFAULT 0,
+            playtime_linux_minutes INTEGER DEFAULT 0,
+            playtime_deck_minutes INTEGER DEFAULT 0,
+            playtime_disconnected_minutes INTEGER DEFAULT 0,
+            playtime_last_played_timestamp INTEGER,
+            playtime_2weeks_minutes INTEGER DEFAULT 0,
 
-                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-                updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
 
                 FOREIGN KEY (canonical_game_id) REFERENCES canonical_games(id)
             )

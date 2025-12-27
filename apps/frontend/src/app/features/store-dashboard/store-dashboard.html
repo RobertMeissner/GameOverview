@@ -1,0 +1,210 @@
+<div class="store-dashboard">
+  <header class="dashboard-header">
+    <h1><i class="bi bi-shop"></i> Store Dashboard</h1>
+    <p class="subtitle">Manage your game library across multiple stores</p>
+  </header>
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading store statistics...</p>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (errorMessage()) {
+    <div class="error-state">
+      <i class="bi bi-exclamation-triangle"></i>
+      <p>{{ errorMessage() }}</p>
+      <button class="btn btn-primary" (click)="loadStats()">Retry</button>
+    </div>
+  }
+
+  <!-- Stats Cards -->
+  @if (stats() && !isLoading()) {
+    <div class="stats-overview">
+      <div class="stat-card total">
+        <div class="stat-icon">
+          <i class="bi bi-collection"></i>
+        </div>
+        <div class="stat-content">
+          <span class="stat-value">{{ stats()!.totalGames }}</span>
+          <span class="stat-label">Total Games</span>
+        </div>
+      </div>
+
+      <div class="stat-card" (click)="openStoreUrl(stats()!.steam.storeUrl)">
+        <div class="stat-icon steam">
+          <i class="bi bi-steam"></i>
+        </div>
+        <div class="stat-content">
+          <span class="stat-value">{{ stats()!.steam.count }}</span>
+          <span class="stat-label">Steam</span>
+          <div class="progress-bar">
+            <div class="progress" [style.width.%]="getPercentage(stats()!.steam.count)"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card" (click)="openStoreUrl(stats()!.gog.storeUrl)">
+        <div class="stat-icon gog">
+          <i class="bi bi-box-seam"></i>
+        </div>
+        <div class="stat-content">
+          <span class="stat-value">{{ stats()!.gog.count }}</span>
+          <span class="stat-label">GOG</span>
+          <div class="progress-bar">
+            <div class="progress" [style.width.%]="getPercentage(stats()!.gog.count)"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card" (click)="openStoreUrl(stats()!.epic.storeUrl)">
+        <div class="stat-icon epic">
+          <i class="bi bi-controller"></i>
+        </div>
+        <div class="stat-content">
+          <span class="stat-value">{{ stats()!.epic.count }}</span>
+          <span class="stat-label">Epic Games</span>
+          <div class="progress-bar">
+            <div class="progress" [style.width.%]="getPercentage(stats()!.epic.count)"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card" (click)="openStoreUrl(stats()!.metacritic.storeUrl)">
+        <div class="stat-icon metacritic">
+          <i class="bi bi-bar-chart-fill"></i>
+        </div>
+        <div class="stat-content">
+          <span class="stat-value">{{ stats()!.metacritic.count }}</span>
+          <span class="stat-label">With Metacritic</span>
+          <div class="progress-bar">
+            <div class="progress" [style.width.%]="getPercentage(stats()!.metacritic.count)"></div>
+          </div>
+        </div>
+      </div>
+
+      @if (stats()!.gamesWithoutStore > 0) {
+        <div class="stat-card warning">
+          <div class="stat-icon">
+            <i class="bi bi-question-circle"></i>
+          </div>
+          <div class="stat-content">
+            <span class="stat-value">{{ stats()!.gamesWithoutStore }}</span>
+            <span class="stat-label">Without Store Link</span>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Import Section -->
+  <section class="import-section">
+    <h2><i class="bi bi-cloud-arrow-up"></i> Import Games</h2>
+
+    @if (importMode() === 'none') {
+      <div class="import-options">
+        <div class="import-card" (click)="showBulkImport()">
+          <i class="bi bi-file-text"></i>
+          <h3>Bulk Import</h3>
+          <p>Import multiple games from a text list or JSON</p>
+        </div>
+      </div>
+
+      <div class="console-scripts">
+        <h3><i class="bi bi-terminal"></i> Browser Console Scripts</h3>
+        <p>Copy these scripts and run them in your browser console on the respective store websites:</p>
+        <div class="script-buttons">
+          <button class="btn btn-steam" (click)="copyConsoleScript('steam')">
+            <i class="bi bi-steam"></i> Steam Script
+          </button>
+          <button class="btn btn-gog" (click)="copyConsoleScript('gog')">
+            <i class="bi bi-box-seam"></i> GOG Script
+          </button>
+          <button class="btn btn-epic" (click)="copyConsoleScript('epic')">
+            <i class="bi bi-controller"></i> Epic Script
+          </button>
+        </div>
+      </div>
+    }
+
+    @if (importMode() === 'bulk') {
+      <div class="bulk-import">
+        <div class="import-header">
+          <h3>Bulk Import Games</h3>
+          <button class="btn btn-text" (click)="cancelImport()">
+            <i class="bi bi-x-lg"></i> Cancel
+          </button>
+        </div>
+
+        <div class="import-form">
+          <div class="form-group">
+            <label for="store-select">Select Store</label>
+            <select id="store-select" [(ngModel)]="selectedStore" [ngModelOptions]="{standalone: true}">
+              <option value="steam">Steam</option>
+              <option value="gog">GOG</option>
+              <option value="epic">Epic Games</option>
+              <option value="steam-family">Steam Family Sharing</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="games-input">Games (one per line, plain text or JSON)</label>
+            <textarea
+              id="games-input"
+              [(ngModel)]="bulkImportText"
+              [ngModelOptions]="{standalone: true}"
+              placeholder="Game Name 1
+Game Name 2
+{&quot;name&quot;: &quot;Game 3&quot;, &quot;storeId&quot;: &quot;123&quot;}
+..."
+              rows="10"
+            ></textarea>
+            <small class="help-text">
+              Enter game names (one per line) or JSON objects with name, storeId, storeLink, thumbnailUrl
+            </small>
+          </div>
+
+          <div class="import-actions">
+            <button
+              class="btn btn-primary"
+              (click)="importGames()"
+              [disabled]="isImporting() || !bulkImportText().trim()"
+            >
+              @if (isImporting()) {
+                <span class="spinner-small"></span> Importing...
+              } @else {
+                <i class="bi bi-cloud-arrow-up"></i> Import Games
+              }
+            </button>
+          </div>
+        </div>
+
+        @if (importResults()) {
+          <div class="import-results">
+            <h4>Import Results</h4>
+            <div class="results-summary">
+              <span class="result-badge created">{{ importResults()!.created }} created</span>
+              <span class="result-badge updated">{{ importResults()!.updated }} updated</span>
+              @if (importResults()!.failed > 0) {
+                <span class="result-badge failed">{{ importResults()!.failed }} failed</span>
+              }
+            </div>
+
+            <div class="results-list">
+              @for (result of importResults()!.results; track result.name) {
+                <div class="result-item" [class.created]="result.created" [class.error]="!result.gameId">
+                  <i class="bi" [class.bi-plus-circle]="result.created" [class.bi-check-circle]="!result.created && result.gameId" [class.bi-x-circle]="!result.gameId"></i>
+                  <span class="result-name">{{ result.name }}</span>
+                  <span class="result-message">{{ result.message }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </section>
+</div>
