@@ -64,7 +64,7 @@ public class CatalogController {
     public ResponseEntity<RescrapeResult> rescrapeGame(
             @PathVariable UUID gameId,
             @RequestBody(required = false) RescrapeRequest request) {
-        log.info("Rescrape request for game {}: {}", gameId, request);
+        log.debug("Rescrape request for game {}: {}", gameId, request);
 
         RescrapeRequest effectiveRequest = request != null ? request : new RescrapeRequest(null);
         RescrapeResult result = service.rescrapeGame(gameId, effectiveRequest);

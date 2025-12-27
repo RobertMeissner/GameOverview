@@ -50,11 +50,11 @@ public class GameScraperService {
      * @return Search results containing matching games
      */
     public GameSearchResult searchGames(String query, int limit) {
-        log.info("Searching for games: '{}' via {}", query, gameInfoProvider.getProviderName());
+        log.debug("Searching for games: '{}' via {}", query, gameInfoProvider.getProviderName());
 
         List<ScrapedGameInfo> results = gameInfoProvider.searchGames(query, limit);
 
-        log.info("Found {} results for '{}'", results.size(), query);
+        log.debug("Found {} results for '{}'", results.size(), query);
         return new GameSearchResult(query, results, gameInfoProvider.getProviderName());
     }
 
@@ -66,7 +66,7 @@ public class GameScraperService {
      * @return Enriched search results with library status for each game
      */
     public EnrichedSearchResult searchGamesWithLibraryStatus(String query, int limit) {
-        log.info("Searching for games with library status: '{}' via {}", query, gameInfoProvider.getProviderName());
+        log.debug("Searching for games with library status: '{}' via {}", query, gameInfoProvider.getProviderName());
 
         List<ScrapedGameInfo> results = gameInfoProvider.searchGames(query, limit);
         List<EnrichedGameInfo> enrichedResults = results.stream()
@@ -74,7 +74,7 @@ public class GameScraperService {
                 .toList();
 
         long inLibraryCount = enrichedResults.stream().filter(EnrichedGameInfo::inLibrary).count();
-        log.info("Found {} results for '{}', {} already in library", results.size(), query, inLibraryCount);
+        log.debug("Found {} results for '{}', {} already in library", results.size(), query, inLibraryCount);
 
         return new EnrichedSearchResult(query, enrichedResults, gameInfoProvider.getProviderName());
     }
@@ -92,7 +92,7 @@ public class GameScraperService {
      * @return Game details if found
      */
     public Optional<ScrapedGameInfo> getGameDetails(long externalId) {
-        log.info("Fetching game details for ID: {} via {}", externalId, gameInfoProvider.getProviderName());
+        log.debug("Fetching game details for ID: {} via {}", externalId, gameInfoProvider.getProviderName());
         return gameInfoProvider.getGameDetails(externalId);
     }
 
@@ -122,7 +122,7 @@ public class GameScraperService {
      * @return Result of the add operation, or empty if game not found
      */
     public Optional<GameCatalogWriter.AddGameResult> addGameToLibrary(long externalId, UUID gamerId) {
-        log.info("Adding game {} to library for user {}", externalId, gamerId);
+        log.debug("Adding game {} to library for user {}", externalId, gamerId);
 
         return gameInfoProvider.getGameDetails(externalId)
                 .map(gameInfo -> catalogWriter.addGameToLibrary(gameInfo, gamerId));
@@ -136,7 +136,7 @@ public class GameScraperService {
      * @return Result of the add operation
      */
     public GameCatalogWriter.AddGameResult addGameToLibrary(ScrapedGameInfo gameInfo, UUID gamerId) {
-        log.info("Adding game '{}' to library for user {}", gameInfo.name(), gamerId);
+        log.debug("Adding game '{}' to library for user {}", gameInfo.name(), gamerId);
         return catalogWriter.addGameToLibrary(gameInfo, gamerId);
     }
 }

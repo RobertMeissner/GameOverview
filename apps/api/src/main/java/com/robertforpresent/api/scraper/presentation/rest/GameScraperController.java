@@ -38,7 +38,7 @@ public class GameScraperController {
     public ResponseEntity<GameSearchResult> searchGames(
             @RequestParam String query,
             @RequestParam(defaultValue = "10") int limit) {
-        log.info("Searching for games: '{}'", query);
+        log.debug("Searching for games: '{}'", query);
 
         if (query == null || query.isBlank()) {
             return ResponseEntity.badRequest().body(
@@ -47,7 +47,7 @@ public class GameScraperController {
         }
 
         GameSearchResult result = scraperService.searchGames(query.trim(), Math.min(limit, 20));
-        log.info("Found {} results for '{}'", result.results().size(), query);
+        log.debug("Found {} results for '{}'", result.results().size(), query);
 
         return ResponseEntity.ok(result);
     }
@@ -64,7 +64,7 @@ public class GameScraperController {
     public ResponseEntity<EnrichedSearchResult> searchGamesEnriched(
             @RequestParam String query,
             @RequestParam(defaultValue = "10") int limit) {
-        log.info("Searching for games with library status: '{}'", query);
+        log.debug("Searching for games with library status: '{}'", query);
 
         if (query == null || query.isBlank()) {
             return ResponseEntity.badRequest().body(
@@ -73,7 +73,7 @@ public class GameScraperController {
         }
 
         EnrichedSearchResult result = scraperService.searchGamesWithLibraryStatus(query.trim(), Math.min(limit, 20));
-        log.info("Found {} results for '{}', checking library status", result.results().size(), query);
+        log.debug("Found {} results for '{}', checking library status", result.results().size(), query);
 
         return ResponseEntity.ok(result);
     }
@@ -86,7 +86,7 @@ public class GameScraperController {
      */
     @GetMapping("/games/{igdbId}")
     public ResponseEntity<ScrapedGameInfo> getGameDetails(@PathVariable long igdbId) {
-        log.info("Fetching game details for IGDB ID: {}", igdbId);
+        log.debug("Fetching game details for IGDB ID: {}", igdbId);
 
         Optional<ScrapedGameInfo> result = scraperService.getGameDetails(igdbId);
 
@@ -105,7 +105,7 @@ public class GameScraperController {
     public ResponseEntity<Map<String, Object>> addGameToLibrary(
             @PathVariable long externalId,
             @RequestParam UUID userId) {
-        log.info("Adding game {} to library for user {}", externalId, userId);
+        log.debug("Adding game {} to library for user {}", externalId, userId);
 
         Optional<GameCatalogWriter.AddGameResult> result = scraperService.addGameToLibrary(externalId, userId);
 

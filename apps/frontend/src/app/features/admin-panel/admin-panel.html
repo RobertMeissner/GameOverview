@@ -43,6 +43,12 @@
           App ID
         </button>
       </div>
+      <div class="ms-auto">
+        <button type="button" class="btn btn-outline-warning" (click)="openRescrapeAllModal()" title="Rescrape all displayed games">
+          <i class="bi bi-arrow-repeat me-1"></i>
+          Rescrape All ({{ filteredAndSortedGames().length }})
+        </button>
+      </div>
     </div>
   </div>
 
@@ -287,6 +293,67 @@
     </div>
     <div class="modal-footer">
       <button type="button" class="btn btn-secondary" (click)="closeRescrapeModal()">Close</button>
+    </div>
+  </div>
+}
+
+<!-- Rescrape All Modal -->
+@if (rescrapeAllModalOpen()) {
+  <div class="modal-backdrop" (click)="closeRescrapeAllModal()"></div>
+  <div class="rescrape-modal">
+    <div class="modal-header">
+      <h5 class="modal-title">Rescrape All Games</h5>
+      <button type="button" class="btn-close" (click)="closeRescrapeAllModal()" [disabled]="rescrapeAllInProgress()"></button>
+    </div>
+    <div class="modal-body">
+      @if (!rescrapeAllInProgress()) {
+        <div class="alert alert-warning">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          <strong>Warning:</strong> This will rescrape {{ rescrapeAllTotal() }} games from IGDB.
+          This may take several minutes and will update thumbnails and store links.
+        </div>
+        <p>Games to rescrape: <strong>{{ rescrapeAllTotal() }}</strong></p>
+        <p class="text-muted">Use filters to limit which games are rescraped.</p>
+      } @else {
+        <div class="progress-section">
+          <div class="d-flex justify-content-between mb-2">
+            <span>Progress: {{ rescrapeAllProgress() }} / {{ rescrapeAllTotal() }}</span>
+            <span>{{ (rescrapeAllProgress() / rescrapeAllTotal() * 100) | number:'1.0-0' }}%</span>
+          </div>
+          <div class="progress mb-3">
+            <div class="progress-bar progress-bar-striped progress-bar-animated"
+                 [style.width.%]="(rescrapeAllProgress() / rescrapeAllTotal() * 100)"></div>
+          </div>
+          <div class="d-flex justify-content-around text-center">
+            <div>
+              <div class="text-success fw-bold">{{ rescrapeAllSuccessCount() }}</div>
+              <small class="text-muted">Success</small>
+            </div>
+            <div>
+              <div class="text-danger fw-bold">{{ rescrapeAllFailCount() }}</div>
+              <small class="text-muted">Failed</small>
+            </div>
+            <div>
+              <div class="text-muted fw-bold">{{ rescrapeAllTotal() - rescrapeAllProgress() }}</div>
+              <small class="text-muted">Remaining</small>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+    <div class="modal-footer">
+      @if (!rescrapeAllInProgress()) {
+        <button type="button" class="btn btn-secondary" (click)="closeRescrapeAllModal()">Cancel</button>
+        <button type="button" class="btn btn-warning" (click)="startRescrapeAll()">
+          <i class="bi bi-arrow-repeat me-1"></i>
+          Start Rescrape
+        </button>
+      } @else {
+        <button type="button" class="btn btn-danger" (click)="cancelRescrapeAll()">
+          <i class="bi bi-stop-fill me-1"></i>
+          Stop
+        </button>
+      }
     </div>
   </div>
 }

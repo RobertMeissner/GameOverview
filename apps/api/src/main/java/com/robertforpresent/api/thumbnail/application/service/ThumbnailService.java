@@ -107,13 +107,13 @@ public class ThumbnailService {
             if (response.statusCode() == 200) {
                 byte[] imageData = response.body().readAllBytes();
                 Files.write(cachedFile, imageData);
-                log.info(
+                log.debug(
                         "Cached thumbnail for game {} ({} bytes)",
                         game.getName(),
                         imageData.length);
                 return Optional.of(imageData);
             } else {
-                log.warn(
+                log.debug(
                         "Failed to download thumbnail for {}: HTTP {}",
                         game.getName(),
                         response.statusCode());
@@ -136,7 +136,7 @@ public class ThumbnailService {
         Path cachedFile = getCacheFilePath(gameId);
         try {
             Files.deleteIfExists(cachedFile);
-            log.info("Evicted cached thumbnail: {}", gameId);
+            log.debug("Evicted cached thumbnail: {}", gameId);
         } catch (IOException e) {
             log.error("Failed to evict cached thumbnail: {}", gameId, e);
         }
