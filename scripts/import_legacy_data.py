@@ -418,6 +418,8 @@ def create_tables(conn: sqlite3.Connection):
     else:
         # Migrate existing table - add new columns if missing
         print("Migrating canonical_games table...")
+        # Note: SQLite doesn't allow non-constant defaults in ALTER TABLE,
+        # so created_at/updated_at will be NULL for migrated rows (acceptable)
         new_columns = [
             ("release_timestamp", "INTEGER", None),
             ("steam_positive", "INTEGER", None),
@@ -431,8 +433,8 @@ def create_tables(conn: sqlite3.Connection):
             ("hltb_main_extra_hours", "REAL", None),
             ("hltb_completionist_hours", "REAL", None),
             ("hltb_similarity", "INTEGER", None),
-            ("created_at", "TEXT", "CURRENT_TIMESTAMP"),
-            ("updated_at", "TEXT", "CURRENT_TIMESTAMP"),
+            ("created_at", "TEXT", None),
+            ("updated_at", "TEXT", None),
         ]
         for col_name, col_type, default in new_columns:
             add_column_if_missing(conn, "canonical_games", col_name, col_type, default)
@@ -478,6 +480,7 @@ def create_tables(conn: sqlite3.Connection):
         """)
     else:
         # Migrate existing table - add new columns if missing
+        # Note: SQLite doesn't allow non-constant defaults in ALTER TABLE
         print("Migrating personalized_games table...")
         new_pg_columns = [
             ("store_owned", "TEXT", None),
@@ -491,8 +494,8 @@ def create_tables(conn: sqlite3.Connection):
             ("playtime_disconnected_minutes", "INTEGER", "0"),
             ("playtime_last_played_timestamp", "INTEGER", None),
             ("playtime_2weeks_minutes", "INTEGER", "0"),
-            ("created_at", "TEXT", "CURRENT_TIMESTAMP"),
-            ("updated_at", "TEXT", "CURRENT_TIMESTAMP"),
+            ("created_at", "TEXT", None),
+            ("updated_at", "TEXT", None),
         ]
         for col_name, col_type, default in new_pg_columns:
             add_column_if_missing(conn, "personalized_games", col_name, col_type, default)
