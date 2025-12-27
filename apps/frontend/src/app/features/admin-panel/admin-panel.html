@@ -172,8 +172,11 @@
                   <i class="bi bi-x"></i>
                 </button>
               } @else {
-                <button class="btn btn-sm btn-outline-primary" (click)="startEdit(game)">
+                <button class="btn btn-sm btn-outline-primary me-1" (click)="startEdit(game)" title="Edit">
                   <i class="bi bi-pencil"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-info" (click)="openRescrapeModal(game)" title="Rescrape from IGDB">
+                  <i class="bi bi-arrow-repeat"></i>
                 </button>
               }
             </td>
@@ -183,3 +186,107 @@
     </table>
   </div>
 </div>
+
+<!-- Rescrape Modal -->
+@if (rescrapeModalOpen()) {
+  <div class="modal-backdrop" (click)="closeRescrapeModal()"></div>
+  <div class="rescrape-modal">
+    <div class="modal-header">
+      <h5 class="modal-title">Rescrape: {{ rescrapeGame()?.name }}</h5>
+      <button type="button" class="btn-close" (click)="closeRescrapeModal()"></button>
+    </div>
+    <div class="modal-body">
+      <!-- Status Message -->
+      @if (rescrapeMessage()) {
+        <div class="alert" [class.alert-success]="rescrapeMessage()?.type === 'success'"
+             [class.alert-danger]="rescrapeMessage()?.type === 'error'">
+          {{ rescrapeMessage()?.text }}
+        </div>
+      }
+
+      <!-- Auto Rescrape Button -->
+      <div class="mb-4">
+        <p class="text-muted">Automatically search IGDB using the game's name and apply the first result:</p>
+        <button class="btn btn-primary" (click)="rescrapeAutomatic()" [disabled]="rescrapeInProgress()">
+          @if (rescrapeInProgress()) {
+            <span class="spinner-border spinner-border-sm me-1"></span>
+            Updating...
+          } @else {
+            <i class="bi bi-magic me-1"></i>
+            Auto Rescrape
+          }
+        </button>
+      </div>
+
+      <hr>
+
+      <!-- Manual Search -->
+      <div class="mb-3">
+        <label class="form-label">Or search IGDB manually:</label>
+        <div class="input-group">
+          <input type="text" class="form-control" placeholder="Search IGDB..."
+                 [(ngModel)]="rescrapeSearchQuery" (keyup.enter)="searchIgdb()">
+          <button class="btn btn-outline-secondary" (click)="searchIgdb()" [disabled]="rescrapeSearching()">
+            @if (rescrapeSearching()) {
+              <span class="spinner-border spinner-border-sm"></span>
+            } @else {
+              <i class="bi bi-search"></i>
+            }
+          </button>
+        </div>
+      </div>
+
+      <!-- Search Results -->
+      @if (rescrapeSearchResults().length > 0) {
+        <div class="search-results">
+          <label class="form-label">Select a game to use its data:</label>
+          <div class="list-group">
+            @for (result of rescrapeSearchResults(); track result.externalId) {
+              <button type="button" class="list-group-item list-group-item-action"
+                      (click)="rescrapeWithIgdbId(result.externalId)" [disabled]="rescrapeInProgress()">
+                <div class="d-flex align-items-center">
+                  @if (result.coverUrl) {
+                    <img [src]="result.coverUrl" [alt]="result.name" class="search-result-thumb me-3">
+                  } @else {
+                    <div class="search-result-thumb-placeholder me-3">
+                      <i class="bi bi-image"></i>
+                    </div>
+                  }
+                  <div class="flex-grow-1">
+                    <div class="fw-bold">{{ result.name }}</div>
+                    <small class="text-muted">
+                      @if (result.releaseYear) {
+                        {{ result.releaseYear }}
+                      }
+                      @if (result.rating) {
+                        &bull; Rating: {{ result.rating | number:'1.0-0' }}
+                      }
+                      @if (result.storeLinks.length > 0) {
+                        &bull; Stores: {{ result.storeLinks.length }}
+                      }
+                    </small>
+                  </div>
+                  <i class="bi bi-chevron-right text-muted"></i>
+                </div>
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      @if (rescrapeSearching()) {
+        <div class="text-center py-3">
+          <span class="spinner-border"></span>
+          <p class="mt-2 text-muted">Searching IGDB...</p>
+        </div>
+      }
+
+      @if (!rescrapeSearching() && rescrapeSearchResults().length === 0 && rescrapeSearchQuery()) {
+        <p class="text-muted text-center">No results found. Try a different search term.</p>
+      }
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="closeRescrapeModal()">Close</button>
+    </div>
+  </div>
+}

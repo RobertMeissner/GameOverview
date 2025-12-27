@@ -2,7 +2,9 @@ import {Component, computed, inject, OnInit, signal} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {GamesService} from '../../services/games.service';
+import {ScraperService} from '../../services/scraper.service';
 import {AdminGameEntry} from '../../domain/entities/AdminGameEntry';
+import {ScrapedGameInfo} from '../../domain/entities/ScrapedGameInfo';
 
 export type SortField = 'name' | 'rating' | 'steamAppId';
 export type SortDirection = 'asc' | 'desc';
@@ -19,6 +21,7 @@ export class AdminPanel implements OnInit {
   }
 
   private gamesService = inject(GamesService);
+  private scraperService = inject(ScraperService);
 
   games = signal<AdminGameEntry[]>([]);
   editingGame = signal<AdminGameEntry | null>(null);
@@ -34,6 +37,15 @@ export class AdminPanel implements OnInit {
 
   sortField = signal<SortField>('name');
   sortDirection = signal<SortDirection>('asc');
+
+  // Rescrape modal state
+  rescrapeModalOpen = signal(false);
+  rescrapeGame = signal<AdminGameEntry | null>(null);
+  rescrapeSearchQuery = signal('');
+  rescrapeSearchResults = signal<ScrapedGameInfo[]>([]);
+  rescrapeSearching = signal(false);
+  rescrapeInProgress = signal(false);
+  rescrapeMessage = signal<{type: 'success' | 'error', text: string} | null>(null);
 
   filteredAndSortedGames = computed(() => {
     const allGames = this.games();
@@ -139,6 +151,92 @@ export class AdminPanel implements OnInit {
       },
       error: err => {
         console.error(err);
+      }
+    });
+  }
+
+  // Rescrape modal methods
+  openRescrapeModal(game: AdminGameEntry): void {
+    this.rescrapeGame.set(game);
+    this.rescrapeSearchQuery.set(game.name);
+    this.rescrapeSearchResults.set([]);
+    this.rescrapeMessage.set(null);
+    this.rescrapeModalOpen.set(true);
+    // Auto-search with game name
+    this.searchIgdb();
+  }
+
+  closeRescrapeModal(): void {
+    this.rescrapeModalOpen.set(false);
+    this.rescrapeGame.set(null);
+    this.rescrapeSearchQuery.set('');
+    this.rescrapeSearchResults.set([]);
+    this.rescrapeMessage.set(null);
+  }
+
+  searchIgdb(): void {
+    const query = this.rescrapeSearchQuery();
+    if (!query.trim()) return;
+
+    this.rescrapeSearching.set(true);
+    this.rescrapeMessage.set(null);
+    this.scraperService.searchGames(query, 10).subscribe({
+      next: result => {
+        this.rescrapeSearchResults.set(result.results);
+        this.rescrapeSearching.set(false);
+      },
+      error: err => {
+        console.error(err);
+        this.rescrapeSearching.set(false);
+        this.rescrapeMessage.set({type: 'error', text: 'Search failed. Please try again.'});
+      }
+    });
+  }
+
+  rescrapeWithIgdbId(igdbId: number): void {
+    const game = this.rescrapeGame();
+    if (!game) return;
+
+    this.rescrapeInProgress.set(true);
+    this.rescrapeMessage.set(null);
+    this.gamesService.rescrapeGame(game.id, {igdbId}).subscribe({
+      next: result => {
+        this.rescrapeInProgress.set(false);
+        if (result.success) {
+          this.rescrapeMessage.set({type: 'success', text: result.message || 'Game data updated successfully!'});
+          this.loadGames();
+        } else {
+          this.rescrapeMessage.set({type: 'error', text: result.message || 'Rescrape failed.'});
+        }
+      },
+      error: err => {
+        console.error(err);
+        this.rescrapeInProgress.set(false);
+        this.rescrapeMessage.set({type: 'error', text: 'Rescrape failed. Please try again.'});
+      }
+    });
+  }
+
+  rescrapeAutomatic(): void {
+    const game = this.rescrapeGame();
+    if (!game) return;
+
+    this.rescrapeInProgress.set(true);
+    this.rescrapeMessage.set(null);
+    this.gamesService.rescrapeGame(game.id).subscribe({
+      next: result => {
+        this.rescrapeInProgress.set(false);
+        if (result.success) {
+          this.rescrapeMessage.set({type: 'success', text: result.message || 'Game data updated successfully!'});
+          this.loadGames();
+        } else {
+          this.rescrapeMessage.set({type: 'error', text: result.message || 'Rescrape failed.'});
+        }
+      },
+      error: err => {
+        console.error(err);
+        this.rescrapeInProgress.set(false);
+        this.rescrapeMessage.set({type: 'error', text: 'Rescrape failed. Please try again.'});
       }
     });
   }

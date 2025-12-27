@@ -55,3 +55,25 @@ export interface ScraperStatus {
   source: string;
   message: string;
 }
+
+export interface RescrapeRequest {
+  igdbId?: number;
+}
+
+export interface RescrapeResult {
+  success: boolean;
+  gameId: string;
+  gameName: string;
+  message: string | null;
+  updatedFields: RescrapeUpdatedFields | null;
+}
+
+export interface RescrapeUpdatedFields {
+  thumbnailUrl: string | null;
+  steamAppId: number | null;
+  steamLink: string | null;
+  gogLink: string | null;
+  epicLink: string | null;
+  rating: number | null;
+  genres: string[];
+}

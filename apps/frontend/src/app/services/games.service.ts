@@ -5,6 +5,7 @@ import {map, Observable} from 'rxjs';
 import {environment} from '../../environments/environment';
 import {CollectionEntry} from '../domain/entities/CollectionEntry';
 import {AdminGameEntry} from '../domain/entities/AdminGameEntry';
+import {RescrapeRequest, RescrapeResult} from '../domain/entities/ScrapedGameInfo';
 
 @Injectable({providedIn: 'root'})
 export class GamesService {
@@ -56,6 +57,13 @@ export class GamesService {
 
   mergeGames(targetId: string, sourceIds: string[]): Observable<void> {
     return this.http.post<void>(`${this.apiUrl}/catalog/games/${targetId}/merge`, {sourceIds});
+  }
+
+  rescrapeGame(gameId: string, request?: RescrapeRequest): Observable<RescrapeResult> {
+    return this.http.post<RescrapeResult>(
+      `${this.apiUrl}/catalog/games/${gameId}/rescrape`,
+      request ?? {}
+    );
   }
 
   private withCachedThumbnail<T extends { id: string; thumbnailUrl: string }>(game: T): T {
