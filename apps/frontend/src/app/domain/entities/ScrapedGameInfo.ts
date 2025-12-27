@@ -30,6 +30,26 @@ export interface GameSearchResult {
   source: string;
 }
 
+export interface EnrichedGameInfo {
+  gameInfo: ScrapedGameInfo;
+  inLibrary: boolean;
+  catalogGameId: string | null;
+  matchReason: string | null;
+}
+
+export interface EnrichedSearchResult {
+  query: string;
+  results: EnrichedGameInfo[];
+  source: string;
+}
+
+export interface AddGameResult {
+  success: boolean;
+  canonicalGameId: string;
+  created: boolean;
+  message: string;
+}
+
 export interface ScraperStatus {
   enabled: boolean;
   source: string;
