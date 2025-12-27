@@ -12,6 +12,9 @@ Usage:
 
 Example:
     python import_legacy_data.py ~/games_data.parquet --db-path ./data/gamedb.sqlite
+
+
+    uv run import_legacy_data.py ../data/legacy_data.parquet --db-path ../apps/api/data/gamedb.sqlite --dry-run
 """
 
 import argparse
