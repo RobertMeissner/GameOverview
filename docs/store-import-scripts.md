@@ -1,195 +1,105 @@
 # Game Store Import Scripts
 
-This document contains browser console scripts to export your game libraries from various stores. Copy the script, paste it into your browser's developer console (F12) on the appropriate store page, and it will copy a list of games to your clipboard.
-
-## Steam Library Export
-
-### Method 1: Steam Community Games Page
-Navigate to: `https://steamcommunity.com/id/YOUR_STEAM_ID/games/?tab=all`
-
-```javascript
-// Steam Library Export Script
-// Run this on your Steam games page (steamcommunity.com/id/YOUR_ID/games/?tab=all)
-// Make sure to scroll down to load all games first!
-
-const games = [...document.querySelectorAll('.gameListRowItemName')].map(el => {
-  const row = el.closest('.gameListRow');
-  const appId = row?.dataset?.appid || null;
-  return {
-    name: el.textContent.trim(),
-    store: 'steam',
-    storeId: appId
-  };
-});
-
-console.log(`Found ${games.length} games:`);
-console.log(JSON.stringify(games, null, 2));
-
-// Copy to clipboard in the format needed for bulk import
-const output = games.map(g => JSON.stringify(g)).join('\n');
-copy(output);
-console.log('✅ Copied to clipboard! Paste this into the Store Dashboard bulk import.');
-```
-
-### Method 2: Steam Store Library Page
-Navigate to: `https://store.steampowered.com/dynamicstore/userdata/` (when logged in)
-
-```javascript
-// Alternative: Parse from Steam API userdata
-// This is the raw data Steam uses internally
-
-fetch('https://store.steampowered.com/dynamicstore/userdata/')
-  .then(r => r.json())
-  .then(data => {
-    const ownedApps = data.rgOwnedApps || [];
-    console.log(`Found ${ownedApps.length} owned apps`);
-    console.log('App IDs:', ownedApps);
-
-    // Note: This only gives you app IDs, not names
-    // You'll need to use the Steam API to get names
-    const games = ownedApps.map(id => ({
-      name: `Steam App ${id}`,  // Placeholder - update manually or use API
-      store: 'steam',
-      storeId: String(id)
-    }));
-
-    copy(games.map(g => JSON.stringify(g)).join('\n'));
-    console.log('✅ Copied to clipboard!');
-  });
-```
-
-## GOG Library Export
-
-Navigate to: `https://www.gog.com/en/account` (must be logged in)
-
-```javascript
-// GOG Galaxy Library Export Script
-// Run this on your GOG account page (gog.com/en/account)
-// Wait for all games to load (scroll down if needed)
-
-const games = [...document.querySelectorAll('.product-tile')].map(tile => {
-  const nameEl = tile.querySelector('.product-tile__title');
-  const linkEl = tile.querySelector('a[href*="/game/"]');
-
-  // Extract GOG ID from the link
-  const href = linkEl?.href || '';
-  const gogIdMatch = href.match(/\/game\/([^\/\?]+)/);
-
-  return {
-    name: nameEl?.textContent?.trim() || 'Unknown',
-    store: 'gog',
-    storeLink: href || null
-  };
-}).filter(g => g.name !== 'Unknown');
-
-console.log(`Found ${games.length} games:`);
-console.log(JSON.stringify(games, null, 2));
-
-const output = games.map(g => JSON.stringify(g)).join('\n');
-copy(output);
-console.log('✅ Copied to clipboard! Paste this into the Store Dashboard bulk import.');
-```
-
-### Alternative GOG Method (Galaxy API)
-```javascript
-// If you have GOG Galaxy, you can also export from the API
-// This requires being logged in and having GOG Galaxy data accessible
-
-async function exportGogLibrary() {
-  // Try fetching from the orders/movies API
-  const response = await fetch('https://www.gog.com/account/getFilteredProducts?hiddenFlag=0&mediaType=1&sortBy=title');
-  const data = await response.json();
-
-  const games = data.products.map(p => ({
-    name: p.title,
-    store: 'gog',
-    storeId: String(p.id),
-    storeLink: `https://www.gog.com/game/${p.slug}`,
-    thumbnailUrl: p.image ? `https:${p.image}_196.jpg` : null
-  }));
-
-  console.log(`Found ${games.length} games`);
-  copy(games.map(g => JSON.stringify(g)).join('\n'));
-  console.log('✅ Copied to clipboard!');
-
-  return games;
-}
-
-exportGogLibrary();
-```
+This document contains browser console scripts to export your game libraries from various stores. These scripts are based on reverse-engineered APIs - use at your own discretion.
 
 ## Epic Games Library Export
 
-Navigate to: `https://www.epicgames.com/account/transactions` or your library page
+Navigate to: `https://www.epicgames.com/account/transactions`
 
-### Method 1: Transactions Page
+This script fetches ALL pages automatically via the Epic Games order history API:
+
 ```javascript
-// Epic Games Library Export Script
-// Run this on your Epic transactions page
-// Scroll down to load all transactions first!
+const fetchGamesList = async (pageToken = '', existingList = []) => {
+  const data = await (await fetch(`https://www.epicgames.com/account/v2/payment/ajaxGetOrderHistory?sortDir=DESC&sortBy=DATE&nextPageToken=${pageToken}&locale=en-US`)).json();
+  const gamesList = data.orders.reduce((acc, value) => [...acc, ...value.items.map(v => v.description)], []);
+  console.log(`Games on this page: ${gamesList.length}, Next page: ${data.nextPageToken || 'none'}`);
+  const newList = [...existingList, ...gamesList];
+  if (!data.nextPageToken) return newList;
+  return await fetchGamesList(data.nextPageToken, newList);
+};
 
-const games = [...document.querySelectorAll('[data-testid="transaction-product-title"]')]
-  .map(el => {
-    const name = el.textContent.trim();
-    // Try to find the store link
-    const container = el.closest('[data-testid="transaction-row"]');
-    const link = container?.querySelector('a[href*="store.epicgames.com"]');
-
-    return {
-      name: name,
-      store: 'epic',
-      storeLink: link?.href || null
-    };
-  })
-  .filter(g => g.name);
-
-// Remove duplicates
-const uniqueGames = [...new Map(games.map(g => [g.name, g])).values()];
-
-console.log(`Found ${uniqueGames.length} unique games:`);
-console.log(JSON.stringify(uniqueGames, null, 2));
-
-const output = uniqueGames.map(g => JSON.stringify(g)).join('\n');
-copy(output);
-console.log('✅ Copied to clipboard! Paste this into the Store Dashboard bulk import.');
+fetchGamesList().then(games => {
+  console.log("Total games found: " + games.length);
+  copy(games.join("\n"));
+  console.log("Copied to clipboard! Paste into import.");
+});
 ```
 
-### Method 2: Library Page
+**How to use:**
+1. Go to `https://www.epicgames.com/account/transactions`
+2. Open browser DevTools (F12) → Console tab
+3. If prompted, type `allow pasting` and press Enter
+4. Paste the script and press Enter
+5. Wait for it to fetch all pages (you'll see progress in console)
+6. The game list is copied to your clipboard
+
+**Note:** Some free games may not appear if they didn't generate an order record.
+
+## Steam Library Export
+
+### Method 1: Licenses Page (Manual - Most Reliable)
+
+1. Go to: `https://store.steampowered.com/account/licenses/`
+2. The page shows all your licenses
+3. Select the game names and copy them
+4. Paste into the bulk import (one game per line)
+
+### Method 2: Steam Community Games Page (Console Script)
+
+Navigate to: `https://steamcommunity.com/id/YOUR_STEAM_ID/games/?tab=all`
+
+**Important:** Scroll all the way to the bottom first to load ALL games!
+
 ```javascript
-// Epic Games Library Export - Library Page
-// Navigate to: https://store.epicgames.com/en-US/library
-// Scroll to load all games first!
-
-const games = [...document.querySelectorAll('[data-testid="library-grid"] article')]
-  .map(article => {
-    const titleEl = article.querySelector('[data-testid="offer-title-info-title"]');
-    const linkEl = article.querySelector('a[href*="/p/"]');
-
-    const href = linkEl?.href || '';
-    const slugMatch = href.match(/\/p\/([^\/\?]+)/);
-
-    return {
-      name: titleEl?.textContent?.trim() || 'Unknown',
-      store: 'epic',
-      storeId: slugMatch?.[1] || null,
-      storeLink: href || null
-    };
-  })
-  .filter(g => g.name !== 'Unknown');
-
-console.log(`Found ${games.length} games:`);
-console.log(JSON.stringify(games, null, 2));
-
-const output = games.map(g => JSON.stringify(g)).join('\n');
-copy(output);
-console.log('✅ Copied to clipboard! Paste this into the Store Dashboard bulk import.');
+var games = Array.from(document.getElementsByClassName("gameslistitems_GameName_22awl"));
+var gameNames = games.map(g => g.innerHTML.trim());
+console.log("Found " + gameNames.length + " games");
+copy(gameNames.join("\n"));
+console.log("Copied to clipboard! Paste into import.");
 ```
+
+**Troubleshooting:**
+- If you get 0 games, the page structure may have changed. Use Method 1 instead.
+- Make sure your profile is set to public for the games list to be visible.
+- Scroll to the very bottom before running the script.
+
+### Method 3: Steam Web API (For Developers)
+
+If you have a Steam API key, you can use:
+```
+http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=YOUR_API_KEY&steamid=YOUR_STEAM_ID&format=json&include_appinfo=true
+```
+
+See: [Steam Web API Documentation](https://developer.valvesoftware.com/wiki/Steam_Web_API)
+
+## GOG Library Export
+
+Navigate to: `https://www.gog.com/en/account`
+
+```javascript
+var games = gogData.accountProducts.map(p => p.title);
+console.log("Found " + games.length + " games:");
+console.log(games);
+copy(games.join("\n"));
+console.log("Copied to clipboard! Paste into import.");
+```
+
+**Note:** This only exports games visible on the current page. If you have multiple pages of games, you need to run this script on each page.
+
+### Alternative: Full GOG Export with Pagination
+
+For a complete export including all pages, you can save the entire `gogData` object:
+```javascript
+console.log(JSON.stringify(gogData, null, 2));
+```
+
+Then extract the game titles from the JSON.
 
 ## Using the Exported Data
 
 After running any of these scripts:
 
-1. The game list is copied to your clipboard
+1. The game list is copied to your clipboard (one game per line)
 2. Go to your GameOverview app's **Store Dashboard** (`/stores`)
 3. Click **Bulk Import**
 4. Select the appropriate store (Steam, GOG, or Epic)
@@ -197,31 +107,43 @@ After running any of these scripts:
 6. Click **Import Games**
 
 The import will:
-- Create new games if they don't exist
-- Update existing games with store-specific data (IDs, links)
+- Create new games if they don't exist in your catalog
+- Update existing games with store-specific data
 - Add new games to your collection automatically
-
-## Tips
-
-- **Scroll first**: Most store pages load games dynamically. Scroll to the bottom to load all games before running the script.
-- **Check the console**: The scripts output how many games were found. If the number seems low, try scrolling more.
-- **Run multiple times**: You can run scripts from different stores and import them all.
-- **Manual cleanup**: Some games might have slightly different names across stores. Use the Admin panel to merge duplicates.
 
 ## Troubleshooting
 
 ### "copy is not defined"
-The `copy()` function is a Chrome DevTools feature. If you're using Firefox or another browser, replace `copy(output)` with:
+The `copy()` function is a Chrome DevTools feature. For other browsers:
 ```javascript
 navigator.clipboard.writeText(output).then(() => console.log('Copied!'));
 ```
 
-### "No games found"
-- Make sure you're on the correct page
-- Try scrolling to load all games
-- Check if the page structure has changed (store websites update frequently)
+### "allow pasting" prompt
+In Chrome, you may need to type `allow pasting` in the console first before pasting scripts.
 
-### Games not importing correctly
-- Check the browser console for the raw output
-- Verify the JSON format is correct
-- Try importing one game at a time using the single import feature
+### Scripts return 0 games
+- Website structures change frequently
+- Try the manual methods instead
+- Check that you're logged in
+- Ensure the page has fully loaded
+
+### Some games missing
+- Free games may not generate order records (Epic)
+- DLCs may be listed separately
+- Some games may have different names across platforms
+
+## External Tools
+
+If the scripts don't work, consider these alternatives:
+
+- **[Epic Games Library Exporter](https://chromewebstore.google.com/detail/epic-games-library-export/gfhbpoeikkjapjbnfnjceikdfolcgcln)** - Chrome extension
+- **[Playnite](https://playnite.link/)** - Desktop app that syncs all stores
+- **[GOG Galaxy 2.0](https://www.gog.com/galaxy)** - GOG's app with multi-store integration
+
+## Sources
+
+- [Steam Web API Documentation](https://developer.valvesoftware.com/wiki/Steam_Web_API)
+- [Steam Library Export Guide 2025](https://www.play-this.com/blog/steam-library-export-guide)
+- [GOG Galaxy Export Script](https://github.com/AB1908/GOG-Galaxy-Export-Script)
+- [epicstore_api Python Library](https://github.com/SD4RK/epicstore_api)

@@ -138,46 +138,70 @@ export class StoreDashboard implements OnInit {
 
     switch (store) {
       case 'steam':
-        script = `// Steam Library Export Script
-// Run this in the browser console on https://store.steampowered.com/dynamicstore/userdata/
-// Or use the Steam Web API
+        script = `// Steam Library Export - Manual Method
+// 1. Go to: https://store.steampowered.com/account/licenses/
+// 2. Select all game names (Ctrl+A on the game list area)
+// 3. Copy and paste into the import text area (one game per line)
+//
+// Alternative: Steam Community Games Page
+// Go to: https://steamcommunity.com/id/YOUR_ID/games/?tab=all
+// Scroll to bottom to load ALL games, then run:
 
-// For Steam library page (steamcommunity.com/id/YOUR_ID/games/?tab=all)
-const games = [...document.querySelectorAll('.gameListRowItemName')].map(el => ({
-  name: el.textContent.trim(),
-  store: 'steam'
-}));
-console.log(JSON.stringify(games, null, 2));
-copy(games.map(g => JSON.stringify(g)).join('\\n'));
-console.log('Copied ' + games.length + ' games to clipboard!');`;
+var games = Array.from(document.getElementsByClassName("gameslistitems_GameName_22awl"));
+var gameNames = games.map(g => g.innerHTML.trim());
+console.log("Found " + gameNames.length + " games");
+copy(gameNames.join("\\n"));
+console.log("Copied to clipboard! Paste into import.");`;
         break;
 
       case 'gog':
-        script = `// GOG Galaxy Export Script
-// Run this in the browser console on https://www.gog.com/account
+        script = `// GOG Library Export Script - Fetches ALL pages
+// Run this on: https://www.gog.com/en/account
 
-const games = [...document.querySelectorAll('.product-title__text')].map(el => ({
-  name: el.textContent.trim(),
-  store: 'gog'
-}));
-console.log(JSON.stringify(games, null, 2));
-copy(games.map(g => JSON.stringify(g)).join('\\n'));
-console.log('Copied ' + games.length + ' games to clipboard!');`;
+const fetchAllGogGames = async () => {
+  let page = 1;
+  let allGames = [];
+  let totalPages = 1;
+
+  do {
+    const response = await fetch(\`https://www.gog.com/account/getFilteredProducts?hiddenFlag=0&mediaType=1&page=\${page}&sortBy=title\`);
+    const data = await response.json();
+    const games = data.products.map(p => p.title);
+    allGames = [...allGames, ...games];
+    totalPages = data.totalPages;
+    console.log(\`Page \${page}/\${totalPages}: Found \${games.length} games (Total: \${allGames.length})\`);
+    page++;
+  } while (page <= totalPages);
+
+  return allGames;
+};
+
+fetchAllGogGames().then(games => {
+  console.log("Total GOG games found: " + games.length);
+  copy(games.join("\\n"));
+  console.log("Copied to clipboard! Paste into import.");
+});`;
         break;
 
       case 'epic':
         script = `// Epic Games Library Export Script
-// Run this in browser console on https://www.epicgames.com/account/transactions
-// Or on library page after scrolling to load all games
+// Run this on: https://www.epicgames.com/account/transactions
+// This fetches ALL pages automatically via the API.
 
-const games = [...document.querySelectorAll('[data-testid="offer-title-info-title"]')]
-  .map(el => ({
-    name: el.textContent.trim(),
-    store: 'epic'
-  }));
-console.log(JSON.stringify(games, null, 2));
-copy(games.map(g => JSON.stringify(g)).join('\\n'));
-console.log('Copied ' + games.length + ' games to clipboard!');`;
+const fetchGamesList = async (pageToken = '', existingList = []) => {
+  const data = await (await fetch(\`https://www.epicgames.com/account/v2/payment/ajaxGetOrderHistory?sortDir=DESC&sortBy=DATE&nextPageToken=\${pageToken}&locale=en-US\`)).json();
+  const gamesList = data.orders.reduce((acc, value) => [...acc, ...value.items.map(v => v.description)], []);
+  console.log(\`Games on this page: \${gamesList.length}, Next page: \${data.nextPageToken || 'none'}\`);
+  const newList = [...existingList, ...gamesList];
+  if (!data.nextPageToken) return newList;
+  return await fetchGamesList(data.nextPageToken, newList);
+};
+
+fetchGamesList().then(games => {
+  console.log("Total games found: " + games.length);
+  copy(games.join("\\n"));
+  console.log("Copied to clipboard! Paste into import.");
+});`;
         break;
     }
 
