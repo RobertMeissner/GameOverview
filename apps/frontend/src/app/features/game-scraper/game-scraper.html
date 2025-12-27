@@ -1,0 +1,253 @@
+<div class="scraper-container">
+  <h2 class="section-title">Game Scraper</h2>
+
+  <!-- Status Banner -->
+  @if (status(); as scraperStatus) {
+    <div class="status-banner" [class.status-enabled]="scraperStatus.enabled" [class.status-disabled]="!scraperStatus.enabled">
+      <i class="bi" [class.bi-check-circle-fill]="scraperStatus.enabled" [class.bi-exclamation-triangle-fill]="!scraperStatus.enabled"></i>
+      <span>{{ scraperStatus.message }}</span>
+    </div>
+  }
+
+  <!-- Search Section -->
+  <div class="search-section">
+    <div class="search-row">
+      <div class="search-input-wrapper">
+        <i class="bi bi-search search-icon"></i>
+        <input
+          type="text"
+          class="form-control search-input"
+          placeholder="Enter game name to search..."
+          [(ngModel)]="searchQuery"
+          (keyup.enter)="searchGames()"
+          [disabled]="isLoading()">
+      </div>
+      <button
+        class="btn btn-primary search-btn"
+        (click)="searchGames()"
+        [disabled]="isLoading() || !searchQuery().trim()">
+        @if (isLoading()) {
+          <span class="spinner-border spinner-border-sm me-1"></span>
+          Searching...
+        } @else {
+          <i class="bi bi-search me-1"></i>
+          Search IGDB
+        }
+      </button>
+      <button
+        class="btn btn-outline-secondary"
+        (click)="openIgdbLink()"
+        [disabled]="!searchQuery().trim()"
+        title="Open search on IGDB website">
+        <i class="bi bi-box-arrow-up-right"></i>
+      </button>
+    </div>
+
+    @if (searchResults().length > 0) {
+      <button class="btn btn-sm btn-outline-secondary mt-2" (click)="clearResults()">
+        <i class="bi bi-x-circle me-1"></i>
+        Clear Results
+      </button>
+    }
+  </div>
+
+  <!-- Success Message -->
+  @if (successMessage(); as success) {
+    <div class="alert alert-success mt-3">
+      <i class="bi bi-check-circle me-2"></i>
+      {{ success }}
+    </div>
+  }
+
+  <!-- Error Message -->
+  @if (errorMessage(); as error) {
+    <div class="alert alert-warning mt-3">
+      <i class="bi bi-exclamation-triangle me-2"></i>
+      {{ error }}
+    </div>
+  }
+
+  <!-- Results Section -->
+  <div class="results-section">
+    @if (selectedGame(); as enrichedGame) {
+      <!-- Game Details View -->
+      <div class="game-details">
+        <button class="btn btn-sm btn-outline-secondary mb-3" (click)="clearSelection()">
+          <i class="bi bi-arrow-left me-1"></i>
+          Back to Results
+        </button>
+
+        <div class="game-detail-card">
+          <div class="game-detail-header">
+            @if (enrichedGame.gameInfo.coverUrl) {
+              <img [src]="enrichedGame.gameInfo.coverUrl" [alt]="enrichedGame.gameInfo.name" class="game-cover-large">
+            } @else {
+              <div class="game-cover-placeholder">
+                <i class="bi bi-controller"></i>
+              </div>
+            }
+            <div class="game-header-info">
+              <h3 class="game-title">{{ enrichedGame.gameInfo.name }}</h3>
+              <div class="game-badges">
+                @if (enrichedGame.gameInfo.releaseYear) {
+                  <span class="release-year">{{ enrichedGame.gameInfo.releaseYear }}</span>
+                }
+                @if (enrichedGame.gameInfo.rating) {
+                  <div class="rating-badge">
+                    <i class="bi bi-star-fill"></i>
+                    {{ enrichedGame.gameInfo.rating | number:'1.0-0' }}%
+                  </div>
+                }
+                @if (enrichedGame.inLibrary) {
+                  <span class="library-badge in-library">
+                    <i class="bi bi-check-circle-fill"></i>
+                    In Library
+                  </span>
+                }
+              </div>
+
+              <!-- Add to Library Button -->
+              @if (!enrichedGame.inLibrary) {
+                <button
+                  class="btn btn-success add-game-btn mt-3"
+                  (click)="addGameToLibrary(enrichedGame)"
+                  [disabled]="isAdding() === enrichedGame.gameInfo.externalId">
+                  @if (isAdding() === enrichedGame.gameInfo.externalId) {
+                    <span class="spinner-border spinner-border-sm me-1"></span>
+                    Adding...
+                  } @else {
+                    <i class="bi bi-plus-circle me-1"></i>
+                    Add to Library
+                  }
+                </button>
+              }
+            </div>
+          </div>
+
+          @if (enrichedGame.gameInfo.summary) {
+            <div class="game-summary">
+              <h4>Summary</h4>
+              <p>{{ enrichedGame.gameInfo.summary }}</p>
+            </div>
+          }
+
+          @if (enrichedGame.gameInfo.genres.length > 0) {
+            <div class="game-meta">
+              <h4>Genres</h4>
+              <div class="tag-list">
+                @for (genre of enrichedGame.gameInfo.genres; track genre) {
+                  <span class="tag">{{ genre }}</span>
+                }
+              </div>
+            </div>
+          }
+
+          @if (enrichedGame.gameInfo.platforms.length > 0) {
+            <div class="game-meta">
+              <h4>Platforms</h4>
+              <div class="tag-list">
+                @for (platform of enrichedGame.gameInfo.platforms; track platform) {
+                  <span class="tag platform-tag">{{ platform }}</span>
+                }
+              </div>
+            </div>
+          }
+
+          @if (enrichedGame.gameInfo.storeLinks.length > 0) {
+            <div class="game-meta">
+              <h4>Store Links</h4>
+              <div class="store-links">
+                @for (link of enrichedGame.gameInfo.storeLinks; track link.url) {
+                  <a [href]="link.url" target="_blank" rel="noopener" class="store-link-btn"
+                     [class.steam]="link.storeName === 'Steam'"
+                     [class.gog]="link.storeName === 'GOG'"
+                     [class.epic]="link.storeName === 'Epic Games'">
+                    @if (link.storeName === 'Steam') {
+                      <i class="bi bi-steam"></i>
+                    }
+                    {{ link.storeName }}
+                    @if (link.storeId) {
+                      <span class="store-id">({{ link.storeId }})</span>
+                    }
+                  </a>
+                }
+              </div>
+            </div>
+          }
+
+          <div class="game-actions mt-4">
+            <small class="text-muted">
+              IGDB ID: {{ enrichedGame.gameInfo.externalId }} | Source: {{ enrichedGame.gameInfo.source }}
+              @if (enrichedGame.inLibrary && enrichedGame.matchReason) {
+                | Matched by: {{ enrichedGame.matchReason }}
+              }
+            </small>
+          </div>
+        </div>
+      </div>
+    } @else if (searchResults().length > 0) {
+      <!-- Search Results List -->
+      <div class="results-grid">
+        @for (enrichedGame of searchResults(); track enrichedGame.gameInfo.externalId) {
+          <div class="result-card" [class.in-library]="enrichedGame.inLibrary" (click)="selectGame(enrichedGame)">
+            @if (enrichedGame.gameInfo.coverUrl) {
+              <img [src]="enrichedGame.gameInfo.coverUrl" [alt]="enrichedGame.gameInfo.name" class="game-cover">
+            } @else {
+              <div class="game-cover placeholder">
+                <i class="bi bi-controller"></i>
+              </div>
+            }
+            <div class="result-info">
+              <div class="result-header">
+                <h4 class="result-name">{{ enrichedGame.gameInfo.name }}</h4>
+                @if (enrichedGame.inLibrary) {
+                  <span class="library-indicator" title="Already in your library">
+                    <i class="bi bi-check-circle-fill"></i>
+                  </span>
+                }
+              </div>
+              <div class="result-meta">
+                @if (enrichedGame.gameInfo.releaseYear) {
+                  <span class="year">{{ enrichedGame.gameInfo.releaseYear }}</span>
+                }
+                @if (enrichedGame.gameInfo.rating) {
+                  <span class="rating">
+                    <i class="bi bi-star-fill"></i>
+                    {{ enrichedGame.gameInfo.rating | number:'1.0-0' }}%
+                  </span>
+                }
+              </div>
+              @if (enrichedGame.gameInfo.genres.length > 0) {
+                <div class="result-genres">
+                  {{ enrichedGame.gameInfo.genres.slice(0, 3).join(', ') }}
+                </div>
+              }
+              <div class="result-footer">
+                <div class="result-stores">
+                  @for (link of enrichedGame.gameInfo.storeLinks.slice(0, 3); track link.url) {
+                    <span class="store-badge" [class.steam]="link.storeName === 'Steam'">
+                      {{ link.storeName }}
+                    </span>
+                  }
+                </div>
+                @if (!enrichedGame.inLibrary) {
+                  <button
+                    class="btn btn-sm btn-success add-btn"
+                    (click)="addGameToLibrary(enrichedGame, $event)"
+                    [disabled]="isAdding() === enrichedGame.gameInfo.externalId"
+                    title="Add to library">
+                    @if (isAdding() === enrichedGame.gameInfo.externalId) {
+                      <span class="spinner-border spinner-border-sm"></span>
+                    } @else {
+                      <i class="bi bi-plus"></i>
+                    }
+                  </button>
+                }
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

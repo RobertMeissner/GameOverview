@@ -37,6 +37,18 @@ public class CanonicalGameRepositoryAdapter implements CanonicalGameRepository {
     }
 
     @Override
+    public Optional<CanonicalGame> findBySteamAppId(Integer steamAppId) {
+        return springDataRepository.findBySteamAppId(steamAppId).map(mapper::toDomain);
+    }
+
+    @Override
+    public List<CanonicalGame> findByNameContainingIgnoreCase(String name) {
+        return springDataRepository.findByNameContainingIgnoreCase(name).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public void deleteById(UUID id) {
         springDataRepository.deleteById(id.toString());
     }
