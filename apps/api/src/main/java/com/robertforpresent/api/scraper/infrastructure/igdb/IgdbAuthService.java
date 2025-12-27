@@ -1,10 +1,9 @@
-package com.robertforpresent.api.scraper.application.service;
+package com.robertforpresent.api.scraper.infrastructure.igdb;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.robertforpresent.api.scraper.infrastructure.config.IgdbConfig;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -15,12 +14,12 @@ import java.time.Instant;
 import java.util.Optional;
 
 /**
- * Service for managing IGDB/Twitch OAuth authentication.
+ * Infrastructure service for managing IGDB/Twitch OAuth authentication.
  * Handles token acquisition and refresh.
  */
-@Service
+@Component
 @Slf4j
-public class IgdbAuthService {
+class IgdbAuthService {
     private static final String TWITCH_TOKEN_URL = "https://id.twitch.tv/oauth2/token";
 
     private final IgdbConfig config;
@@ -30,7 +29,7 @@ public class IgdbAuthService {
     private String accessToken;
     private Instant tokenExpiry;
 
-    public IgdbAuthService(IgdbConfig config) {
+    IgdbAuthService(IgdbConfig config) {
         this.config = config;
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(10))
@@ -41,7 +40,7 @@ public class IgdbAuthService {
     /**
      * Gets a valid access token, refreshing if necessary.
      */
-    public Optional<String> getAccessToken() {
+    Optional<String> getAccessToken() {
         if (!config.isEnabled()) {
             log.warn("IGDB integration is not enabled or credentials are missing");
             return Optional.empty();
@@ -94,7 +93,7 @@ public class IgdbAuthService {
         }
     }
 
-    public String getClientId() {
+    String getClientId() {
         return config.getClientId();
     }
 }

@@ -71,12 +71,13 @@ public class GameScraperController {
     @GetMapping("/status")
     public ResponseEntity<Map<String, Object>> getStatus() {
         boolean enabled = scraperService.isEnabled();
+        String provider = scraperService.getProviderName();
         return ResponseEntity.ok(Map.of(
                 "enabled", enabled,
-                "source", "igdb",
+                "source", provider,
                 "message", enabled
-                        ? "IGDB integration is configured and ready"
-                        : "IGDB integration is not configured. Set igdb.client-id and igdb.client-secret in application.properties"
+                        ? provider.toUpperCase() + " integration is configured and ready"
+                        : provider.toUpperCase() + " integration is not configured. Set igdb.client-id and igdb.client-secret in application.properties"
         ));
     }
 }

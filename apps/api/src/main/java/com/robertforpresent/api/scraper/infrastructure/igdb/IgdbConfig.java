@@ -1,4 +1,4 @@
-package com.robertforpresent.api.scraper.infrastructure.config;
+package com.robertforpresent.api.scraper.infrastructure.igdb;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
