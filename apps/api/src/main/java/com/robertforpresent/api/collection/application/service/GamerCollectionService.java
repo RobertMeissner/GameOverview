@@ -31,6 +31,7 @@ public class GamerCollectionService {
         Map<UUID, CanonicalGame> gamesById = catalog.getByIds(canonicalIds);
 
         return personalizedGames.stream()
+                .filter(pg -> gamesById.containsKey(pg.getCanonicalGameId())) // Skip orphaned records
                 .map(pg -> toView(pg, gamesById.get(pg.getCanonicalGameId())))
                 .toList();
     }
@@ -76,6 +77,7 @@ public class GamerCollectionService {
         Map<UUID, CanonicalGame> gamesById = catalog.getByIds(canonicalIds);
 
         return personalizedGames.stream()
+                .filter(pg -> gamesById.containsKey(pg.getCanonicalGameId())) // Skip orphaned records
                 .map(pg -> toAdminView(pg, gamesById.get(pg.getCanonicalGameId())))
                 .toList();
     }
