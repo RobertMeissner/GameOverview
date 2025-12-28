@@ -1,0 +1,109 @@
+<div class="enrichment-container">
+  <h2 class="section-title">
+    <i class="bi bi-stars me-2"></i>
+    Game Data Enrichment
+  </h2>
+
+  <div class="enrichment-card">
+    <div class="card-body">
+      <p class="description">
+        Cycle through all games in your catalog and enrich them with data from external sources like Steam, Metacritic, HLTB, and more.
+      </p>
+
+      <div class="providers-section mb-4">
+        <h5>Available Providers</h5>
+        <div class="providers-list">
+          @for (provider of providers(); track provider.name) {
+            <div class="provider-item" [class.enabled]="provider.enabled" [class.disabled]="!provider.enabled">
+              <i class="bi" [class.bi-check-circle-fill]="provider.enabled" [class.bi-x-circle]="!provider.enabled"></i>
+              <span class="provider-name">{{ provider.name }}</span>
+              <span class="provider-status">{{ provider.enabled ? 'Enabled' : 'Disabled' }}</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <button
+        class="btn btn-primary"
+        (click)="enrichAllGames()"
+        [disabled]="enriching()"
+      >
+        @if (enriching()) {
+          <span class="spinner-border spinner-border-sm me-2"></span>
+          Enriching Games...
+        } @else {
+          <i class="bi bi-arrow-repeat me-2"></i>
+          Enrich All Games
+        }
+      </button>
+    </div>
+  </div>
+
+  @if (enrichmentResult()) {
+    <div class="result-card mt-4"
+         [class.alert-success]="enrichmentResult()!.enriched > 0"
+         [class.alert-warning]="enrichmentResult()!.enriched === 0">
+      <h4 class="result-title">
+        <i class="bi bi-check-circle me-2"></i>Enrichment Complete
+      </h4>
+
+      <div class="result-stats">
+        <div class="stat-item">
+          <span class="stat-label">Enriched:</span>
+          <span class="stat-value text-success">{{ enrichmentResult()!.enriched }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Unchanged:</span>
+          <span class="stat-value">{{ enrichmentResult()!.unchanged }}</span>
+        </div>
+        @if (enrichmentResult()!.failed > 0) {
+          <div class="stat-item">
+            <span class="stat-label">Failed:</span>
+            <span class="stat-value text-danger">{{ enrichmentResult()!.failed }}</span>
+          </div>
+        }
+      </div>
+
+      <p class="result-message mt-2">{{ enrichmentResult()!.message }}</p>
+
+      @if (enrichmentResult()!.details && enrichmentResult()!.details.length > 0) {
+        <button class="btn btn-sm btn-outline-secondary mt-3" (click)="toggleDetails()">
+          <i class="bi" [class.bi-chevron-down]="!showDetails()" [class.bi-chevron-up]="showDetails()"></i>
+          {{ showDetails() ? 'Hide' : 'Show' }} Details
+        </button>
+
+        @if (showDetails()) {
+          <div class="details-list mt-3">
+            @for (detail of enrichmentResult()!.details; track detail.gameId) {
+              @if (detail.enriched) {
+                <div class="detail-item">
+                  <div class="detail-header">
+                    <i class="bi bi-check-circle text-success me-2"></i>
+                    <strong>{{ detail.gameName }}</strong>
+                  </div>
+                  <div class="detail-body">
+                    <span class="badge bg-secondary me-1" *ngFor="let provider of detail.providersUsed">
+                      {{ provider }}
+                    </span>
+                    <small class="text-muted d-block mt-1">{{ detail.message }}</small>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        }
+      }
+    </div>
+  }
+
+  <div class="info-section mt-4">
+    <h5><i class="bi bi-info-circle me-2"></i>About Enrichment</h5>
+    <ul>
+      <li>Enrichment uses existing game identifiers (like Steam App ID) to fetch additional data</li>
+      <li>Only games with matching identifiers will be enriched</li>
+      <li>Data from enabled providers will be added automatically</li>
+      <li>This process may take several minutes for large catalogs</li>
+      <li>Games are processed sequentially to avoid rate limiting</li>
+    </ul>
+  </div>
+</div>

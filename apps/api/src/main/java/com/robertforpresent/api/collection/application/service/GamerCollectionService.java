@@ -8,6 +8,7 @@ import com.robertforpresent.api.catalog.domain.model.SteamGameData;
 import com.robertforpresent.api.collection.application.dto.AdminGameView;
 import com.robertforpresent.api.collection.application.dto.CollectionGameView;
 import com.robertforpresent.api.collection.application.dto.StoreLinksDTO;
+import com.robertforpresent.api.collection.application.dto.StoreOwnershipDTO;
 import com.robertforpresent.api.collection.domain.model.PersonalizedGame;
 import com.robertforpresent.api.collection.domain.repository.CollectionRepository;
 import com.robertforpresent.api.collection.presentation.rest.UpdateFlagsRequest;
@@ -42,6 +43,7 @@ public class GamerCollectionService {
     private CollectionGameView toView(PersonalizedGame pg) {
         CanonicalGame canonical = catalog.get(pg.getCanonicalGameId());
         StoreLinksDTO storeLinks = buildStoreLinks(canonical);
+        StoreOwnershipDTO storeOwnership = buildStoreOwnership(pg);
         return new CollectionGameView(
                 pg.getCanonicalGameId(),
                 canonical.getName(),
@@ -51,7 +53,8 @@ public class GamerCollectionService {
                 pg.isMarkedAsHidden(),
                 pg.isMarkedForLater(),
                 storeLinks,
-                pg.getSteamPlaytimeMinutes()
+                pg.getSteamPlaytimeMinutes(),
+                storeOwnership
         );
     }
 
@@ -109,6 +112,17 @@ public class GamerCollectionService {
                 steamData != null ? steamData.storeLink() : null,
                 gogData != null ? gogData.storeLink() : null,
                 metacriticData != null ? metacriticData.storeLink() : null
+        );
+    }
+
+    private StoreOwnershipDTO buildStoreOwnership(PersonalizedGame pg) {
+        return new StoreOwnershipDTO(
+                pg.isOwnedOnSteam(),
+                pg.isOwnedOnGog(),
+                pg.isOwnedOnEpic(),
+                pg.isOwnedOnXbox(),
+                pg.isOwnedOnPlayStation(),
+                pg.getOtherStores()
         );
     }
 }

@@ -11,6 +11,17 @@ public record CollectionGameView(
         boolean markedAsHidden,
         boolean markedForLater,
         StoreLinksDTO storeLinks,
-        Integer steamPlaytimeMinutes
+        Integer steamPlaytimeMinutes,
+        StoreOwnershipDTO storeOwnership
+) {
+}
+
+record StoreOwnershipDTO(
+        boolean ownedOnSteam,
+        boolean ownedOnGog,
+        boolean ownedOnEpic,
+        boolean ownedOnXbox,
+        boolean ownedOnPlayStation,
+        String otherStores
 ) {
 }

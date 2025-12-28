@@ -46,19 +46,56 @@ public class PersonalizedGameEntity {
     @Column(name = "steam_playtime_minutes")
     private Integer steamPlaytimeMinutes;
 
-    public PersonalizedGameEntity(String gamerId, String canonicalGameId, boolean markAsPlayed, boolean markAsHidden, boolean markAsForLater, Integer steamPlaytimeMinutes) {
+    // Store ownership indicators
+    @Getter
+    @Setter
+    @Column(name = "owned_on_steam", nullable = false)
+    private boolean ownedOnSteam;
+
+    @Getter
+    @Setter
+    @Column(name = "owned_on_gog", nullable = false)
+    private boolean ownedOnGog;
+
+    @Getter
+    @Setter
+    @Column(name = "owned_on_epic", nullable = false)
+    private boolean ownedOnEpic;
+
+    @Getter
+    @Setter
+    @Column(name = "owned_on_xbox", nullable = false)
+    private boolean ownedOnXbox;
+
+    @Getter
+    @Setter
+    @Column(name = "owned_on_playstation", nullable = false)
+    private boolean ownedOnPlayStation;
+
+    @Getter
+    @Setter
+    @Column(name = "other_stores")
+    private String otherStores;
+
+    public PersonalizedGameEntity(String gamerId, String canonicalGameId, boolean markAsPlayed, boolean markAsHidden, boolean markAsForLater, Integer steamPlaytimeMinutes, boolean ownedOnSteam, boolean ownedOnGog, boolean ownedOnEpic, boolean ownedOnXbox, boolean ownedOnPlayStation, String otherStores) {
         this.gamerId = gamerId;
         this.canonicalGameId = canonicalGameId;
         this.markAsPlayed = markAsPlayed;
         this.markAsHidden = markAsHidden;
         this.markAsForLater = markAsForLater;
         this.steamPlaytimeMinutes = steamPlaytimeMinutes;
+        this.ownedOnSteam = ownedOnSteam;
+        this.ownedOnGog = ownedOnGog;
+        this.ownedOnEpic = ownedOnEpic;
+        this.ownedOnXbox = ownedOnXbox;
+        this.ownedOnPlayStation = ownedOnPlayStation;
+        this.otherStores = otherStores;
 
     }
 
     public PersonalizedGameEntity(){}
 
     public static PersonalizedGameEntity from(PersonalizedGame game){
-        return new PersonalizedGameEntity(game.getGamerId().toString(), game.getCanonicalGameId().toString(), game.isMarkedAsPlayed(), game.isMarkedAsHidden(), game.isMarkedForLater(), game.getSteamPlaytimeMinutes());
+        return new PersonalizedGameEntity(game.getGamerId().toString(), game.getCanonicalGameId().toString(), game.isMarkedAsPlayed(), game.isMarkedAsHidden(), game.isMarkedForLater(), game.getSteamPlaytimeMinutes(), game.isOwnedOnSteam(), game.isOwnedOnGog(), game.isOwnedOnEpic(), game.isOwnedOnXbox(), game.isOwnedOnPlayStation(), game.getOtherStores());
     }
 }
