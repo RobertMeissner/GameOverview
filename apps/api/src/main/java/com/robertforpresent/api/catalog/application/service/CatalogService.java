@@ -125,19 +125,27 @@ public class CatalogService {
 
     @Transactional
     public void mergeGames(UUID targetId, List<UUID> sourceIds) {
+        log.info("Merging games: target={}, sources={}", targetId, sourceIds);
+
         // Verify target exists
-        repository.findById(targetId).orElseThrow();
+        CanonicalGame target = repository.findById(targetId).orElseThrow();
+        log.debug("Target game found: {}", target.getName());
 
         for (UUID sourceId : sourceIds) {
             // Verify source exists
-            repository.findById(sourceId).orElseThrow();
+            CanonicalGame source = repository.findById(sourceId).orElseThrow();
+            log.debug("Merging source game '{}' ({}) into target '{}'", source.getName(), sourceId, target.getName());
 
             // Update all personalized game references to point to target
             collectionPort.updateCanonicalGameReferences(sourceId, targetId);
+            log.debug("Updated personalized game references from {} to {}", sourceId, targetId);
 
             // Delete the source canonical game
             repository.deleteById(sourceId);
+            log.info("Deleted source game: {} ({})", source.getName(), sourceId);
         }
+
+        log.info("Merge completed successfully: {} source games merged into {}", sourceIds.size(), targetId);
     }
 
     /**
