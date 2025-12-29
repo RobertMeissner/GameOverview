@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.robertforpresent.api.scraper.domain.model.ScrapedGameInfo;
 import com.robertforpresent.api.scraper.domain.port.GameInfoProvider;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
@@ -25,8 +26,12 @@ import java.util.Optional;
  * - API communication
  * - Response parsing
  * - Data transformation to domain models
+ *
+ * Marked as @Primary to be the default provider for GameScraperService.
+ * Steam provider is used mainly for enrichment, not search.
  */
 @Component
+@Primary
 @Slf4j
 public class IgdbGameInfoProvider implements GameInfoProvider {
     private static final String IGDB_API_URL = "https://api.igdb.com/v4";
