@@ -22,6 +22,24 @@
             </div>
             <span class="rating-score">{{ game.rating }}/100</span>
           </div>
+
+          <div class="game-flags">
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" [id]="'top-played-'+game.id" [(ngModel)]="game.markedAsPlayed"
+                     (ngModelChange)="onFlagChange(game)">
+              <label class="form-check-label" [for]="'top-played-'+game.id">Played</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" [id]="'top-hide-'+game.id" [(ngModel)]="game.markedAsHidden"
+                     (ngModelChange)="onFlagChange(game)">
+              <label class="form-check-label" [for]="'top-hide-'+game.id">Hide</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" [id]="'top-later-'+game.id" [(ngModel)]="game.markedForLater"
+                     (ngModelChange)="onFlagChange(game)">
+              <label class="form-check-label" [for]="'top-later-'+game.id">For Later</label>
+            </div>
+          </div>
         </div>
         <div class="hover-overlay">
           <p class="hover-details">Click to view details</p>

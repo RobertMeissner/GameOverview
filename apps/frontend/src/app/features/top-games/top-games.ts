@@ -1,10 +1,11 @@
 import {Component, inject, OnInit, signal} from '@angular/core';
-import {Game} from '../../domain/entities/game.model';
+import {FormsModule} from '@angular/forms';
+import {CollectionEntry} from '../../domain/entities/CollectionEntry';
 import {GamesService} from '../../services/games.service';
 
 @Component({
   selector: 'app-top-games',
-  imports: [],
+  imports: [FormsModule],
   templateUrl: './top-games.html',
   styleUrl: './top-games.scss',
 })
@@ -15,7 +16,7 @@ export class TopGames implements OnInit {
 
   private gamesService = inject(GamesService);
 
-  games = signal<Game[]>([]);
+  games = signal<CollectionEntry[]>([]);
 
   protected topGames(): void {
     this.gamesService.getTopGames().subscribe({
@@ -24,7 +25,18 @@ export class TopGames implements OnInit {
       }, error: err => {
         console.log(err)
       }
-    })
-    ;
+    });
+  }
+
+  onFlagChange(game: CollectionEntry): void {
+    this.gamesService.updateGameFlags(game.id, {
+      markedAsPlayed: game.markedAsPlayed ?? false,
+      markedAsHidden: game.markedAsHidden ?? false,
+      markedForLater: game.markedForLater ?? false
+    }).subscribe({
+      error: err => {
+        console.error(err);
+      }
+    });
   }
 }
