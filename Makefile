@@ -5,9 +5,9 @@ compile:
 
 run:
 	fuser -k 8080/tcp & \
+	fuser -k 4200/tcp & \
 	cd apps/api && ./mvnw spring-boot:run & \
-	cd apps/frontend && bun run start & \
-	fuser -k 8080/tcp
+	cd apps/frontend && bun run start
 
 run-backend:
 	cd apps/api && ./mvnw spring-boot:run
