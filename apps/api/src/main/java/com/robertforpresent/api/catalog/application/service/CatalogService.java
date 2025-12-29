@@ -151,6 +151,21 @@ public class CatalogService {
     }
 
     /**
+     * Find all canonical games that have duplicate names.
+     * Returns a map of name -> list of games with that name (only entries with 2+ games).
+     */
+    public Map<String, List<CanonicalGame>> findDuplicatesByName() {
+        return repository.findAll().stream()
+                .collect(Collectors.groupingBy(
+                        game -> game.getName().toLowerCase().trim(),
+                        Collectors.toList()
+                ))
+                .entrySet().stream()
+                .filter(entry -> entry.getValue().size() > 1)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    /**
      * Rescrape game data from IGDB and update the catalog entry.
      *
      * @param gameId The ID of the game to rescrape

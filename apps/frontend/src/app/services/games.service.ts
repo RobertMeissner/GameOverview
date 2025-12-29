@@ -7,6 +7,24 @@ import {CollectionEntry} from '../domain/entities/CollectionEntry';
 import {AdminGameEntry} from '../domain/entities/AdminGameEntry';
 import {RescrapeRequest, RescrapeResult} from '../domain/entities/ScrapedGameInfo';
 
+export interface CatalogGameEntry {
+  id: string;
+  name: string;
+  thumbnailUrl: string;
+  rating: number;
+  steamAppId: number | null;
+  steamName: string | null;
+  gogId: number | null;
+  gogName: string | null;
+  igdbId: number | null;
+  metacriticScore: number | null;
+}
+
+export interface CatalogDuplicateGroup {
+  name: string;
+  games: CatalogGameEntry[];
+}
+
 @Injectable({providedIn: 'root'})
 export class GamesService {
   private readonly apiUrl = environment.apiUrl
@@ -57,6 +75,10 @@ export class GamesService {
 
   mergeGames(targetId: string, sourceIds: string[]): Observable<void> {
     return this.http.post<void>(`${this.apiUrl}/catalog/games/${targetId}/merge`, {sourceIds});
+  }
+
+  getCatalogDuplicates(): Observable<CatalogDuplicateGroup[]> {
+    return this.http.get<CatalogDuplicateGroup[]>(`${this.apiUrl}/catalog/duplicates`);
   }
 
   rescrapeGame(gameId: string, request?: RescrapeRequest): Observable<RescrapeResult> {

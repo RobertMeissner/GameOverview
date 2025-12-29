@@ -1,42 +1,63 @@
 <div class="dedup-container">
   <h2 class="section-title">Game Deduplication</h2>
 
-  <div class="filter-section mb-3">
-    <div class="filter-row">
-      <span class="filter-label me-3">Match Types:</span>
-      <div class="form-check form-check-inline">
-        <input class="form-check-input" type="checkbox" id="filter-name"
-               [ngModel]="showNameMatches()" (ngModelChange)="showNameMatches.set($event)">
-        <label class="form-check-label" for="filter-name">Name Similarity</label>
-      </div>
-      <div class="form-check form-check-inline">
-        <input class="form-check-input" type="checkbox" id="filter-steam"
-               [ngModel]="showSteamIdMatches()" (ngModelChange)="showSteamIdMatches.set($event)">
-        <label class="form-check-label" for="filter-steam">Steam App ID</label>
-      </div>
-      <div class="form-check form-check-inline">
-        <input class="form-check-input" type="checkbox" id="filter-gog"
-               [ngModel]="showGogIdMatches()" (ngModelChange)="showGogIdMatches.set($event)">
-        <label class="form-check-label" for="filter-gog">GoG ID</label>
-      </div>
-    </div>
-
-    <div class="threshold-row">
-      <span class="filter-label me-3">Name Similarity Threshold:</span>
-      <input type="range" class="form-range threshold-slider" min="0.5" max="1" step="0.05"
-             [ngModel]="nameSimilarityThreshold()"
-             (ngModelChange)="nameSimilarityThreshold.set($event); findDuplicates()">
-      <span class="threshold-value">{{ nameSimilarityThreshold() * 100 | number:'1.0-0' }}%</span>
-    </div>
-
-    <div class="actions-row">
-      <button class="btn btn-sm btn-outline-primary" (click)="refreshDuplicates()" [disabled]="loading()">
-        <i class="bi bi-arrow-clockwise"></i> Refresh
+  <!-- Mode Switch -->
+  <div class="mode-switch mb-3">
+    <div class="btn-group" role="group">
+      <button type="button" class="btn" [class.btn-primary]="mode() === 'catalog'"
+              [class.btn-outline-primary]="mode() !== 'catalog'" (click)="setMode('catalog')">
+        <i class="bi bi-database"></i> Catalog (All Games)
       </button>
-      <span class="group-count">
-        Found <strong>{{ filteredGroups().length }}</strong> potential duplicate groups
-      </span>
+      <button type="button" class="btn" [class.btn-primary]="mode() === 'collection'"
+              [class.btn-outline-primary]="mode() !== 'collection'" (click)="setMode('collection')">
+        <i class="bi bi-collection"></i> My Collection
+      </button>
     </div>
+  </div>
+
+  <!-- Collection Mode Filters (only shown in collection mode) -->
+  @if (mode() === 'collection') {
+    <div class="filter-section mb-3">
+      <div class="filter-row">
+        <span class="filter-label me-3">Match Types:</span>
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="checkbox" id="filter-name"
+                 [ngModel]="showNameMatches()" (ngModelChange)="showNameMatches.set($event)">
+          <label class="form-check-label" for="filter-name">Name Similarity</label>
+        </div>
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="checkbox" id="filter-steam"
+                 [ngModel]="showSteamIdMatches()" (ngModelChange)="showSteamIdMatches.set($event)">
+          <label class="form-check-label" for="filter-steam">Steam App ID</label>
+        </div>
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="checkbox" id="filter-gog"
+                 [ngModel]="showGogIdMatches()" (ngModelChange)="showGogIdMatches.set($event)">
+          <label class="form-check-label" for="filter-gog">GoG ID</label>
+        </div>
+      </div>
+
+      <div class="threshold-row">
+        <span class="filter-label me-3">Name Similarity Threshold:</span>
+        <input type="range" class="form-range threshold-slider" min="0.5" max="1" step="0.05"
+               [ngModel]="nameSimilarityThreshold()"
+               (ngModelChange)="nameSimilarityThreshold.set($event); findDuplicates()">
+        <span class="threshold-value">{{ nameSimilarityThreshold() * 100 | number:'1.0-0' }}%</span>
+      </div>
+    </div>
+  }
+
+  <div class="actions-row mb-3">
+    <button class="btn btn-sm btn-outline-primary" (click)="refreshDuplicates()" [disabled]="loading()">
+      <i class="bi bi-arrow-clockwise"></i> Refresh
+    </button>
+    <span class="group-count">
+      @if (mode() === 'catalog') {
+        Found <strong>{{ catalogDuplicates().length }}</strong> catalog duplicate groups
+      } @else {
+        Found <strong>{{ filteredGroups().length }}</strong> collection duplicate groups
+      }
+    </span>
   </div>
 
   @if (loading()) {
@@ -45,138 +66,281 @@
     </div>
   }
 
-  @if (!loading() && filteredGroups().length === 0) {
-    <div class="empty-state">
-      <i class="bi bi-check-circle"></i>
-      <p>No duplicate games found with current settings.</p>
-    </div>
-  }
+  <!-- CATALOG MODE -->
+  @if (mode() === 'catalog' && !loading()) {
+    @if (catalogDuplicates().length === 0) {
+      <div class="empty-state">
+        <i class="bi bi-check-circle"></i>
+        <p>No duplicate canonical games found. Your catalog is clean!</p>
+      </div>
+    }
 
-  <!-- Merge Modal -->
-  @if (selectedGroup()) {
-    <div class="merge-modal-backdrop" (click)="cancelMerge()">
-      <div class="merge-modal" (click)="$event.stopPropagation()">
-        <div class="merge-modal-header">
-          <h3>Merge Games</h3>
-          <button class="btn-close" (click)="cancelMerge()">
-            <i class="bi bi-x-lg"></i>
-          </button>
-        </div>
+    <!-- Catalog Merge Modal -->
+    @if (selectedCatalogGroup()) {
+      <div class="merge-modal-backdrop" (click)="cancelCatalogMerge()">
+        <div class="merge-modal" (click)="$event.stopPropagation()">
+          <div class="merge-modal-header">
+            <h3>Merge Catalog Games</h3>
+            <button class="btn-close" (click)="cancelCatalogMerge()">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
 
-        <div class="merge-modal-body">
-          <p class="merge-instruction">Select the game to keep (target). All other games will be merged into it and deleted.</p>
+          <div class="merge-modal-body">
+            <p class="merge-instruction">Select the game to keep (target). All other games will be merged into it and deleted from the catalog.</p>
 
-          <div class="merge-games-list">
-            @for (game of selectedGroup()!.games; track game.id) {
-              <div class="merge-game-card" [class.selected]="targetGame()?.id === game.id"
-                   (click)="selectTargetGame(game)">
-                <div class="merge-game-radio">
-                  <input type="radio" [id]="'target-' + game.id" [checked]="targetGame()?.id === game.id"
-                         (change)="selectTargetGame(game)">
+            <div class="merge-games-list">
+              @for (game of selectedCatalogGroup()!.games; track game.id) {
+                <div class="merge-game-card" [class.selected]="targetCatalogGame()?.id === game.id"
+                     (click)="selectTargetCatalogGame(game)">
+                  <div class="merge-game-radio">
+                    <input type="radio" [id]="'target-' + game.id" [checked]="targetCatalogGame()?.id === game.id"
+                           (change)="selectTargetCatalogGame(game)">
+                  </div>
+                  <img src="/api/thumbnails/{{game.id}}" [alt]="game.name" class="merge-thumbnail" loading="lazy"/>
+                  <div class="merge-game-info">
+                    <div class="merge-game-name">{{ game.name }}</div>
+                    <div class="merge-game-details">
+                      <span class="rating-badge">
+                        <i class="bi bi-trophy"></i> {{ game.rating | number:'1.0-0' }}%
+                      </span>
+                      @if (game.steamAppId) {
+                        <span class="store-badge steam">
+                          <i class="bi bi-steam"></i> {{ game.steamAppId }}
+                        </span>
+                      }
+                      @if (game.gogId) {
+                        <span class="store-badge gog">GOG {{ game.gogId }}</span>
+                      }
+                      @if (game.igdbId) {
+                        <span class="store-badge igdb">IGDB {{ game.igdbId }}</span>
+                      }
+                      @if (game.metacriticScore) {
+                        <span class="store-badge metacritic">MC {{ game.metacriticScore }}</span>
+                      }
+                    </div>
+                    <div class="merge-game-names">
+                      @if (game.steamName && game.steamName !== game.name) {
+                        <span class="alt-name">Steam: {{ game.steamName }}</span>
+                      }
+                      @if (game.gogName && game.gogName !== game.name) {
+                        <span class="alt-name">GoG: {{ game.gogName }}</span>
+                      }
+                    </div>
+                  </div>
+                  @if (targetCatalogGame()?.id === game.id) {
+                    <div class="target-badge">
+                      <i class="bi bi-check-circle-fill"></i> Keep
+                    </div>
+                  } @else {
+                    <div class="delete-badge">
+                      <i class="bi bi-trash"></i> Delete
+                    </div>
+                  }
                 </div>
-                <img [src]="game.thumbnailUrl" [alt]="game.name" class="merge-thumbnail" loading="lazy"/>
-                <div class="merge-game-info">
-                  <div class="merge-game-name">{{ game.name }}</div>
-                  <div class="merge-game-details">
-                    <span class="rating-badge">
-                      <i class="bi bi-trophy"></i> {{ game.rating }}
+              }
+            </div>
+          </div>
+
+          <div class="merge-modal-footer">
+            <button class="btn btn-secondary" (click)="cancelCatalogMerge()" [disabled]="merging()">Cancel</button>
+            <button class="btn btn-danger" (click)="confirmCatalogMerge()" [disabled]="merging() || !targetCatalogGame()">
+              @if (merging()) {
+                <i class="bi bi-hourglass-split"></i> Merging...
+              } @else {
+                <i class="bi bi-arrows-collapse"></i> Merge Games
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Catalog Duplicate Groups List -->
+    <div class="groups-container">
+      @for (group of catalogDuplicates(); track group.name) {
+        <div class="duplicate-group">
+          <div class="group-header">
+            <div class="group-info">
+              <span class="group-count-badge">{{ group.games.length }} games</span>
+              <span class="match-badge badge-name">Identical name: "{{ group.name }}"</span>
+            </div>
+            <button class="btn btn-sm btn-primary" (click)="selectCatalogGroup(group)">
+              <i class="bi bi-arrows-collapse"></i> Merge
+            </button>
+          </div>
+
+          <div class="group-games">
+            @for (game of group.games; track game.id) {
+              <div class="game-card">
+                <img src="/api/thumbnails/{{game.id}}" [alt]="game.name" class="game-thumbnail" loading="lazy"/>
+                <div class="game-info">
+                  <div class="game-name">{{ game.name }}</div>
+                  <div class="game-meta">
+                    <span class="rating">
+                      <i class="bi bi-trophy"></i> {{ game.rating | number:'1.0-0' }}%
                     </span>
                     @if (game.steamAppId) {
-                      <span class="store-badge steam">
+                      <span class="steam-id">
                         <i class="bi bi-steam"></i> {{ game.steamAppId }}
                       </span>
                     }
                     @if (game.gogId) {
-                      <span class="store-badge gog">GOG {{ game.gogId }}</span>
+                      <span class="gog-id">GOG: {{ game.gogId }}</span>
                     }
-                    @if (game.metacriticScore) {
-                      <span class="store-badge metacritic">MC {{ game.metacriticScore }}</span>
-                    }
-                  </div>
-                  <div class="merge-game-names">
-                    @if (game.steamName && game.steamName !== game.name) {
-                      <span class="alt-name">Steam: {{ game.steamName }}</span>
-                    }
-                    @if (game.gogName && game.gogName !== game.name) {
-                      <span class="alt-name">GoG: {{ game.gogName }}</span>
+                    @if (game.igdbId) {
+                      <span class="igdb-id">IGDB: {{ game.igdbId }}</span>
                     }
                   </div>
+                  @if (game.steamName && game.steamName !== game.name) {
+                    <div class="alt-name-row">
+                      <span class="alt-label">Steam:</span> {{ game.steamName }}
+                    </div>
+                  }
                 </div>
-                @if (targetGame()?.id === game.id) {
-                  <div class="target-badge">
-                    <i class="bi bi-check-circle-fill"></i> Keep
-                  </div>
-                } @else {
-                  <div class="delete-badge">
-                    <i class="bi bi-trash"></i> Delete
-                  </div>
-                }
               </div>
             }
           </div>
         </div>
-
-        <div class="merge-modal-footer">
-          <button class="btn btn-secondary" (click)="cancelMerge()" [disabled]="merging()">Cancel</button>
-          <button class="btn btn-danger" (click)="confirmMerge()" [disabled]="merging() || !targetGame()">
-            @if (merging()) {
-              <i class="bi bi-hourglass-split"></i> Merging...
-            } @else {
-              <i class="bi bi-arrows-collapse"></i> Merge Games
-            }
-          </button>
-        </div>
-      </div>
+      }
     </div>
   }
 
-  <!-- Duplicate Groups List -->
-  <div class="groups-container">
-    @for (group of filteredGroups(); track $index) {
-      <div class="duplicate-group">
-        <div class="group-header">
-          <div class="group-info">
-            <span class="group-count-badge">{{ group.games.length }} games</span>
-            <div class="match-reasons">
-              @for (reason of group.matchReasons; track reason) {
-                <span class="match-badge" [class]="getMatchBadgeClass(reason)">{{ reason }}</span>
+  <!-- COLLECTION MODE -->
+  @if (mode() === 'collection' && !loading()) {
+    @if (filteredGroups().length === 0) {
+      <div class="empty-state">
+        <i class="bi bi-check-circle"></i>
+        <p>No duplicate games found in your collection with current settings.</p>
+      </div>
+    }
+
+    <!-- Collection Merge Modal -->
+    @if (selectedGroup()) {
+      <div class="merge-modal-backdrop" (click)="cancelMerge()">
+        <div class="merge-modal" (click)="$event.stopPropagation()">
+          <div class="merge-modal-header">
+            <h3>Merge Games</h3>
+            <button class="btn-close" (click)="cancelMerge()">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+
+          <div class="merge-modal-body">
+            <p class="merge-instruction">Select the game to keep (target). All other games will be merged into it and deleted.</p>
+
+            <div class="merge-games-list">
+              @for (game of selectedGroup()!.games; track game.id) {
+                <div class="merge-game-card" [class.selected]="targetGame()?.id === game.id"
+                     (click)="selectTargetGame(game)">
+                  <div class="merge-game-radio">
+                    <input type="radio" [id]="'target-' + game.id" [checked]="targetGame()?.id === game.id"
+                           (change)="selectTargetGame(game)">
+                  </div>
+                  <img [src]="game.thumbnailUrl" [alt]="game.name" class="merge-thumbnail" loading="lazy"/>
+                  <div class="merge-game-info">
+                    <div class="merge-game-name">{{ game.name }}</div>
+                    <div class="merge-game-details">
+                      <span class="rating-badge">
+                        <i class="bi bi-trophy"></i> {{ game.rating }}
+                      </span>
+                      @if (game.steamAppId) {
+                        <span class="store-badge steam">
+                          <i class="bi bi-steam"></i> {{ game.steamAppId }}
+                        </span>
+                      }
+                      @if (game.gogId) {
+                        <span class="store-badge gog">GOG {{ game.gogId }}</span>
+                      }
+                      @if (game.metacriticScore) {
+                        <span class="store-badge metacritic">MC {{ game.metacriticScore }}</span>
+                      }
+                    </div>
+                    <div class="merge-game-names">
+                      @if (game.steamName && game.steamName !== game.name) {
+                        <span class="alt-name">Steam: {{ game.steamName }}</span>
+                      }
+                      @if (game.gogName && game.gogName !== game.name) {
+                        <span class="alt-name">GoG: {{ game.gogName }}</span>
+                      }
+                    </div>
+                  </div>
+                  @if (targetGame()?.id === game.id) {
+                    <div class="target-badge">
+                      <i class="bi bi-check-circle-fill"></i> Keep
+                    </div>
+                  } @else {
+                    <div class="delete-badge">
+                      <i class="bi bi-trash"></i> Delete
+                    </div>
+                  }
+                </div>
               }
             </div>
           </div>
-          <button class="btn btn-sm btn-primary" (click)="selectGroup(group)">
-            <i class="bi bi-arrows-collapse"></i> Merge
-          </button>
-        </div>
 
-        <div class="group-games">
-          @for (game of group.games; track game.id) {
-            <div class="game-card">
-              <img [src]="game.thumbnailUrl" [alt]="game.name" class="game-thumbnail" loading="lazy"/>
-              <div class="game-info">
-                <div class="game-name">{{ game.name }}</div>
-                <div class="game-meta">
-                  <span class="rating">
-                    <i class="bi bi-trophy"></i> {{ game.rating }}
-                  </span>
-                  @if (game.steamAppId) {
-                    <span class="steam-id">
-                      <i class="bi bi-steam"></i> {{ game.steamAppId }}
-                    </span>
-                  }
-                  @if (game.gogId) {
-                    <span class="gog-id">GOG: {{ game.gogId }}</span>
-                  }
-                </div>
-                @if (game.steamName && game.steamName !== game.name) {
-                  <div class="alt-name-row">
-                    <span class="alt-label">Steam:</span> {{ game.steamName }}
-                  </div>
-                }
-              </div>
-            </div>
-          }
+          <div class="merge-modal-footer">
+            <button class="btn btn-secondary" (click)="cancelMerge()" [disabled]="merging()">Cancel</button>
+            <button class="btn btn-danger" (click)="confirmMerge()" [disabled]="merging() || !targetGame()">
+              @if (merging()) {
+                <i class="bi bi-hourglass-split"></i> Merging...
+              } @else {
+                <i class="bi bi-arrows-collapse"></i> Merge Games
+              }
+            </button>
+          </div>
         </div>
       </div>
     }
-  </div>
+
+    <!-- Collection Duplicate Groups List -->
+    <div class="groups-container">
+      @for (group of filteredGroups(); track $index) {
+        <div class="duplicate-group">
+          <div class="group-header">
+            <div class="group-info">
+              <span class="group-count-badge">{{ group.games.length }} games</span>
+              <div class="match-reasons">
+                @for (reason of group.matchReasons; track reason) {
+                  <span class="match-badge" [class]="getMatchBadgeClass(reason)">{{ reason }}</span>
+                }
+              </div>
+            </div>
+            <button class="btn btn-sm btn-primary" (click)="selectGroup(group)">
+              <i class="bi bi-arrows-collapse"></i> Merge
+            </button>
+          </div>
+
+          <div class="group-games">
+            @for (game of group.games; track game.id) {
+              <div class="game-card">
+                <img [src]="game.thumbnailUrl" [alt]="game.name" class="game-thumbnail" loading="lazy"/>
+                <div class="game-info">
+                  <div class="game-name">{{ game.name }}</div>
+                  <div class="game-meta">
+                    <span class="rating">
+                      <i class="bi bi-trophy"></i> {{ game.rating }}
+                    </span>
+                    @if (game.steamAppId) {
+                      <span class="steam-id">
+                        <i class="bi bi-steam"></i> {{ game.steamAppId }}
+                      </span>
+                    }
+                    @if (game.gogId) {
+                      <span class="gog-id">GOG: {{ game.gogId }}</span>
+                    }
+                  </div>
+                  @if (game.steamName && game.steamName !== game.name) {
+                    <div class="alt-name-row">
+                      <span class="alt-label">Steam:</span> {{ game.steamName }}
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
 </div>
