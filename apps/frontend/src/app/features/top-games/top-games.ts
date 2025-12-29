@@ -30,11 +30,18 @@ export class TopGames implements OnInit {
   }
 
   onFlagChange(game: CollectionEntry): void {
-    this.gamesService.updateGameFlags(game.id, {
+    const updates = {
       markedAsPlayed: game.markedAsPlayed ?? false,
       markedAsHidden: game.markedAsHidden ?? false,
       markedForLater: game.markedForLater ?? false
-    }).subscribe({
+    };
+    this.gamesService.updateGameFlags(game.id, updates).subscribe({
+      next: () => {
+        // Update local signal to trigger reactive updates
+        this.games.update(games => games.map(g =>
+          g.id === game.id ? {...g, ...updates} : g
+        ));
+      },
       error: err => {
         console.error(err);
       }
