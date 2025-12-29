@@ -5,15 +5,18 @@
     <div class="filter-row">
       <span class="filter-label me-3">Match Types:</span>
       <div class="form-check form-check-inline">
-        <input class="form-check-input" type="checkbox" id="filter-name" [(ngModel)]="showNameMatches">
+        <input class="form-check-input" type="checkbox" id="filter-name"
+               [ngModel]="showNameMatches()" (ngModelChange)="showNameMatches.set($event)">
         <label class="form-check-label" for="filter-name">Name Similarity</label>
       </div>
       <div class="form-check form-check-inline">
-        <input class="form-check-input" type="checkbox" id="filter-steam" [(ngModel)]="showSteamIdMatches">
+        <input class="form-check-input" type="checkbox" id="filter-steam"
+               [ngModel]="showSteamIdMatches()" (ngModelChange)="showSteamIdMatches.set($event)">
         <label class="form-check-label" for="filter-steam">Steam App ID</label>
       </div>
       <div class="form-check form-check-inline">
-        <input class="form-check-input" type="checkbox" id="filter-gog" [(ngModel)]="showGogIdMatches">
+        <input class="form-check-input" type="checkbox" id="filter-gog"
+               [ngModel]="showGogIdMatches()" (ngModelChange)="showGogIdMatches.set($event)">
         <label class="form-check-label" for="filter-gog">GoG ID</label>
       </div>
     </div>
@@ -21,7 +24,8 @@
     <div class="threshold-row">
       <span class="filter-label me-3">Name Similarity Threshold:</span>
       <input type="range" class="form-range threshold-slider" min="0.5" max="1" step="0.05"
-             [(ngModel)]="nameSimilarityThreshold" (ngModelChange)="findDuplicates()">
+             [ngModel]="nameSimilarityThreshold()"
+             (ngModelChange)="nameSimilarityThreshold.set($event); findDuplicates()">
       <span class="threshold-value">{{ nameSimilarityThreshold() * 100 | number:'1.0-0' }}%</span>
     </div>
 
