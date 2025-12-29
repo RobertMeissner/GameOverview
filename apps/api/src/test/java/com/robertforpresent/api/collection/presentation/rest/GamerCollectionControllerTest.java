@@ -129,8 +129,8 @@ class GamerCollectionControllerTest {
             );
             when(collectionService.getTop3(TEST_USER_ID)).thenReturn(topGames);
 
-            TopRankedDTO dto1 = new TopRankedDTO(GAME_ID_1, "Best Game", 0.99f, "thumb1.jpg");
-            TopRankedDTO dto2 = new TopRankedDTO(GAME_ID_2, "Second Best", 0.95f, "thumb2.jpg");
+            TopRankedDTO dto1 = new TopRankedDTO(GAME_ID_1, "Best Game", 0.99f, "thumb1.jpg", false, false, false);
+            TopRankedDTO dto2 = new TopRankedDTO(GAME_ID_2, "Second Best", 0.95f, "thumb2.jpg", false, false, false);
             when(topRankedMapper.toDto(topGames.get(0))).thenReturn(dto1);
             when(topRankedMapper.toDto(topGames.get(1))).thenReturn(dto2);
 
