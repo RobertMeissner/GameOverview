@@ -89,6 +89,11 @@ public class CanonicalGameEntity {
     @Column(name = "igdb_id")
     private Long igdbId;
 
+    @Getter
+    @Setter
+    @Column(name = "igdb_slug")
+    private String igdbSlug;
+
     // Metacritic data
     @Getter
     @Setter
@@ -109,7 +114,7 @@ public class CanonicalGameEntity {
                                Integer steamAppId, String steamName,
                                Long gogId, String gogName, String gogLink,
                                String epicId, String epicName, String epicLink,
-                               Long igdbId,
+                               Long igdbId, String igdbSlug,
                                Integer metacriticScore, String metacriticName, String metacriticLink) {
         this.id = id;
         this.name = name;
@@ -124,6 +129,7 @@ public class CanonicalGameEntity {
         this.epicName = epicName;
         this.epicLink = epicLink;
         this.igdbId = igdbId;
+        this.igdbSlug = igdbSlug;
         this.metacriticScore = metacriticScore;
         this.metacriticName = metacriticName;
         this.metacriticLink = metacriticLink;

@@ -11,6 +11,7 @@ import java.util.List;
 public record ScrapedGameInfo(
         long externalId,
         String name,
+        @Nullable String slug,
         @Nullable String summary,
         @Nullable String coverUrl,
         @Nullable Double rating,

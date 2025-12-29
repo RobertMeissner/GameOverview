@@ -120,6 +120,7 @@ public class CatalogService {
                 .setEpicData(newEpicData)
                 .setMetacriticData(newMetacriticData)
                 .setIgdbId(existing.getIgdbId())
+                .setIgdbSlug(existing.getIgdbSlug())
                 .build();
         return repository.save(updated);
     }
@@ -230,8 +231,9 @@ public class CatalogService {
 
         String newThumbnailUrl = info.coverUrl() != null ? info.coverUrl() : existing.getThumbnailUrl();
 
-        // Store IGDB ID from scraped data
+        // Store IGDB ID and slug from scraped data
         Long igdbId = info.externalId();
+        String igdbSlug = info.slug();
 
         CanonicalGame updated = new CanonicalGame.Builder(existing.getName())
                 .setId(existing.getId())
@@ -242,6 +244,7 @@ public class CatalogService {
                 .setEpicData(newEpicData)
                 .setMetacriticData(existing.getMetacriticData())
                 .setIgdbId(igdbId)
+                .setIgdbSlug(igdbSlug)
                 .build();
 
         repository.save(updated);

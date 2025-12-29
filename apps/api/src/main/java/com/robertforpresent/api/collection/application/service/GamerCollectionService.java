@@ -120,9 +120,9 @@ public class GamerCollectionService {
         // Calculate completeness percentage
         int completeness = calculateCompleteness(canonical);
 
-        // Build IGDB link
+        // Build IGDB link using the actual slug from IGDB
         Long igdbId = canonical.getIgdbId();
-        String igdbLink = AdminGameView.buildIgdbLink(igdbId, canonical.getName());
+        String igdbLink = AdminGameView.buildIgdbLink(igdbId, canonical.getIgdbSlug());
 
         return new AdminGameView(
                 pg.getCanonicalGameId(),

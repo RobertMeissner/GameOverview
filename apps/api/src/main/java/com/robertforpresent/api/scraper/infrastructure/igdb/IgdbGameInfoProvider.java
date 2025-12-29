@@ -85,7 +85,7 @@ public class IgdbGameInfoProvider implements GameInfoProvider {
 
         try {
             String body = String.format(
-                    "fields name,summary,cover.url,rating,first_release_date,genres.name,platforms.name,websites.*; where id = %d;",
+                    "fields name,slug,summary,cover.url,rating,first_release_date,genres.name,platforms.name,websites.*; where id = %d;",
                     externalId
             );
 
@@ -113,7 +113,7 @@ public class IgdbGameInfoProvider implements GameInfoProvider {
     private List<ScrapedGameInfo> searchIgdb(String query, int limit, String accessToken) throws Exception {
         String escapedQuery = query.replace("\"", "\\\"");
         String body = String.format(
-                "search \"%s\"; fields name,summary,cover.url,rating,first_release_date,genres.name,platforms.name,websites.*; limit %d;",
+                "search \"%s\"; fields name,slug,summary,cover.url,rating,first_release_date,genres.name,platforms.name,websites.*; limit %d;",
                 escapedQuery,
                 Math.min(limit, 20)
         );
@@ -156,6 +156,7 @@ public class IgdbGameInfoProvider implements GameInfoProvider {
     private ScrapedGameInfo parseGame(JsonNode gameNode) {
         long id = gameNode.get("id").asLong();
         String name = gameNode.has("name") ? gameNode.get("name").asText() : "Unknown";
+        String slug = gameNode.has("slug") ? gameNode.get("slug").asText() : null;
         String summary = gameNode.has("summary") ? gameNode.get("summary").asText() : null;
 
         // Parse cover URL - IGDB returns URLs without protocol and with thumbnail size
@@ -204,6 +205,7 @@ public class IgdbGameInfoProvider implements GameInfoProvider {
         return new ScrapedGameInfo(
                 id,
                 name,
+                slug,
                 summary,
                 coverUrl,
                 rating,

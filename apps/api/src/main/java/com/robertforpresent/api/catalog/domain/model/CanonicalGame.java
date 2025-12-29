@@ -37,6 +37,7 @@ public class CanonicalGame {
 
     // IGDB reference
     private final @Nullable Long igdbId;
+    private final @Nullable String igdbSlug;
 
     private CanonicalMetadata metadata;
 
@@ -84,6 +85,10 @@ public class CanonicalGame {
         return igdbId;
     }
 
+    public @Nullable String getIgdbSlug() {
+        return igdbSlug;
+    }
+
     // Convenience methods for backward compatibility
     public @Nullable Integer getSteamAppId() {
         return steamData != null ? steamData.appId() : null;
@@ -106,6 +111,7 @@ public class CanonicalGame {
         private EpicGameData epicData;
         private MetacriticGameData metacriticData;
         private Long igdbId;
+        private String igdbSlug;
 
         public Builder(String name) {
             this.name = name;
@@ -158,6 +164,11 @@ public class CanonicalGame {
             return this;
         }
 
+        public Builder setIgdbSlug(String igdbSlug) {
+            this.igdbSlug = igdbSlug;
+            return this;
+        }
+
         // Convenience methods for backward compatibility
         public Builder setSteamAppId(Integer steamAppId) {
             if (this.steamData == null) {
@@ -186,6 +197,7 @@ public class CanonicalGame {
         epicData = builder.epicData;
         metacriticData = builder.metacriticData;
         igdbId = builder.igdbId;
+        igdbSlug = builder.igdbSlug;
         createdAt = Instant.now();
         updatedAt = Instant.now();
         ratings = new AggregatedRatings(builder.steamRating);

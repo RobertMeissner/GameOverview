@@ -30,12 +30,9 @@ public record AdminGameView(
 ) {
     private static final String IGDB_GAME_URL = "https://www.igdb.com/games/";
 
-    public static String buildIgdbLink(Long igdbId, String gameName) {
+    public static String buildIgdbLink(Long igdbId, String igdbSlug) {
         if (igdbId == null) return null;
-        // IGDB uses slugified game names in URLs
-        String slug = gameName != null ? gameName.toLowerCase()
-                .replaceAll("[^a-z0-9]+", "-")
-                .replaceAll("^-|-$", "") : String.valueOf(igdbId);
-        return IGDB_GAME_URL + slug;
+        if (igdbSlug == null || igdbSlug.isBlank()) return null;
+        return IGDB_GAME_URL + igdbSlug;
     }
 }
