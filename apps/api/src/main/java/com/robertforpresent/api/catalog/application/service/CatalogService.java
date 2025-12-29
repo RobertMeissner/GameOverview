@@ -151,6 +151,99 @@ public class CatalogService {
     }
 
     /**
+     * Find all canonical games that have duplicate names.
+     * Returns a map of name -> list of games with that name (only entries with 2+ games).
+     */
+    public Map<String, List<CanonicalGame>> findDuplicatesByName() {
+        return repository.findAll().stream()
+                .collect(Collectors.groupingBy(
+                        game -> game.getName().toLowerCase().trim(),
+                        Collectors.toList()
+                ))
+                .entrySet().stream()
+                .filter(entry -> entry.getValue().size() > 1)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    /**
+     * Automatically merge all duplicate canonical games.
+     * For each group of duplicates, keeps the "best" game (most complete data) and merges others into it.
+     * @return Number of games that were merged (deleted)
+     */
+    @Transactional
+    public int autoMergeAllDuplicates() {
+        Map<String, List<CanonicalGame>> duplicates = findDuplicatesByName();
+        int totalMerged = 0;
+
+        log.info("Auto-merging {} duplicate groups", duplicates.size());
+
+        for (Map.Entry<String, List<CanonicalGame>> entry : duplicates.entrySet()) {
+            List<CanonicalGame> games = entry.getValue();
+
+            // Sort by completeness score (descending) to find the best one to keep
+            games.sort((a, b) -> Integer.compare(calculateCompleteness(b), calculateCompleteness(a)));
+
+            CanonicalGame target = games.get(0);
+            List<UUID> sourceIds = games.stream()
+                    .skip(1)
+                    .map(CanonicalGame::getId)
+                    .toList();
+
+            if (!sourceIds.isEmpty()) {
+                log.debug("Merging '{}': keeping {} (score={}), merging {} others",
+                        entry.getKey(), target.getId(), calculateCompleteness(target), sourceIds.size());
+                mergeGames(target.getId(), sourceIds);
+                totalMerged += sourceIds.size();
+            }
+        }
+
+        log.info("Auto-merge completed: {} games merged into {} unique entries",
+                totalMerged, duplicates.size());
+        return totalMerged;
+    }
+
+    /**
+     * Calculate a completeness score for a game (higher = more complete data).
+     */
+    private int calculateCompleteness(CanonicalGame game) {
+        int score = 0;
+
+        // Rating is valuable
+        if (game.getRating() > 0) score += 10;
+
+        // Thumbnail
+        if (game.getThumbnailUrl() != null && !game.getThumbnailUrl().isBlank()) score += 5;
+
+        // IGDB data
+        if (game.getIgdbId() != null) score += 5;
+        if (game.getIgdbSlug() != null && !game.getIgdbSlug().isBlank()) score += 2;
+
+        // Steam data
+        SteamGameData steam = game.getSteamData();
+        if (steam != null) {
+            if (steam.appId() != null) score += 5;
+            if (steam.name() != null && !steam.name().isBlank()) score += 2;
+        }
+
+        // GoG data
+        GogGameData gog = game.getGogData();
+        if (gog != null) {
+            if (gog.gogId() != null) score += 5;
+            if (gog.name() != null && !gog.name().isBlank()) score += 2;
+            if (gog.link() != null && !gog.link().isBlank()) score += 1;
+        }
+
+        // Metacritic data
+        MetacriticGameData mc = game.getMetacriticData();
+        if (mc != null) {
+            if (mc.score() != null) score += 5;
+            if (mc.gameName() != null && !mc.gameName().isBlank()) score += 2;
+        }
+
+        return score;
+    }
+
+    /**
      * Rescrape game data from IGDB and update the catalog entry.
      *
      * @param gameId The ID of the game to rescrape

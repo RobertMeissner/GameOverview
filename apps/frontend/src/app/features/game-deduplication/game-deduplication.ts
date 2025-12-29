@@ -1,7 +1,7 @@
 import {Component, computed, inject, OnInit, signal} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
-import {GamesService} from '../../services/games.service';
+import {CatalogDuplicateGroup, CatalogGameEntry, GamesService} from '../../services/games.service';
 import {AdminGameEntry} from '../../domain/entities/AdminGameEntry';
 
 export interface DuplicateGroup {
@@ -9,6 +9,8 @@ export interface DuplicateGroup {
   matchReasons: string[];
   similarity: number;
 }
+
+export type DeduplicationMode = 'collection' | 'catalog';
 
 @Component({
   selector: 'app-game-deduplication',
@@ -19,12 +21,20 @@ export interface DuplicateGroup {
 export class GameDeduplication implements OnInit {
   private gamesService = inject(GamesService);
 
+  // Mode switch: 'collection' (user's games) or 'catalog' (all canonical games)
+  mode = signal<DeduplicationMode>('catalog');
+
   games = signal<AdminGameEntry[]>([]);
   duplicateGroups = signal<DuplicateGroup[]>([]);
   loading = signal(false);
   merging = signal(false);
   selectedGroup = signal<DuplicateGroup | null>(null);
   targetGame = signal<AdminGameEntry | null>(null);
+
+  // Catalog mode
+  catalogDuplicates = signal<CatalogDuplicateGroup[]>([]);
+  selectedCatalogGroup = signal<CatalogDuplicateGroup | null>(null);
+  targetCatalogGame = signal<CatalogGameEntry | null>(null);
 
   // Configurable thresholds
   nameSimilarityThreshold = signal(0.95);
@@ -50,7 +60,35 @@ export class GameDeduplication implements OnInit {
   });
 
   ngOnInit(): void {
-    this.loadGames();
+    this.loadData();
+  }
+
+  setMode(mode: DeduplicationMode): void {
+    this.mode.set(mode);
+    this.loadData();
+  }
+
+  private loadData(): void {
+    if (this.mode() === 'catalog') {
+      this.loadCatalogDuplicates();
+    } else {
+      this.loadGames();
+    }
+  }
+
+  private loadCatalogDuplicates(): void {
+    this.loading.set(true);
+    this.gamesService.getCatalogDuplicates().subscribe({
+      next: duplicates => {
+        console.log(`[Dedup] Found ${duplicates.length} catalog duplicate groups`);
+        this.catalogDuplicates.set(duplicates);
+        this.loading.set(false);
+      },
+      error: err => {
+        console.error('Failed to load catalog duplicates:', err);
+        this.loading.set(false);
+      }
+    });
   }
 
   private loadGames(): void {
@@ -72,6 +110,8 @@ export class GameDeduplication implements OnInit {
     const allGames = this.games();
     const groups: DuplicateGroup[] = [];
     const processed = new Set<string>();
+
+    console.log(`[Dedup] Finding duplicates among ${allGames.length} games`);
 
     for (let i = 0; i < allGames.length; i++) {
       const game1 = allGames[i];
@@ -100,9 +140,11 @@ export class GameDeduplication implements OnInit {
           matchReasons: Array.from(matchReasons),
           similarity: maxSimilarity
         });
+        console.log(`[Dedup] Found group: ${matches.map(g => g.name).join(', ')} - ${Array.from(matchReasons).join(', ')}`);
       }
     }
 
+    console.log(`[Dedup] Total groups found: ${groups.length}`);
     // Sort by similarity descending
     groups.sort((a, b) => b.similarity - a.similarity);
     this.duplicateGroups.set(groups);
@@ -129,6 +171,9 @@ export class GameDeduplication implements OnInit {
     if (nameSim >= this.nameSimilarityThreshold()) {
       reasons.push(`Similar name (${Math.round(nameSim * 100)}%)`);
       similarity = Math.max(similarity, nameSim);
+    } else if (nameSim > 0.8) {
+      // Log near-misses to help debug
+      console.log(`[Dedup] Near miss: "${game1.name}" vs "${game2.name}" = ${nameSim} (threshold: ${this.nameSimilarityThreshold()})`);
     }
 
     // Check steam name vs canonical name cross-match
@@ -162,6 +207,7 @@ export class GameDeduplication implements OnInit {
   }
 
   private normalizeName(name: string): string {
+    if (!name) return '';
     return name
       .toLowerCase()
       .replace(/[^\w\s]/g, '') // Remove special characters
@@ -232,7 +278,72 @@ export class GameDeduplication implements OnInit {
   }
 
   refreshDuplicates(): void {
-    this.loadGames();
+    this.loadData();
+  }
+
+  // Catalog mode methods
+  selectCatalogGroup(group: CatalogDuplicateGroup): void {
+    this.selectedCatalogGroup.set(group);
+    // Default to the game with highest rating as target
+    const sorted = [...group.games].sort((a, b) => b.rating - a.rating);
+    this.targetCatalogGame.set(sorted[0]);
+  }
+
+  selectTargetCatalogGame(game: CatalogGameEntry): void {
+    this.targetCatalogGame.set(game);
+  }
+
+  cancelCatalogMerge(): void {
+    this.selectedCatalogGroup.set(null);
+    this.targetCatalogGame.set(null);
+  }
+
+  confirmCatalogMerge(): void {
+    const group = this.selectedCatalogGroup();
+    const target = this.targetCatalogGame();
+    if (!group || !target) return;
+
+    const sourceIds = group.games
+      .filter(g => g.id !== target.id)
+      .map(g => g.id);
+
+    if (sourceIds.length === 0) return;
+
+    this.merging.set(true);
+    this.gamesService.mergeGames(target.id, sourceIds).subscribe({
+      next: () => {
+        this.merging.set(false);
+        this.cancelCatalogMerge();
+        this.loadCatalogDuplicates();
+      },
+      error: err => {
+        console.error('Failed to merge catalog games:', err);
+        this.merging.set(false);
+      }
+    });
+  }
+
+  autoMergeResult = signal<string | null>(null);
+
+  autoMergeAll(): void {
+    if (!confirm(`This will automatically merge all ${this.catalogDuplicates().length} duplicate groups. Continue?`)) {
+      return;
+    }
+
+    this.merging.set(true);
+    this.autoMergeResult.set(null);
+    this.gamesService.autoMergeAllDuplicates().subscribe({
+      next: result => {
+        this.merging.set(false);
+        this.autoMergeResult.set(result.message);
+        this.loadCatalogDuplicates();
+      },
+      error: err => {
+        console.error('Failed to auto-merge:', err);
+        this.merging.set(false);
+        this.autoMergeResult.set('Error: ' + (err.message || 'Failed to auto-merge'));
+      }
+    });
   }
 
   getMatchBadgeClass(reason: string): string {

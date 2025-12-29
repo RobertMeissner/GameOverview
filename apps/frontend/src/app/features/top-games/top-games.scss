@@ -199,6 +199,85 @@
   text-align: right;
 }
 
+// Store links section
+.store-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.store-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  // Steam badge - dark blue/gray
+  &.steam {
+    background: linear-gradient(135deg, #1b2838 0%, #2a475e 100%);
+    color: #c7d5e0;
+
+    .bi-steam {
+      font-size: 1rem;
+    }
+
+    &:hover {
+      background: linear-gradient(135deg, #2a475e 0%, #3d6a8a 100%);
+      color: white;
+    }
+  }
+
+  // GOG badge - purple
+  &.gog {
+    background: linear-gradient(135deg, #4c1e6d 0%, #7b2ea0 100%);
+    color: white;
+
+    .gog-icon {
+      font-family: "Inter Tight", sans-serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.05rem;
+    }
+
+    &:hover {
+      background: linear-gradient(135deg, #7b2ea0 0%, #a040d0 100%);
+    }
+  }
+
+  // Metacritic badge - yellow/gold
+  &.metacritic {
+    background: linear-gradient(135deg, #ffcc34 0%, #f0b800 100%);
+    color: #1c1c1c;
+
+    .mc-icon {
+      font-family: "Inter Tight", sans-serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+    }
+
+    &:hover {
+      background: linear-gradient(135deg, #ffd54f 0%, #ffcc34 100%);
+    }
+  }
+}
+
+.store-rating {
+  font-family: "Inter Tight", sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+
 // Game flags (Played, Hide, For Later)
 .game-flags {
   display: flex;

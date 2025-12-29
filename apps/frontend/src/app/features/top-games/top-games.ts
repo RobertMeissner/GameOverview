@@ -1,11 +1,12 @@
 import {Component, inject, OnInit, signal} from '@angular/core';
+import {DecimalPipe} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {CollectionEntry} from '../../domain/entities/CollectionEntry';
 import {GamesService} from '../../services/games.service';
 
 @Component({
   selector: 'app-top-games',
-  imports: [FormsModule],
+  imports: [FormsModule, DecimalPipe],
   templateUrl: './top-games.html',
   styleUrl: './top-games.scss',
 })

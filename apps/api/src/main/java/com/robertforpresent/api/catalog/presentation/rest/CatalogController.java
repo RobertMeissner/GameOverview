@@ -3,11 +3,15 @@ package com.robertforpresent.api.catalog.presentation.rest;
 import com.robertforpresent.api.catalog.application.command.UpdateCatalogCommand;
 import com.robertforpresent.api.catalog.application.service.CatalogService;
 import com.robertforpresent.api.catalog.domain.model.CanonicalGame;
+import com.robertforpresent.api.catalog.domain.model.SteamGameData;
+import com.robertforpresent.api.catalog.domain.model.GogGameData;
+import com.robertforpresent.api.catalog.domain.model.MetacriticGameData;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -27,6 +31,42 @@ public class CatalogController {
     @GetMapping("/catalog")
     public List<CanonicalGame> games() {
         return service.getAllGames();
+    }
+
+    /**
+     * Get all duplicate canonical games (games with the same name).
+     * Returns groups of games that have identical names but different IDs.
+     */
+    @GetMapping("/catalog/duplicates")
+    public List<CatalogDuplicateGroup> getDuplicates() {
+        Map<String, List<CanonicalGame>> duplicates = service.findDuplicatesByName();
+        return duplicates.entrySet().stream()
+                .map(entry -> new CatalogDuplicateGroup(
+                        entry.getKey(),
+                        entry.getValue().stream()
+                                .map(this::toGameEntry)
+                                .toList()
+                ))
+                .sorted((a, b) -> Integer.compare(b.games().size(), a.games().size()))
+                .toList();
+    }
+
+    private CatalogDuplicateGroup.CatalogGameEntry toGameEntry(CanonicalGame game) {
+        SteamGameData steam = game.getSteamData();
+        GogGameData gog = game.getGogData();
+        MetacriticGameData mc = game.getMetacriticData();
+        return new CatalogDuplicateGroup.CatalogGameEntry(
+                game.getId(),
+                game.getName(),
+                game.getThumbnailUrl(),
+                game.getRating(),
+                steam != null ? steam.appId() : null,
+                steam != null ? steam.name() : null,
+                gog != null ? gog.gogId() : null,
+                gog != null ? gog.name() : null,
+                game.getIgdbId(),
+                mc != null ? mc.score() : null
+        );
     }
 
     @PatchMapping("/catalog/games/{gameId}")
@@ -52,6 +92,20 @@ public class CatalogController {
         List<UUID> sourceIds = request.sourceIds().stream().map(UUID::fromString).toList();
         service.mergeGames(targetId, sourceIds);
     }
+
+    /**
+     * Automatically merge all duplicate canonical games.
+     * Keeps the most complete version of each game and merges others into it.
+     * @return Summary of the merge operation
+     */
+    @PostMapping("/catalog/auto-merge-duplicates")
+    public AutoMergeResult autoMergeDuplicates() {
+        log.info("Starting auto-merge of all duplicate canonical games");
+        int mergedCount = service.autoMergeAllDuplicates();
+        return new AutoMergeResult(mergedCount, "Successfully merged " + mergedCount + " duplicate games");
+    }
+
+    public record AutoMergeResult(int mergedCount, String message) {}
 
     /**
      * Rescrape game data from external sources (IGDB) and update the catalog entry.

@@ -187,8 +187,10 @@ public class GamerCollectionService {
 
         return new StoreLinksDTO(
                 steamData != null ? steamData.storeLink() : null,
+                canonical.getRating() > 0 ? canonical.getRating() : null,
                 gogData != null ? gogData.storeLink() : null,
-                metacriticData != null ? metacriticData.storeLink() : null
+                metacriticData != null ? metacriticData.storeLink() : null,
+                metacriticData != null ? metacriticData.score() : null
         );
     }
 
