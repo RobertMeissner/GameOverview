@@ -38,13 +38,22 @@ public class CollectionRepositoryAdapter implements CollectionRepository {
 
 
     public PersonalizedGame updateFlags(UUID gamerId, UUID canonicalGameId, boolean played, boolean hidden, boolean forLater) {
-        PersonalizedGameEntity entity = jpaRepository.findByGamerIdAndCanonicalGameId(gamerId.toString(), canonicalGameId.toString()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Game not in collection"));
+        List<PersonalizedGameEntity> entities = jpaRepository.findByGamerIdAndCanonicalGameId(gamerId.toString(), canonicalGameId.toString());
 
-        entity.setMarkAsPlayed(played);
-        entity.setMarkAsHidden(hidden);
-        entity.setMarkAsForLater(forLater);
-        PersonalizedGameEntity saved = jpaRepository.save(entity);
-        return mapper.toDomain(saved);
+        if (entities.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Game not in collection");
+        }
+
+        // Update all duplicate entries to keep them consistent
+        PersonalizedGameEntity primaryEntity = entities.get(0);
+        for (PersonalizedGameEntity entity : entities) {
+            entity.setMarkAsPlayed(played);
+            entity.setMarkAsHidden(hidden);
+            entity.setMarkAsForLater(forLater);
+            jpaRepository.save(entity);
+        }
+
+        return mapper.toDomain(primaryEntity);
     }
 
     @Override

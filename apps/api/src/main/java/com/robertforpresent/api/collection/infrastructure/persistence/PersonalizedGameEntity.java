@@ -6,7 +6,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "personalized_games")
+@Table(name = "personalized_games", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"gamer_id", "canonical_game_id"})
+})
 public class PersonalizedGameEntity {
 
     @Getter
