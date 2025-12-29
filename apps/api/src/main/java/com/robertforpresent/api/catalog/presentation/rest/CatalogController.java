@@ -94,6 +94,20 @@ public class CatalogController {
     }
 
     /**
+     * Automatically merge all duplicate canonical games.
+     * Keeps the most complete version of each game and merges others into it.
+     * @return Summary of the merge operation
+     */
+    @PostMapping("/catalog/auto-merge-duplicates")
+    public AutoMergeResult autoMergeDuplicates() {
+        log.info("Starting auto-merge of all duplicate canonical games");
+        int mergedCount = service.autoMergeAllDuplicates();
+        return new AutoMergeResult(mergedCount, "Successfully merged " + mergedCount + " duplicate games");
+    }
+
+    public record AutoMergeResult(int mergedCount, String message) {}
+
+    /**
      * Rescrape game data from external sources (IGDB) and update the catalog entry.
      *
      * @param gameId The ID of the game to rescrape

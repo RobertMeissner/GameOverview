@@ -81,6 +81,10 @@ export class GamesService {
     return this.http.get<CatalogDuplicateGroup[]>(`${this.apiUrl}/catalog/duplicates`);
   }
 
+  autoMergeAllDuplicates(): Observable<{mergedCount: number; message: string}> {
+    return this.http.post<{mergedCount: number; message: string}>(`${this.apiUrl}/catalog/auto-merge-duplicates`, {});
+  }
+
   rescrapeGame(gameId: string, request?: RescrapeRequest): Observable<RescrapeResult> {
     return this.http.post<RescrapeResult>(
       `${this.apiUrl}/catalog/games/${gameId}/rescrape`,

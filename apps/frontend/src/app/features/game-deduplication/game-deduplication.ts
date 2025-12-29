@@ -323,6 +323,29 @@ export class GameDeduplication implements OnInit {
     });
   }
 
+  autoMergeResult = signal<string | null>(null);
+
+  autoMergeAll(): void {
+    if (!confirm(`This will automatically merge all ${this.catalogDuplicates().length} duplicate groups. Continue?`)) {
+      return;
+    }
+
+    this.merging.set(true);
+    this.autoMergeResult.set(null);
+    this.gamesService.autoMergeAllDuplicates().subscribe({
+      next: result => {
+        this.merging.set(false);
+        this.autoMergeResult.set(result.message);
+        this.loadCatalogDuplicates();
+      },
+      error: err => {
+        console.error('Failed to auto-merge:', err);
+        this.merging.set(false);
+        this.autoMergeResult.set('Error: ' + (err.message || 'Failed to auto-merge'));
+      }
+    });
+  }
+
   getMatchBadgeClass(reason: string): string {
     if (reason.includes('Steam')) return 'badge-steam';
     if (reason.includes('GoG')) return 'badge-gog';
