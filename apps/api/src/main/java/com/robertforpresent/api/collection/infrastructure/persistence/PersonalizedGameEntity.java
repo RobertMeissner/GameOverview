@@ -50,27 +50,27 @@ public class PersonalizedGameEntity {
     @Getter
     @Setter
     @Column(name = "owned_on_steam")
-    private boolean ownedOnSteam = false;
+    private Boolean ownedOnSteam = false;
 
     @Getter
     @Setter
     @Column(name = "owned_on_gog")
-    private boolean ownedOnGog = false;
+    private Boolean ownedOnGog = false;
 
     @Getter
     @Setter
     @Column(name = "owned_on_epic")
-    private boolean ownedOnEpic = false;
+    private Boolean ownedOnEpic = false;
 
     @Getter
     @Setter
     @Column(name = "owned_on_xbox")
-    private boolean ownedOnXbox = false;
+    private Boolean ownedOnXbox = false;
 
     @Getter
     @Setter
     @Column(name = "owned_on_playstation")
-    private boolean ownedOnPlayStation = false;
+    private Boolean ownedOnPlayStation = false;
 
     @Getter
     @Setter

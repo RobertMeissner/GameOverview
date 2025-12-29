@@ -11,11 +11,11 @@ public class CollectionEntityMapper {
         return new PersonalizedGame.Builder().setCanonicalId(UUID.fromString(entity.getCanonicalGameId())).setGamerId(UUID.fromString(entity.getGamerId()))
                 .setMarkAsPlayed(entity.isMarkAsPlayed()).setMarkAsHidden(entity.isMarkAsHidden()).setMarkAsForLater(entity.isMarkAsForLater())
                 .setSteamPlaytimeMinutes(entity.getSteamPlaytimeMinutes())
-                .setOwnedOnSteam(entity.isOwnedOnSteam())
-                .setOwnedOnGog(entity.isOwnedOnGog())
-                .setOwnedOnEpic(entity.isOwnedOnEpic())
-                .setOwnedOnXbox(entity.isOwnedOnXbox())
-                .setOwnedOnPlayStation(entity.isOwnedOnPlayStation())
+                .setOwnedOnSteam(Boolean.TRUE.equals(entity.getOwnedOnSteam()))
+                .setOwnedOnGog(Boolean.TRUE.equals(entity.getOwnedOnGog()))
+                .setOwnedOnEpic(Boolean.TRUE.equals(entity.getOwnedOnEpic()))
+                .setOwnedOnXbox(Boolean.TRUE.equals(entity.getOwnedOnXbox()))
+                .setOwnedOnPlayStation(Boolean.TRUE.equals(entity.getOwnedOnPlayStation()))
                 .setOtherStores(entity.getOtherStores())
                 .build();
     }
