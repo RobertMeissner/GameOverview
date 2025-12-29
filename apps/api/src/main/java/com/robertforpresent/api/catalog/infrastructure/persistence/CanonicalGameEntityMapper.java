@@ -97,6 +97,9 @@ public class CanonicalGameEntityMapper {
     @Nullable
     private SteamRating mapSteamRatingToDomain(@Nullable SteamRatingEmbeddable embeddable) {
         if (embeddable == null) return null;
+        if (embeddable.getPositive() == null || embeddable.getNegative() == null || embeddable.getSentiment() == null) {
+            return null;
+        }
         return SteamRating.of(
                 embeddable.getPositive(),
                 embeddable.getNegative(),
