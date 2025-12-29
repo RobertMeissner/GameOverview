@@ -17,7 +17,7 @@ public interface SpringDataCollectionRepository extends JpaRepository<Personaliz
 
     void deleteByCanonicalGameId(String canonicalGameId);
 
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE PersonalizedGameEntity p SET p.canonicalGameId = :targetId WHERE p.canonicalGameId = :sourceId")
     void updateCanonicalGameReferences(@Param("sourceId") String sourceId, @Param("targetId") String targetId);
 }

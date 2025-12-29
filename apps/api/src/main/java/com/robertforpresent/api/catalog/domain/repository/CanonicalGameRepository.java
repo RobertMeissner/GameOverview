@@ -19,5 +19,9 @@ public interface CanonicalGameRepository {
 
     List<CanonicalGame> findByNameContainingIgnoreCase(String name);
 
+    Optional<CanonicalGame> findByNameIgnoreCase(String name);
+
+    List<CanonicalGame> findAllByIds(List<UUID> ids);
+
     void deleteById(UUID id);
 }

@@ -7,7 +7,12 @@ import lombok.Setter;
 
 
 @Entity
-@Table(name = "canonical_games")
+@Table(name = "canonical_games", indexes = {
+        @Index(name = "idx_canonical_game_name", columnList = "name"),
+        @Index(name = "idx_canonical_game_steam_app_id", columnList = "steam_app_id"),
+        @Index(name = "idx_canonical_game_gog_id", columnList = "gog_id"),
+        @Index(name = "idx_canonical_game_epic_id", columnList = "epic_id")
+})
 public class CanonicalGameEntity {
 
     @Getter
