@@ -2,8 +2,7 @@ package com.robertforpresent.api.catalog.infrastructure.persistence.steam;
 
 import com.robertforpresent.api.catalog.domain.model.steam.ReviewSentiment;
 import jakarta.persistence.Column;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
+import jakarta.persistence.Convert;
 import lombok.Getter;
 
 public class SteamRatingEmbeddable {
@@ -16,7 +15,7 @@ public class SteamRatingEmbeddable {
     private Integer negative;
 
     @Getter
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = ReviewSentimentConverter.class)
     @Column(name = "steam_sentiment")
     private ReviewSentiment sentiment;
 
