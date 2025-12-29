@@ -93,6 +93,14 @@ public class ThumbnailService {
             return Optional.empty();
         }
 
+        // Fix URLs with missing scheme (e.g., "//images.igdb.com/...")
+        if (thumbnailUrl.startsWith("//")) {
+            thumbnailUrl = "https:" + thumbnailUrl;
+        } else if (!thumbnailUrl.startsWith("http://") && !thumbnailUrl.startsWith("https://")) {
+            log.warn("Invalid thumbnail URL scheme for game {}: {}", gameId, thumbnailUrl);
+            return Optional.empty();
+        }
+
         try {
             HttpRequest request =
                     HttpRequest.newBuilder()
