@@ -13,7 +13,6 @@ public record AggregatedRatings(
      * @return Rating from 0 to 100 as integer.
      */
     public int rating() {
-        System.out.println(steam);
         var scores = new ArrayList<Integer>();
         if (steam != null) {
             scores.add(steam.rating());
