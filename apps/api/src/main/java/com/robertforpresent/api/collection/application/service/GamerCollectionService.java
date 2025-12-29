@@ -14,9 +14,12 @@ import com.robertforpresent.api.collection.presentation.rest.UpdateFlagsRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class GamerCollectionService {
@@ -25,12 +28,20 @@ public class GamerCollectionService {
 
     public List<CollectionGameView> getCollection(UUID gamerId) {
         List<PersonalizedGame> personalizedGames = repository.findByGamerId(gamerId);
-        List<UUID> canonicalIds = personalizedGames.stream()
-                .map(PersonalizedGame::getCanonicalGameId)
-                .toList();
+
+        // Deduplicate by canonical game ID (keep first occurrence)
+        Map<UUID, PersonalizedGame> uniqueByCanonicalId = personalizedGames.stream()
+                .collect(Collectors.toMap(
+                        PersonalizedGame::getCanonicalGameId,
+                        Function.identity(),
+                        (existing, replacement) -> existing, // Keep first
+                        LinkedHashMap::new // Preserve order
+                ));
+
+        List<UUID> canonicalIds = uniqueByCanonicalId.keySet().stream().toList();
         Map<UUID, CanonicalGame> gamesById = catalog.getByIds(canonicalIds);
 
-        return personalizedGames.stream()
+        return uniqueByCanonicalId.values().stream()
                 .filter(pg -> gamesById.containsKey(pg.getCanonicalGameId())) // Skip orphaned records
                 .map(pg -> toView(pg, gamesById.get(pg.getCanonicalGameId())))
                 .toList();
@@ -71,12 +82,20 @@ public class GamerCollectionService {
 
     public List<AdminGameView> getAdminCollection(UUID gamerId) {
         List<PersonalizedGame> personalizedGames = repository.findByGamerId(gamerId);
-        List<UUID> canonicalIds = personalizedGames.stream()
-                .map(PersonalizedGame::getCanonicalGameId)
-                .toList();
+
+        // Deduplicate by canonical game ID (keep first occurrence)
+        Map<UUID, PersonalizedGame> uniqueByCanonicalId = personalizedGames.stream()
+                .collect(Collectors.toMap(
+                        PersonalizedGame::getCanonicalGameId,
+                        Function.identity(),
+                        (existing, replacement) -> existing, // Keep first
+                        LinkedHashMap::new // Preserve order
+                ));
+
+        List<UUID> canonicalIds = uniqueByCanonicalId.keySet().stream().toList();
         Map<UUID, CanonicalGame> gamesById = catalog.getByIds(canonicalIds);
 
-        return personalizedGames.stream()
+        return uniqueByCanonicalId.values().stream()
                 .filter(pg -> gamesById.containsKey(pg.getCanonicalGameId())) // Skip orphaned records
                 .map(pg -> toAdminView(pg, gamesById.get(pg.getCanonicalGameId())))
                 .toList();
