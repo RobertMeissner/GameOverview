@@ -73,6 +73,8 @@ export class GameDeduplication implements OnInit {
     const groups: DuplicateGroup[] = [];
     const processed = new Set<string>();
 
+    console.log(`[Dedup] Finding duplicates among ${allGames.length} games`);
+
     for (let i = 0; i < allGames.length; i++) {
       const game1 = allGames[i];
       if (processed.has(game1.id)) continue;
@@ -100,9 +102,11 @@ export class GameDeduplication implements OnInit {
           matchReasons: Array.from(matchReasons),
           similarity: maxSimilarity
         });
+        console.log(`[Dedup] Found group: ${matches.map(g => g.name).join(', ')} - ${Array.from(matchReasons).join(', ')}`);
       }
     }
 
+    console.log(`[Dedup] Total groups found: ${groups.length}`);
     // Sort by similarity descending
     groups.sort((a, b) => b.similarity - a.similarity);
     this.duplicateGroups.set(groups);
@@ -129,6 +133,9 @@ export class GameDeduplication implements OnInit {
     if (nameSim >= this.nameSimilarityThreshold()) {
       reasons.push(`Similar name (${Math.round(nameSim * 100)}%)`);
       similarity = Math.max(similarity, nameSim);
+    } else if (nameSim > 0.8) {
+      // Log near-misses to help debug
+      console.log(`[Dedup] Near miss: "${game1.name}" vs "${game2.name}" = ${nameSim} (threshold: ${this.nameSimilarityThreshold()})`);
     }
 
     // Check steam name vs canonical name cross-match
@@ -162,6 +169,7 @@ export class GameDeduplication implements OnInit {
   }
 
   private normalizeName(name: string): string {
+    if (!name) return '';
     return name
       .toLowerCase()
       .replace(/[^\w\s]/g, '') // Remove special characters
