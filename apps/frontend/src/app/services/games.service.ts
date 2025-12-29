@@ -20,8 +20,8 @@ export class GamesService {
       .pipe(map(games => games.map(game => this.withCachedThumbnail(game))));
   }
 
-  getTopGames(): Observable<Game[]> {
-    return this.http.get<Game[]>(`${this.apiUrl}/collection/top`, {params: {"userId": this.userId}})
+  getTopGames(): Observable<CollectionEntry[]> {
+    return this.http.get<CollectionEntry[]>(`${this.apiUrl}/collection/top`, {params: {"userId": this.userId}})
       .pipe(map(games => games.map(game => this.withCachedThumbnail(game))));
   }
 

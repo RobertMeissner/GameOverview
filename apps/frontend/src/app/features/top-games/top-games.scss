@@ -42,7 +42,7 @@
   position: relative;
   display: grid;
   grid-template-columns: 460px 1fr;
-  grid-template-rows: 215px;
+  grid-template-rows: minmax(215px, auto);
   background: white;
   border: 1px solid oklch(90% 0.01 300);
   border-radius: 12px;
@@ -197,6 +197,29 @@
   color: var(--gray-900);
   min-width: 80px;
   text-align: right;
+}
+
+// Game flags (Played, Hide, For Later)
+.game-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid oklch(90% 0.01 300);
+
+  .form-check {
+    margin: 0;
+  }
+
+  .form-check-label {
+    font-size: 0.875rem;
+    color: oklch(55% 0.02 260);
+  }
+
+  .form-check-input:checked + .form-check-label {
+    color: var(--electric-violet);
+    font-weight: 500;
+  }
 }
 
 // Hover overlay (appears at bottom on hover)
