@@ -16,7 +16,7 @@ public record CollectionGameView(
 ) {
 }
 
-record StoreOwnershipDTO(
+public record StoreOwnershipDTO(
         boolean ownedOnSteam,
         boolean ownedOnGog,
         boolean ownedOnEpic,

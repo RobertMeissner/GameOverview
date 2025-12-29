@@ -4,7 +4,7 @@ import com.robertforpresent.api.catalog.domain.model.CanonicalGame;
 import com.robertforpresent.api.catalog.domain.model.SteamGameData;
 import com.robertforpresent.api.catalog.domain.repository.CanonicalGameRepository;
 import com.robertforpresent.api.collection.domain.model.PersonalizedGame;
-import com.robertforpresent.api.collection.domain.repository.PersonalizedGameRepository;
+import com.robertforpresent.api.collection.domain.repository.CollectionRepository;
 import com.robertforpresent.api.scraper.infrastructure.steam.dto.SteamAppDetailsResponse;
 import com.robertforpresent.api.scraper.infrastructure.steam.dto.SteamOwnedGamesResponse;
 import org.slf4j.Logger;
@@ -23,15 +23,15 @@ public class SteamLibraryImportService {
 
     private final SteamApiClient steamApiClient;
     private final CanonicalGameRepository canonicalGameRepository;
-    private final PersonalizedGameRepository personalizedGameRepository;
+    private final CollectionRepository collectionRepository;
 
     public SteamLibraryImportService(
             SteamApiClient steamApiClient,
             CanonicalGameRepository canonicalGameRepository,
-            PersonalizedGameRepository personalizedGameRepository) {
+            CollectionRepository collectionRepository) {
         this.steamApiClient = steamApiClient;
         this.canonicalGameRepository = canonicalGameRepository;
-        this.personalizedGameRepository = personalizedGameRepository;
+        this.collectionRepository = collectionRepository;
     }
 
     /**
@@ -147,7 +147,7 @@ public class SteamLibraryImportService {
         }
 
         // Create or update personalized game with playtime
-        List<PersonalizedGame> existingPersonalizedGames = personalizedGameRepository.findByGamerId(gamerId);
+        List<PersonalizedGame> existingPersonalizedGames = collectionRepository.findByGamerId(gamerId);
         Optional<PersonalizedGame> existingPersonalized = existingPersonalizedGames.stream()
                 .filter(pg -> pg.getCanonicalGameId().equals(canonicalGame.getId()))
                 .findFirst();
@@ -169,7 +169,7 @@ public class SteamLibraryImportService {
             logger.debug("Created new personalized game with playtime: {} minutes", playtimeMinutes);
         }
 
-        personalizedGameRepository.save(personalizedGame);
+        collectionRepository.save(personalizedGame);
 
         return isNewGame;
     }
