@@ -49,28 +49,28 @@ public class PersonalizedGameEntity {
     // Store ownership indicators
     @Getter
     @Setter
-    @Column(name = "owned_on_steam", nullable = false, columnDefinition = "boolean default false")
-    private boolean ownedOnSteam;
+    @Column(name = "owned_on_steam")
+    private boolean ownedOnSteam = false;
 
     @Getter
     @Setter
-    @Column(name = "owned_on_gog", nullable = false, columnDefinition = "boolean default false")
-    private boolean ownedOnGog;
+    @Column(name = "owned_on_gog")
+    private boolean ownedOnGog = false;
 
     @Getter
     @Setter
-    @Column(name = "owned_on_epic", nullable = false, columnDefinition = "boolean default false")
-    private boolean ownedOnEpic;
+    @Column(name = "owned_on_epic")
+    private boolean ownedOnEpic = false;
 
     @Getter
     @Setter
-    @Column(name = "owned_on_xbox", nullable = false, columnDefinition = "boolean default false")
-    private boolean ownedOnXbox;
+    @Column(name = "owned_on_xbox")
+    private boolean ownedOnXbox = false;
 
     @Getter
     @Setter
-    @Column(name = "owned_on_playstation", nullable = false, columnDefinition = "boolean default false")
-    private boolean ownedOnPlayStation;
+    @Column(name = "owned_on_playstation")
+    private boolean ownedOnPlayStation = false;
 
     @Getter
     @Setter
