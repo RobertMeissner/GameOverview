@@ -117,6 +117,13 @@ public class GamerCollectionService {
         GogGameData gogData = canonical.getGogData();
         MetacriticGameData metacriticData = canonical.getMetacriticData();
 
+        // Calculate completeness percentage
+        int completeness = calculateCompleteness(canonical);
+
+        // Build IGDB link using the actual slug from IGDB
+        Long igdbId = canonical.getIgdbId();
+        String igdbLink = AdminGameView.buildIgdbLink(igdbId, canonical.getIgdbSlug());
+
         return new AdminGameView(
                 pg.getCanonicalGameId(),
                 canonical.getName(),
@@ -133,11 +140,44 @@ public class GamerCollectionService {
                 gogData != null ? gogData.gogId() : null,
                 gogData != null ? gogData.name() : null,
                 gogData != null ? gogData.storeLink() : null,
+                // IGDB data
+                igdbId,
+                igdbLink,
                 // Metacritic data
                 metacriticData != null ? metacriticData.score() : null,
                 metacriticData != null ? metacriticData.gameName() : null,
-                metacriticData != null ? metacriticData.storeLink() : null
+                metacriticData != null ? metacriticData.storeLink() : null,
+                // Completeness
+                completeness
         );
+    }
+
+    private int calculateCompleteness(CanonicalGame game) {
+        int total = 6; // Total important fields to track
+        int filled = 0;
+
+        // Check thumbnail
+        if (game.getThumbnailUrl() != null && !game.getThumbnailUrl().isBlank()) filled++;
+
+        // Check IGDB ID
+        if (game.getIgdbId() != null) filled++;
+
+        // Check Steam data
+        SteamGameData steam = game.getSteamData();
+        if (steam != null && steam.appId() != null) filled++;
+
+        // Check GOG data
+        GogGameData gog = game.getGogData();
+        if (gog != null && (gog.gogId() != null || gog.link() != null)) filled++;
+
+        // Check Metacritic data
+        MetacriticGameData mc = game.getMetacriticData();
+        if (mc != null && mc.score() != null) filled++;
+
+        // Check rating (from Steam reviews)
+        if (game.getRating() > 0) filled++;
+
+        return (filled * 100) / total;
     }
 
     private StoreLinksDTO buildStoreLinks(CanonicalGame canonical) {

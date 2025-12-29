@@ -14,8 +14,13 @@ export interface AdminGameEntry {
   gogId: number | null;
   gogName: string | null;
   gogLink: string | null;
+  // IGDB data
+  igdbId: number | null;
+  igdbLink: string | null;
   // Metacritic data
   metacriticScore: number | null;
   metacriticName: string | null;
   metacriticLink: string | null;
+  // Completeness metric
+  completenessPercent: number;
 }

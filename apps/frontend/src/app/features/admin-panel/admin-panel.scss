@@ -239,6 +239,22 @@
         font-weight: 800;
       }
     }
+
+    &.igdb {
+      background: #9147ff;
+      color: white;
+
+      &:hover {
+        background: #a970ff;
+        transform: scale(1.1);
+      }
+
+      .igdb-icon {
+        font-size: 0.45rem;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+      }
+    }
   }
 }
 
@@ -249,6 +265,50 @@
 .col-metacritic,
 .col-metacritic-name {
   min-width: 80px;
+}
+
+.col-completeness {
+  width: 100px;
+}
+
+.completeness-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.completeness-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--bg-secondary);
+  border-radius: 4px;
+  overflow: hidden;
+  min-width: 40px;
+}
+
+.completeness-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+
+  &.low {
+    background: #dc3545;
+  }
+
+  &.medium {
+    background: #ffc107;
+  }
+
+  &.high {
+    background: #28a745;
+  }
+}
+
+.completeness-score {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  min-width: 30px;
 }
 
 .col-flags {

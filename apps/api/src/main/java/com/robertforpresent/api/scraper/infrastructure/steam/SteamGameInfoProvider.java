@@ -119,6 +119,7 @@ public class SteamGameInfoProvider implements GameInfoProvider {
         return new ScrapedGameInfo(
                 data.steamAppId(),
                 data.name(),
+                null, // slug - not available from Steam
                 data.shortDescription(),
                 data.headerImage(),
                 rating,

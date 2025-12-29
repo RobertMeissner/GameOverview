@@ -30,6 +30,8 @@ public class CanonicalGameEntityMapper {
                 .setGogData(gogData)
                 .setEpicData(epicData)
                 .setMetacriticData(metacriticData)
+                .setIgdbId(entity.getIgdbId())
+                .setIgdbSlug(entity.getIgdbSlug())
                 .build();
     }
 
@@ -56,6 +58,8 @@ public class CanonicalGameEntityMapper {
                 epicData != null ? epicData.epicId() : null,
                 epicData != null ? epicData.name() : null,
                 epicData != null ? epicData.link() : null,
+                domain.getIgdbId(),
+                domain.getIgdbSlug(),
                 metacriticData != null ? metacriticData.score() : null,
                 metacriticData != null ? metacriticData.gameName() : null,
                 metacriticData != null ? metacriticData.link() : null
@@ -97,6 +101,9 @@ public class CanonicalGameEntityMapper {
     @Nullable
     private SteamRating mapSteamRatingToDomain(@Nullable SteamRatingEmbeddable embeddable) {
         if (embeddable == null) return null;
+        if (embeddable.getPositive() == null || embeddable.getNegative() == null || embeddable.getSentiment() == null) {
+            return null;
+        }
         return SteamRating.of(
                 embeddable.getPositive(),
                 embeddable.getNegative(),

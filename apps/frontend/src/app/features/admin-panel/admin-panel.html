@@ -66,6 +66,7 @@
           <th class="col-gog-name">GoG Name</th>
           <th class="col-metacritic">MC Score</th>
           <th class="col-metacritic-name">MC Name</th>
+          <th class="col-completeness">Complete</th>
           <th class="col-flags">Flags</th>
           <th class="col-actions">Actions</th>
         </tr>
@@ -88,6 +89,11 @@
             </td>
             <td class="col-links">
               <div class="store-links">
+                @if (game.igdbLink) {
+                  <a [href]="game.igdbLink" target="_blank" rel="noopener" class="store-link igdb" title="View on IGDB (ID: {{ game.igdbId }})">
+                    <span class="igdb-icon">IGDB</span>
+                  </a>
+                }
                 @if (game.steamLink) {
                   <a [href]="game.steamLink" target="_blank" rel="noopener" class="store-link steam" title="View on Steam">
                     <i class="bi bi-steam"></i>
@@ -149,6 +155,18 @@
               } @else {
                 <span [class.text-muted]="!game.metacriticName">{{ game.metacriticName ?? 'N/A' }}</span>
               }
+            </td>
+            <td class="col-completeness">
+              <div class="completeness-container" [title]="game.completenessPercent + '% complete'">
+                <div class="completeness-bar">
+                  <div class="completeness-fill"
+                       [style.width.%]="game.completenessPercent"
+                       [class.low]="game.completenessPercent < 34"
+                       [class.medium]="game.completenessPercent >= 34 && game.completenessPercent < 67"
+                       [class.high]="game.completenessPercent >= 67"></div>
+                </div>
+                <span class="completeness-score">{{ game.completenessPercent }}%</span>
+              </div>
             </td>
             <td class="col-flags">
               <div class="flags-inline">

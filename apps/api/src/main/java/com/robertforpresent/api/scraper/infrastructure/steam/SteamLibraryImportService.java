@@ -148,8 +148,9 @@ public class SteamLibraryImportService {
 
         // Create or update personalized game with playtime
         List<PersonalizedGame> existingPersonalizedGames = collectionRepository.findByGamerId(gamerId);
+        CanonicalGame finalCanonicalGame = canonicalGame;
         Optional<PersonalizedGame> existingPersonalized = existingPersonalizedGames.stream()
-                .filter(pg -> pg.getCanonicalGameId().equals(canonicalGame.getId()))
+                .filter(pg -> pg.getCanonicalGameId().equals(finalCanonicalGame.getId()))
                 .findFirst();
 
         PersonalizedGame personalizedGame;

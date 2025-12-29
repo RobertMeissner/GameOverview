@@ -18,9 +18,21 @@ public record AdminGameView(
         Long gogId,
         String gogName,
         String gogLink,
+        // IGDB data
+        Long igdbId,
+        String igdbLink,
         // Metacritic data
         Integer metacriticScore,
         String metacriticName,
-        String metacriticLink
+        String metacriticLink,
+        // Completeness metric (percentage of non-null important fields)
+        int completenessPercent
 ) {
+    private static final String IGDB_GAME_URL = "https://www.igdb.com/games/";
+
+    public static String buildIgdbLink(Long igdbId, String igdbSlug) {
+        if (igdbId == null) return null;
+        if (igdbSlug == null || igdbSlug.isBlank()) return null;
+        return IGDB_GAME_URL + igdbSlug;
+    }
 }
