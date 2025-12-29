@@ -119,6 +119,7 @@ public class CatalogService {
                 .setGogData(newGogData)
                 .setEpicData(newEpicData)
                 .setMetacriticData(newMetacriticData)
+                .setIgdbId(existing.getIgdbId())
                 .build();
         return repository.save(updated);
     }
@@ -229,6 +230,9 @@ public class CatalogService {
 
         String newThumbnailUrl = info.coverUrl() != null ? info.coverUrl() : existing.getThumbnailUrl();
 
+        // Store IGDB ID from scraped data
+        Long igdbId = info.externalId();
+
         CanonicalGame updated = new CanonicalGame.Builder(existing.getName())
                 .setId(existing.getId())
                 .setSteamRating(existing.getRatings().steam())
@@ -237,6 +241,7 @@ public class CatalogService {
                 .setGogData(newGogData)
                 .setEpicData(newEpicData)
                 .setMetacriticData(existing.getMetacriticData())
+                .setIgdbId(igdbId)
                 .build();
 
         repository.save(updated);

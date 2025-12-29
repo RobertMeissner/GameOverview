@@ -30,6 +30,7 @@ public class CanonicalGameEntityMapper {
                 .setGogData(gogData)
                 .setEpicData(epicData)
                 .setMetacriticData(metacriticData)
+                .setIgdbId(entity.getIgdbId())
                 .build();
     }
 
@@ -56,6 +57,7 @@ public class CanonicalGameEntityMapper {
                 epicData != null ? epicData.epicId() : null,
                 epicData != null ? epicData.name() : null,
                 epicData != null ? epicData.link() : null,
+                domain.getIgdbId(),
                 metacriticData != null ? metacriticData.score() : null,
                 metacriticData != null ? metacriticData.gameName() : null,
                 metacriticData != null ? metacriticData.link() : null
