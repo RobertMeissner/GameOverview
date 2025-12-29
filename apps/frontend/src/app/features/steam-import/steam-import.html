@@ -1,0 +1,112 @@
+<div class="steam-import-container">
+  <h2 class="section-title">
+    <i class="bi bi-steam me-2"></i>
+    Import Steam Library
+  </h2>
+
+  @if (!steamEnabled()) {
+    <div class="alert alert-warning">
+      <i class="bi bi-exclamation-triangle me-2"></i>
+      <strong>Steam integration is not enabled.</strong>
+      <p class="mb-0 mt-2">
+        Please configure the <code>STEAM_API_KEY</code> environment variable on the server.
+        You can get an API key from <a href="https://steamcommunity.com/dev/apikey" target="_blank" rel="noopener">Steam Web API Key</a>.
+      </p>
+    </div>
+  }
+
+  <div class="import-card">
+    <div class="card-body">
+      <p class="description">
+        Import your entire Steam library with playtime information. This will fetch all your owned games and their played hours.
+      </p>
+
+      <div class="form-group">
+        <label for="steamId" class="form-label">
+          <strong>Steam ID (64-bit)</strong>
+        </label>
+        <input
+          type="text"
+          id="steamId"
+          class="form-control"
+          [(ngModel)]="steamId"
+          [disabled]="importing() || !steamEnabled()"
+          placeholder="e.g., 76561198012345678"
+        />
+        <small class="form-text text-muted">
+          Find your Steam ID at <a href="https://steamid.io/" target="_blank" rel="noopener">steamid.io</a> or
+          <a href="https://www.steamidfinder.com/" target="_blank" rel="noopener">steamidfinder.com</a>
+        </small>
+      </div>
+
+      <button
+        class="btn btn-primary mt-3"
+        (click)="importLibrary()"
+        [disabled]="importing() || !steamId() || !steamEnabled()"
+      >
+        @if (importing()) {
+          <span class="spinner-border spinner-border-sm me-2"></span>
+          Importing...
+        } @else {
+          <i class="bi bi-cloud-download me-2"></i>
+          Import Library
+        }
+      </button>
+    </div>
+  </div>
+
+  @if (importResult()) {
+    <div class="result-card mt-4"
+         [class.alert-success]="importResult()!.success"
+         [class.alert-danger]="!importResult()!.success">
+      <h4 class="result-title">
+        @if (importResult()!.success) {
+          <i class="bi bi-check-circle me-2"></i>Import Complete
+        } @else {
+          <i class="bi bi-x-circle me-2"></i>Import Failed
+        }
+      </h4>
+
+      @if (importResult()!.created > 0 || importResult()!.updated > 0) {
+        <div class="result-stats">
+          <div class="stat-item">
+            <span class="stat-label">Created:</span>
+            <span class="stat-value">{{ importResult()!.created }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Updated:</span>
+            <span class="stat-value">{{ importResult()!.updated }}</span>
+          </div>
+          @if (importResult()!.failed > 0) {
+            <div class="stat-item">
+              <span class="stat-label">Failed:</span>
+              <span class="stat-value text-warning">{{ importResult()!.failed }}</span>
+            </div>
+          }
+        </div>
+      }
+
+      <p class="result-message mb-0 mt-2">{{ importResult()!.message }}</p>
+
+      @if (importResult()!.success) {
+        <p class="mt-3 mb-0">
+          <a routerLink="/catalog" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-collection me-1"></i>
+            View Collection
+          </a>
+        </p>
+      }
+    </div>
+  }
+
+  <div class="info-section mt-4">
+    <h5><i class="bi bi-info-circle me-2"></i>Important Notes</h5>
+    <ul>
+      <li>Your Steam profile must be set to <strong>Public</strong> for the import to work</li>
+      <li>The import will include all games in your library with their total playtime</li>
+      <li>Playtime is shown in hours in your game collection</li>
+      <li>If games already exist in your catalog, only playtime will be updated</li>
+      <li>This process may take a few minutes for large libraries</li>
+    </ul>
+  </div>
+</div>

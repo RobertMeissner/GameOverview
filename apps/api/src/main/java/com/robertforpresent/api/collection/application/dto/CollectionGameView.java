@@ -10,6 +10,8 @@ public record CollectionGameView(
         boolean markedAsPlayed,
         boolean markedAsHidden,
         boolean markedForLater,
-        StoreLinksDTO storeLinks
+        StoreLinksDTO storeLinks,
+        Integer steamPlaytimeMinutes,
+        StoreOwnershipDTO storeOwnership
 ) {
 }

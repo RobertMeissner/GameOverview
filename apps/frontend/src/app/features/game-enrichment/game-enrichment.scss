@@ -1,0 +1,230 @@
+.enrichment-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+
+  .section-title {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+    color: #fff;
+  }
+
+  .enrichment-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 2rem;
+    margin-bottom: 1rem;
+
+    .description {
+      color: rgba(255, 255, 255, 0.8);
+      margin-bottom: 1.5rem;
+    }
+
+    .providers-section {
+      h5 {
+        font-size: 1.1rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+        color: rgba(255, 255, 255, 0.9);
+      }
+
+      .providers-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+
+        .provider-item {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.5rem 1rem;
+          border-radius: 20px;
+          font-size: 0.875rem;
+
+          &.enabled {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid #4CAF50;
+
+            i {
+              color: #4CAF50;
+            }
+          }
+
+          &.disabled {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            opacity: 0.6;
+
+            i {
+              color: #999;
+            }
+          }
+
+          .provider-name {
+            font-weight: bold;
+            text-transform: capitalize;
+          }
+
+          .provider-status {
+            font-size: 0.75rem;
+            opacity: 0.8;
+          }
+        }
+      }
+    }
+
+    .btn-primary {
+      background: #4CAF50;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 4px;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s ease;
+
+      &:hover:not(:disabled) {
+        background: #45a049;
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+  }
+
+  .result-card {
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 2px solid;
+
+    &.alert-success {
+      background: rgba(76, 175, 80, 0.1);
+      border-color: #4CAF50;
+    }
+
+    &.alert-warning {
+      background: rgba(255, 152, 0, 0.1);
+      border-color: #ff9800;
+    }
+
+    .result-title {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+    }
+
+    .result-stats {
+      display: flex;
+      gap: 2rem;
+      margin: 1rem 0;
+
+      .stat-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+
+        .stat-label {
+          font-size: 0.875rem;
+          color: rgba(255, 255, 255, 0.7);
+        }
+
+        .stat-value {
+          font-size: 1.5rem;
+          font-weight: bold;
+          color: #fff;
+
+          &.text-success {
+            color: #4CAF50;
+          }
+
+          &.text-danger {
+            color: #f44336;
+          }
+        }
+      }
+    }
+
+    .result-message {
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .btn-outline-secondary {
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: rgba(255, 255, 255, 0.8);
+      background: transparent;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.5);
+      }
+    }
+
+    .details-list {
+      max-height: 400px;
+      overflow-y: auto;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 4px;
+      padding: 1rem;
+
+      .detail-item {
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 4px;
+
+        .detail-header {
+          display: flex;
+          align-items: center;
+          margin-bottom: 0.5rem;
+        }
+
+        .detail-body {
+          .badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+          }
+
+          .text-muted {
+            font-size: 0.85rem;
+          }
+        }
+      }
+    }
+  }
+
+  .info-section {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 1.5rem;
+
+    h5 {
+      font-size: 1.25rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 1.5rem;
+      color: rgba(255, 255, 255, 0.8);
+
+      li {
+        margin-bottom: 0.5rem;
+      }
+    }
+  }
+}
+
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+  border-width: 0.15rem;
+}

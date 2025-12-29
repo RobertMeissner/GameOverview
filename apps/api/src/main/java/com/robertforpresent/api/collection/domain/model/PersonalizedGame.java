@@ -11,6 +11,15 @@ public class PersonalizedGame {
     private boolean markedAsPlayed;
     private boolean markedAsHidden;
     private boolean markedForLater;
+    private Integer steamPlaytimeMinutes; // Total playtime from Steam in minutes
+
+    // Store ownership indicators - tracks which stores the user owns this game in
+    private boolean ownedOnSteam;
+    private boolean ownedOnGog;
+    private boolean ownedOnEpic;
+    private boolean ownedOnXbox;
+    private boolean ownedOnPlayStation;
+    private String otherStores; // Comma-separated list for additional stores
 
     private PersonalizedGame(Builder builder) {
         if (builder.gamerId == null || builder.canonicalId == null)
@@ -20,6 +29,13 @@ public class PersonalizedGame {
         this.markedAsPlayed = builder.markAsPlayed;
         this.markedAsHidden = builder.markAsHidden;
         this.markedForLater = builder.markAsForLater;
+        this.steamPlaytimeMinutes = builder.steamPlaytimeMinutes;
+        this.ownedOnSteam = builder.ownedOnSteam;
+        this.ownedOnGog = builder.ownedOnGog;
+        this.ownedOnEpic = builder.ownedOnEpic;
+        this.ownedOnXbox = builder.ownedOnXbox;
+        this.ownedOnPlayStation = builder.ownedOnPlayStation;
+        this.otherStores = builder.otherStores;
     }
 
     public UUID getCanonicalGameId() {
@@ -54,6 +70,62 @@ public class PersonalizedGame {
         this.markedAsPlayed = markedAsPlayed;
     }
 
+    public Integer getSteamPlaytimeMinutes() {
+        return steamPlaytimeMinutes;
+    }
+
+    public void setSteamPlaytimeMinutes(Integer steamPlaytimeMinutes) {
+        this.steamPlaytimeMinutes = steamPlaytimeMinutes;
+    }
+
+    public boolean isOwnedOnSteam() {
+        return ownedOnSteam;
+    }
+
+    public void setOwnedOnSteam(boolean ownedOnSteam) {
+        this.ownedOnSteam = ownedOnSteam;
+    }
+
+    public boolean isOwnedOnGog() {
+        return ownedOnGog;
+    }
+
+    public void setOwnedOnGog(boolean ownedOnGog) {
+        this.ownedOnGog = ownedOnGog;
+    }
+
+    public boolean isOwnedOnEpic() {
+        return ownedOnEpic;
+    }
+
+    public void setOwnedOnEpic(boolean ownedOnEpic) {
+        this.ownedOnEpic = ownedOnEpic;
+    }
+
+    public boolean isOwnedOnXbox() {
+        return ownedOnXbox;
+    }
+
+    public void setOwnedOnXbox(boolean ownedOnXbox) {
+        this.ownedOnXbox = ownedOnXbox;
+    }
+
+    public boolean isOwnedOnPlayStation() {
+        return ownedOnPlayStation;
+    }
+
+    public void setOwnedOnPlayStation(boolean ownedOnPlayStation) {
+        this.ownedOnPlayStation = ownedOnPlayStation;
+    }
+
+    public String getOtherStores() {
+        return otherStores;
+    }
+
+    public void setOtherStores(String otherStores) {
+        this.otherStores = otherStores;
+    }
+
     /**
      * To implement
      * addGame
@@ -76,6 +148,13 @@ public class PersonalizedGame {
         private boolean markAsPlayed;
         private boolean markAsHidden;
         private boolean markAsForLater;
+        private Integer steamPlaytimeMinutes;
+        private boolean ownedOnSteam;
+        private boolean ownedOnGog;
+        private boolean ownedOnEpic;
+        private boolean ownedOnXbox;
+        private boolean ownedOnPlayStation;
+        private String otherStores;
 
         public Builder() {
 
@@ -107,6 +186,41 @@ public class PersonalizedGame {
 
         public Builder setMarkAsPlayed(boolean markAsPlayed) {
             this.markAsPlayed = markAsPlayed;
+            return this;
+        }
+
+        public Builder setSteamPlaytimeMinutes(Integer steamPlaytimeMinutes) {
+            this.steamPlaytimeMinutes = steamPlaytimeMinutes;
+            return this;
+        }
+
+        public Builder setOwnedOnSteam(boolean ownedOnSteam) {
+            this.ownedOnSteam = ownedOnSteam;
+            return this;
+        }
+
+        public Builder setOwnedOnGog(boolean ownedOnGog) {
+            this.ownedOnGog = ownedOnGog;
+            return this;
+        }
+
+        public Builder setOwnedOnEpic(boolean ownedOnEpic) {
+            this.ownedOnEpic = ownedOnEpic;
+            return this;
+        }
+
+        public Builder setOwnedOnXbox(boolean ownedOnXbox) {
+            this.ownedOnXbox = ownedOnXbox;
+            return this;
+        }
+
+        public Builder setOwnedOnPlayStation(boolean ownedOnPlayStation) {
+            this.ownedOnPlayStation = ownedOnPlayStation;
+            return this;
+        }
+
+        public Builder setOtherStores(String otherStores) {
+            this.otherStores = otherStores;
             return this;
         }
     }

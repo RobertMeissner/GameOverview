@@ -1,0 +1,223 @@
+.steam-import-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+
+  .section-title {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+    color: #fff;
+
+    i {
+      color: #1b2838;
+    }
+  }
+
+  .import-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 2rem;
+    margin-bottom: 1rem;
+
+    .description {
+      color: rgba(255, 255, 255, 0.8);
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+
+      .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: rgba(255, 255, 255, 0.9);
+      }
+
+      .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+        color: #fff;
+        font-size: 1rem;
+
+        &:focus {
+          outline: none;
+          border-color: #4CAF50;
+          box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+      }
+
+      .form-text {
+        display: block;
+        margin-top: 0.5rem;
+        font-size: 0.875rem;
+        color: rgba(255, 255, 255, 0.6);
+
+        a {
+          color: #4CAF50;
+          text-decoration: none;
+
+          &:hover {
+            text-decoration: underline;
+          }
+        }
+      }
+    }
+
+    .btn-primary {
+      background: #4CAF50;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 4px;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s ease;
+
+      &:hover:not(:disabled) {
+        background: #45a049;
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+  }
+
+  .result-card {
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 2px solid;
+
+    &.alert-success {
+      background: rgba(76, 175, 80, 0.1);
+      border-color: #4CAF50;
+    }
+
+    &.alert-danger {
+      background: rgba(244, 67, 54, 0.1);
+      border-color: #f44336;
+    }
+
+    .result-title {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+    }
+
+    .result-stats {
+      display: flex;
+      gap: 2rem;
+      margin: 1rem 0;
+
+      .stat-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+
+        .stat-label {
+          font-size: 0.875rem;
+          color: rgba(255, 255, 255, 0.7);
+        }
+
+        .stat-value {
+          font-size: 1.5rem;
+          font-weight: bold;
+          color: #fff;
+
+          &.text-warning {
+            color: #ff9800;
+          }
+        }
+      }
+    }
+
+    .result-message {
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .btn-outline-primary {
+      border: 1px solid #4CAF50;
+      color: #4CAF50;
+      background: transparent;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      text-decoration: none;
+      display: inline-block;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: #4CAF50;
+        color: #fff;
+      }
+    }
+  }
+
+  .info-section {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 1.5rem;
+
+    h5 {
+      font-size: 1.25rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 1.5rem;
+      color: rgba(255, 255, 255, 0.8);
+
+      li {
+        margin-bottom: 0.5rem;
+
+        strong {
+          color: #4CAF50;
+        }
+      }
+    }
+  }
+
+  .alert-warning {
+    background: rgba(255, 152, 0, 0.1);
+    border: 2px solid #ff9800;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    color: rgba(255, 255, 255, 0.9);
+
+    code {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 0.2rem 0.4rem;
+      border-radius: 3px;
+      font-family: monospace;
+      color: #ff9800;
+    }
+
+    a {
+      color: #4CAF50;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+  border-width: 0.15rem;
+}

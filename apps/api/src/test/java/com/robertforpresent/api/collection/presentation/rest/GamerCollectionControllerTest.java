@@ -3,6 +3,7 @@ package com.robertforpresent.api.collection.presentation.rest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.robertforpresent.api.collection.application.dto.CollectionGameView;
 import com.robertforpresent.api.collection.application.dto.StoreLinksDTO;
+import com.robertforpresent.api.collection.application.dto.StoreOwnershipDTO;
 import com.robertforpresent.api.collection.application.service.GamerCollectionService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -230,6 +231,7 @@ class GamerCollectionControllerTest {
     private CollectionGameView createGameView(UUID id, String name, float rating,
                                                boolean played, boolean hidden, boolean later) {
         StoreLinksDTO storeLinks = new StoreLinksDTO(null, null, null);
-        return new CollectionGameView(id, name, "https://example.com/" + id + ".jpg", rating, played, hidden, later, storeLinks);
+        StoreOwnershipDTO storeOwnership = new StoreOwnershipDTO(false, false, false, false, false, null);
+        return new CollectionGameView(id, name, "https://example.com/" + id + ".jpg", rating, played, hidden, later, storeLinks, null, storeOwnership);
     }
 }
