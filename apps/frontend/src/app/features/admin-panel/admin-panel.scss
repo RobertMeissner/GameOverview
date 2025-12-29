@@ -74,17 +74,23 @@
 }
 
 .game-table-container {
-  overflow-x: auto;
+  overflow: auto;
   border-radius: 12px;
   border: 1px solid var(--border-color);
   background: var(--bg-primary);
+  max-height: calc(100vh - 250px);
+  position: relative;
 }
 
 .game-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
 
   thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
     background: var(--bg-secondary);
 
     th {
@@ -94,6 +100,7 @@
       color: var(--text-primary);
       border-bottom: 2px solid var(--border-color);
       white-space: nowrap;
+      background: var(--bg-secondary);
     }
   }
 
@@ -126,22 +133,40 @@
   }
 }
 
+.col-thumbnail, .col-name {
+  position: sticky;
+  z-index: 5;
+}
+
 .col-thumbnail {
   width: 80px;
+  left: 0;
 }
+
+.col-name {
+  max-width: 200px;
+  left: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+}
+
+thead .col-thumbnail, thead .col-name {
+  z-index: 15;
+  background: var(--bg-secondary);
+}
+
+tbody tr .col-thumbnail, tbody tr .col-name { background: var(--bg-primary); }
+tbody tr:hover .col-thumbnail, tbody tr:hover .col-name { background: var(--bg-hover); }
+tbody tr.missing-appid .col-thumbnail, tbody tr.missing-appid .col-name { background: rgba(255, 193, 7, 0.1); }
+tbody tr.name-mismatch .col-thumbnail, tbody tr.name-mismatch .col-name { background: rgba(255, 87, 34, 0.1); }
 
 .thumbnail-img {
   width: 60px;
   height: 40px;
   object-fit: cover;
   border-radius: 4px;
-}
-
-.col-name {
-  max-width: 200px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .col-rating {
@@ -194,67 +219,12 @@
     text-decoration: none;
     font-size: 0.7rem;
     font-weight: 700;
-    transition: all 0.2s ease;
-
-    &.steam {
-      background: #1b2838;
-      color: #c7d5e0;
-
-      &:hover {
-        background: #2a475e;
-        transform: scale(1.1);
-      }
-
-      i {
-        font-size: 0.875rem;
-      }
-    }
-
-    &.gog {
-      background: #86328a;
-      color: white;
-
-      &:hover {
-        background: #a044a5;
-        transform: scale(1.1);
-      }
-
-      .gog-icon {
-        font-size: 0.5rem;
-        letter-spacing: -0.5px;
-      }
-    }
-
-    &.metacritic {
-      background: #ffcc34;
-      color: #333;
-
-      &:hover {
-        background: #ffd966;
-        transform: scale(1.1);
-      }
-
-      .mc-icon {
-        font-size: 0.55rem;
-        font-weight: 800;
-      }
-    }
-
-    &.igdb {
-      background: #9147ff;
-      color: white;
-
-      &:hover {
-        background: #a970ff;
-        transform: scale(1.1);
-      }
-
-      .igdb-icon {
-        font-size: 0.45rem;
-        font-weight: 800;
-        letter-spacing: -0.5px;
-      }
-    }
+    transition: transform 0.2s;
+    &:hover { transform: scale(1.1); }
+    &.steam { background: #1b2838; color: #c7d5e0; i { font-size: 0.875rem; } }
+    &.gog { background: #86328a; color: white; .gog-icon { font-size: 0.5rem; } }
+    &.metacritic { background: #ffcc34; color: #333; .mc-icon { font-size: 0.55rem; font-weight: 800; } }
+    &.igdb { background: #9147ff; color: white; .igdb-icon { font-size: 0.45rem; font-weight: 800; } }
   }
 }
 
@@ -289,19 +259,10 @@
 .completeness-fill {
   height: 100%;
   border-radius: 4px;
-  transition: width 0.3s ease;
-
-  &.low {
-    background: #dc3545;
-  }
-
-  &.medium {
-    background: #ffc107;
-  }
-
-  &.high {
-    background: #28a745;
-  }
+  transition: width 0.3s;
+  &.low { background: #dc3545; }
+  &.medium { background: #ffc107; }
+  &.high { background: #28a745; }
 }
 
 .completeness-score {
@@ -497,24 +458,9 @@
   padding: 0.75rem 1rem;
   border-radius: 8px;
   margin-bottom: 1rem;
-
-  &.alert-success {
-    background: rgba(40, 167, 69, 0.15);
-    border: 1px solid rgba(40, 167, 69, 0.3);
-    color: #28a745;
-  }
-
-  &.alert-danger {
-    background: rgba(220, 53, 69, 0.15);
-    border: 1px solid rgba(220, 53, 69, 0.3);
-    color: #dc3545;
-  }
-
-  &.alert-warning {
-    background: rgba(255, 193, 7, 0.15);
-    border: 1px solid rgba(255, 193, 7, 0.3);
-    color: #856404;
-  }
+  &.alert-success { background: rgba(40, 167, 69, 0.15); border: 1px solid rgba(40, 167, 69, 0.3); color: #28a745; }
+  &.alert-danger { background: rgba(220, 53, 69, 0.15); border: 1px solid rgba(220, 53, 69, 0.3); color: #dc3545; }
+  &.alert-warning { background: rgba(255, 193, 7, 0.15); border: 1px solid rgba(255, 193, 7, 0.3); color: #856404; }
 }
 
 // Progress bar

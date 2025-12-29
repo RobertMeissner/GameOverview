@@ -83,15 +83,22 @@ export class CatalogComponent implements OnInit {
   }
 
   onFlagChange(game: CollectionEntry): void {
-    this.gamesService.updateGameFlags(game.id, {
+    const updates = {
       markedAsPlayed: game.markedAsPlayed,
       markedAsHidden: game.markedAsHidden,
       markedForLater: game.markedForLater
-    }).subscribe({
+    };
+    this.gamesService.updateGameFlags(game.id, updates).subscribe({
+      next: () => {
+        // Update local signal to trigger reactive filtering
+        this.games.update(games => games.map(g =>
+          g.id === game.id ? {...g, ...updates} : g
+        ));
+      },
       error: err => {
         console.error(err);
       }
-    })
+    });
   }
 
   private loadGames(): void {

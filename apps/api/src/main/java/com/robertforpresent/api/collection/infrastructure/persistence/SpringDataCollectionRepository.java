@@ -6,12 +6,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface SpringDataCollectionRepository extends JpaRepository<PersonalizedGameEntity, String> {
     List<PersonalizedGameEntity> findByGamerId(String gamerId);
 
-    Optional<PersonalizedGameEntity> findByGamerIdAndCanonicalGameId(String gamerId, String canonicalGameId);
+    List<PersonalizedGameEntity> findByGamerIdAndCanonicalGameId(String gamerId, String canonicalGameId);
 
     List<PersonalizedGameEntity> findByCanonicalGameId(String canonicalGameId);
 

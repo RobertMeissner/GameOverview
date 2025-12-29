@@ -4,19 +4,23 @@
     <div class="filter-row">
       <span class="filter-label me-3">Show games with:</span>
       <div class="form-check form-check-inline">
-        <input class="form-check-input" type="checkbox" id="filter-played" [(ngModel)]="filterPlayed">
+        <input class="form-check-input" type="checkbox" id="filter-played"
+               [ngModel]="filterPlayed()" (ngModelChange)="filterPlayed.set($event)">
         <label class="form-check-label" for="filter-played">Played</label>
       </div>
       <div class="form-check form-check-inline">
-        <input class="form-check-input" type="checkbox" id="filter-hidden" [(ngModel)]="filterHidden">
+        <input class="form-check-input" type="checkbox" id="filter-hidden"
+               [ngModel]="filterHidden()" (ngModelChange)="filterHidden.set($event)">
         <label class="form-check-label" for="filter-hidden">Hidden</label>
       </div>
       <div class="form-check form-check-inline">
-        <input class="form-check-input" type="checkbox" id="filter-forlater" [(ngModel)]="filterForLater">
+        <input class="form-check-input" type="checkbox" id="filter-forlater"
+               [ngModel]="filterForLater()" (ngModelChange)="filterForLater.set($event)">
         <label class="form-check-label" for="filter-forlater">For Later</label>
       </div>
       <div class="form-check form-check-inline">
-        <input class="form-check-input" type="checkbox" id="filter-unflagged" [(ngModel)]="filterUnflagged">
+        <input class="form-check-input" type="checkbox" id="filter-unflagged"
+               [ngModel]="filterUnflagged()" (ngModelChange)="filterUnflagged.set($event)">
         <label class="form-check-label" for="filter-unflagged">No flags</label>
       </div>
     </div>
