@@ -26,9 +26,9 @@ public class SteamApiClient {
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
 
-    public SteamApiClient(SteamConfig config, ObjectMapper objectMapper) {
+    public SteamApiClient(SteamConfig config) {
         this.config = config;
-        this.objectMapper = objectMapper;
+        this.objectMapper = new ObjectMapper();
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(10))
                 .build();
