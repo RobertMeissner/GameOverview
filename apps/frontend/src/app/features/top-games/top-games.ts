@@ -30,9 +30,9 @@ export class TopGames implements OnInit {
 
   onFlagChange(game: CollectionEntry): void {
     this.gamesService.updateGameFlags(game.id, {
-      markedAsPlayed: game.markedAsPlayed,
-      markedAsHidden: game.markedAsHidden,
-      markedForLater: game.markedForLater
+      markedAsPlayed: game.markedAsPlayed ?? false,
+      markedAsHidden: game.markedAsHidden ?? false,
+      markedForLater: game.markedForLater ?? false
     }).subscribe({
       error: err => {
         console.error(err);
