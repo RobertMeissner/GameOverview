@@ -1,8 +1,10 @@
-import {Component, computed, inject, OnInit, signal} from '@angular/core';
+import {Component, computed, inject, OnInit, signal, OnDestroy} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {CatalogDuplicateGroup, CatalogGameEntry, GamesService} from '../../services/games.service';
 import {AdminGameEntry} from '../../domain/entities/AdminGameEntry';
+import {Subject} from 'rxjs';
+import {debounceTime, takeUntil} from 'rxjs/operators';
 
 export interface DuplicateGroup {
   games: AdminGameEntry[];
@@ -12,14 +14,25 @@ export interface DuplicateGroup {
 
 export type DeduplicationMode = 'collection' | 'catalog';
 
+// Pre-computed game data for faster comparisons
+interface GameIndex {
+  game: AdminGameEntry;
+  normalizedName: string;
+  normalizedSteamName: string | null;
+}
+
 @Component({
   selector: 'app-game-deduplication',
   imports: [CommonModule, FormsModule],
   templateUrl: './game-deduplication.html',
   styleUrl: './game-deduplication.scss',
 })
-export class GameDeduplication implements OnInit {
+export class GameDeduplication implements OnInit, OnDestroy {
   private gamesService = inject(GamesService);
+  private destroy$ = new Subject<void>();
+
+  // Debounced threshold changes
+  private thresholdChange$ = new Subject<number>();
 
   // Mode switch: 'collection' (user's games) or 'catalog' (all canonical games)
   mode = signal<DeduplicationMode>('catalog');
@@ -45,6 +58,9 @@ export class GameDeduplication implements OnInit {
   showSteamIdMatches = signal(true);
   showGogIdMatches = signal(true);
 
+  // Cache for normalized names (cleared when games change)
+  private gameIndex: GameIndex[] = [];
+
   filteredGroups = computed(() => {
     const groups = this.duplicateGroups();
     const showName = this.showNameMatches();
@@ -60,7 +76,26 @@ export class GameDeduplication implements OnInit {
   });
 
   ngOnInit(): void {
+    // Setup debounced threshold change handler (300ms delay)
+    this.thresholdChange$.pipe(
+      debounceTime(300),
+      takeUntil(this.destroy$)
+    ).subscribe(threshold => {
+      this.nameSimilarityThreshold.set(threshold);
+      this.findDuplicatesOptimized();
+    });
+
     this.loadData();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  // Called by the template on slider change - debounced
+  onThresholdChange(value: number): void {
+    this.thresholdChange$.next(value);
   }
 
   setMode(mode: DeduplicationMode): void {
@@ -96,7 +131,8 @@ export class GameDeduplication implements OnInit {
     this.gamesService.getAdminGames().subscribe({
       next: games => {
         this.games.set(games);
-        this.findDuplicates();
+        this.buildGameIndex(games);
+        this.findDuplicatesOptimized();
         this.loading.set(false);
       },
       error: err => {
@@ -106,48 +142,213 @@ export class GameDeduplication implements OnInit {
     });
   }
 
-  findDuplicates(): void {
-    const allGames = this.games();
+  /**
+   * Build an index of games with pre-computed normalized names.
+   * This avoids recalculating normalized names during O(n²) comparison.
+   */
+  private buildGameIndex(games: AdminGameEntry[]): void {
+    console.time('[Dedup] Building game index');
+    this.gameIndex = games.map(game => ({
+      game,
+      normalizedName: this.normalizeName(game.name),
+      normalizedSteamName: game.steamName ? this.normalizeName(game.steamName) : null
+    }));
+    console.timeEnd('[Dedup] Building game index');
+  }
+
+  /**
+   * Optimized duplicate detection algorithm:
+   * 1. First pass: Group by exact normalized name (O(n) using Map)
+   * 2. Second pass: Group by Steam/GoG IDs (O(n) using Maps)
+   * 3. Third pass: Only run expensive Levenshtein for potential near-matches
+   */
+  findDuplicatesOptimized(): void {
+    const startTime = performance.now();
+    const allGames = this.gameIndex;
     const groups: DuplicateGroup[] = [];
     const processed = new Set<string>();
 
-    console.log(`[Dedup] Finding duplicates among ${allGames.length} games`);
+    console.log(`[Dedup] Finding duplicates among ${allGames.length} games (optimized)`);
 
-    for (let i = 0; i < allGames.length; i++) {
-      const game1 = allGames[i];
-      if (processed.has(game1.id)) continue;
-
-      const matches: AdminGameEntry[] = [game1];
-      const matchReasons: Set<string> = new Set();
-      let maxSimilarity = 0;
-
-      for (let j = i + 1; j < allGames.length; j++) {
-        const game2 = allGames[j];
-        if (processed.has(game2.id)) continue;
-
-        const {isMatch, reasons, similarity} = this.checkMatch(game1, game2);
-        if (isMatch) {
-          matches.push(game2);
-          reasons.forEach(r => matchReasons.add(r));
-          maxSimilarity = Math.max(maxSimilarity, similarity);
-        }
+    // Phase 1: Group by exact normalized name (O(n))
+    const nameGroups = new Map<string, GameIndex[]>();
+    for (const gi of allGames) {
+      if (!nameGroups.has(gi.normalizedName)) {
+        nameGroups.set(gi.normalizedName, []);
       }
+      nameGroups.get(gi.normalizedName)!.push(gi);
+    }
 
-      if (matches.length > 1) {
-        matches.forEach(g => processed.add(g.id));
-        groups.push({
-          games: matches,
-          matchReasons: Array.from(matchReasons),
-          similarity: maxSimilarity
-        });
-        console.log(`[Dedup] Found group: ${matches.map(g => g.name).join(', ')} - ${Array.from(matchReasons).join(', ')}`);
+    // Phase 2: Group by Steam App ID (O(n))
+    const steamGroups = new Map<number, GameIndex[]>();
+    for (const gi of allGames) {
+      if (gi.game.steamAppId) {
+        if (!steamGroups.has(gi.game.steamAppId)) {
+          steamGroups.set(gi.game.steamAppId, []);
+        }
+        steamGroups.get(gi.game.steamAppId)!.push(gi);
       }
     }
 
-    console.log(`[Dedup] Total groups found: ${groups.length}`);
+    // Phase 3: Group by GoG ID (O(n))
+    const gogGroups = new Map<string, GameIndex[]>();
+    for (const gi of allGames) {
+      if (gi.game.gogId) {
+        if (!gogGroups.has(gi.game.gogId)) {
+          gogGroups.set(gi.game.gogId, []);
+        }
+        gogGroups.get(gi.game.gogId)!.push(gi);
+      }
+    }
+
+    // Collect exact name matches
+    for (const [name, gameIndexes] of nameGroups) {
+      if (gameIndexes.length > 1) {
+        const ids = gameIndexes.map(gi => gi.game.id);
+        if (ids.some(id => processed.has(id))) continue;
+
+        ids.forEach(id => processed.add(id));
+        groups.push({
+          games: gameIndexes.map(gi => gi.game),
+          matchReasons: ['Similar name (100%)'],
+          similarity: 1.0
+        });
+      }
+    }
+
+    // Collect Steam ID matches (if not already processed)
+    for (const [steamId, gameIndexes] of steamGroups) {
+      if (gameIndexes.length > 1) {
+        const unprocessed = gameIndexes.filter(gi => !processed.has(gi.game.id));
+        if (unprocessed.length > 1) {
+          unprocessed.forEach(gi => processed.add(gi.game.id));
+          groups.push({
+            games: unprocessed.map(gi => gi.game),
+            matchReasons: ['Same Steam App ID'],
+            similarity: 1.0
+          });
+        }
+      }
+    }
+
+    // Collect GoG ID matches (if not already processed)
+    for (const [gogId, gameIndexes] of gogGroups) {
+      if (gameIndexes.length > 1) {
+        const unprocessed = gameIndexes.filter(gi => !processed.has(gi.game.id));
+        if (unprocessed.length > 1) {
+          unprocessed.forEach(gi => processed.add(gi.game.id));
+          groups.push({
+            games: unprocessed.map(gi => gi.game),
+            matchReasons: ['Same GoG ID'],
+            similarity: 1.0
+          });
+        }
+      }
+    }
+
+    // Phase 4: Fuzzy name matching for unprocessed games (only if threshold < 1.0)
+    const threshold = this.nameSimilarityThreshold();
+    if (threshold < 1.0) {
+      const unprocessedGames = allGames.filter(gi => !processed.has(gi.game.id));
+      console.log(`[Dedup] Running fuzzy matching on ${unprocessedGames.length} remaining games`);
+
+      // Group by first 3 characters for blocking (reduces comparisons)
+      const blocks = new Map<string, GameIndex[]>();
+      for (const gi of unprocessedGames) {
+        const prefix = gi.normalizedName.substring(0, 3);
+        if (!blocks.has(prefix)) {
+          blocks.set(prefix, []);
+        }
+        blocks.get(prefix)!.push(gi);
+      }
+
+      // Only compare within blocks (games that share first 3 chars)
+      for (const [_prefix, blockGames] of blocks) {
+        if (blockGames.length < 2) continue;
+
+        for (let i = 0; i < blockGames.length; i++) {
+          const gi1 = blockGames[i];
+          if (processed.has(gi1.game.id)) continue;
+
+          const matches: AdminGameEntry[] = [gi1.game];
+          const matchReasons: Set<string> = new Set();
+          let maxSimilarity = 0;
+
+          for (let j = i + 1; j < blockGames.length; j++) {
+            const gi2 = blockGames[j];
+            if (processed.has(gi2.game.id)) continue;
+
+            const {isMatch, reasons, similarity} = this.checkMatchOptimized(gi1, gi2);
+            if (isMatch) {
+              matches.push(gi2.game);
+              reasons.forEach(r => matchReasons.add(r));
+              maxSimilarity = Math.max(maxSimilarity, similarity);
+            }
+          }
+
+          if (matches.length > 1) {
+            matches.forEach(g => processed.add(g.id));
+            groups.push({
+              games: matches,
+              matchReasons: Array.from(matchReasons),
+              similarity: maxSimilarity
+            });
+          }
+        }
+      }
+    }
+
+    const elapsed = performance.now() - startTime;
+    console.log(`[Dedup] Total groups found: ${groups.length} in ${elapsed.toFixed(1)}ms`);
+
     // Sort by similarity descending
     groups.sort((a, b) => b.similarity - a.similarity);
     this.duplicateGroups.set(groups);
+  }
+
+  // Keep old method name for backwards compatibility with template
+  findDuplicates(): void {
+    this.findDuplicatesOptimized();
+  }
+
+  private checkMatchOptimized(gi1: GameIndex, gi2: GameIndex): {isMatch: boolean; reasons: string[]; similarity: number} {
+    const reasons: string[] = [];
+    let similarity = 0;
+
+    // Check Steam App ID match
+    if (gi1.game.steamAppId && gi2.game.steamAppId && gi1.game.steamAppId === gi2.game.steamAppId) {
+      reasons.push('Same Steam App ID');
+      similarity = Math.max(similarity, 1.0);
+    }
+
+    // Check GoG ID match
+    if (gi1.game.gogId && gi2.game.gogId && gi1.game.gogId === gi2.game.gogId) {
+      reasons.push('Same GoG ID');
+      similarity = Math.max(similarity, 1.0);
+    }
+
+    // Check name similarity using pre-computed normalized names
+    const nameSim = this.calculateNameSimilarityOptimized(gi1.normalizedName, gi2.normalizedName);
+    if (nameSim >= this.nameSimilarityThreshold()) {
+      reasons.push(`Similar name (${Math.round(nameSim * 100)}%)`);
+      similarity = Math.max(similarity, nameSim);
+    }
+
+    // Check steam name vs canonical name cross-match
+    if (gi1.normalizedSteamName && this.calculateNameSimilarityOptimized(gi1.normalizedSteamName, gi2.normalizedName) >= 0.9) {
+      reasons.push('Steam name matches other game');
+      similarity = Math.max(similarity, 0.9);
+    }
+    if (gi2.normalizedSteamName && this.calculateNameSimilarityOptimized(gi2.normalizedSteamName, gi1.normalizedName) >= 0.9) {
+      reasons.push('Steam name matches other game');
+      similarity = Math.max(similarity, 0.9);
+    }
+
+    return {
+      isMatch: reasons.length >= this.minMatchCriteria(),
+      reasons,
+      similarity
+    };
   }
 
   private checkMatch(game1: AdminGameEntry, game2: AdminGameEntry): {isMatch: boolean; reasons: string[]; similarity: number} {
@@ -171,9 +372,6 @@ export class GameDeduplication implements OnInit {
     if (nameSim >= this.nameSimilarityThreshold()) {
       reasons.push(`Similar name (${Math.round(nameSim * 100)}%)`);
       similarity = Math.max(similarity, nameSim);
-    } else if (nameSim > 0.8) {
-      // Log near-misses to help debug
-      console.log(`[Dedup] Near miss: "${game1.name}" vs "${game2.name}" = ${nameSim} (threshold: ${this.nameSimilarityThreshold()})`);
     }
 
     // Check steam name vs canonical name cross-match
@@ -191,6 +389,24 @@ export class GameDeduplication implements OnInit {
       reasons,
       similarity
     };
+  }
+
+  private calculateNameSimilarityOptimized(s1: string, s2: string): number {
+    // Names are already normalized
+    if (s1 === s2) return 1.0;
+    if (s1.length === 0 || s2.length === 0) return 0;
+
+    // Early exit: if length difference is too large, similarity can't meet threshold
+    const lenDiff = Math.abs(s1.length - s2.length);
+    const maxLen = Math.max(s1.length, s2.length);
+    const threshold = this.nameSimilarityThreshold();
+    if (lenDiff / maxLen > (1 - threshold)) {
+      return 0; // Can't possibly meet threshold
+    }
+
+    // Calculate Levenshtein distance
+    const distance = this.levenshteinDistance(s1, s2);
+    return 1 - (distance / maxLen);
   }
 
   private calculateNameSimilarity(name1: string, name2: string): number {
@@ -218,22 +434,26 @@ export class GameDeduplication implements OnInit {
   private levenshteinDistance(s1: string, s2: string): number {
     const m = s1.length;
     const n = s2.length;
-    const dp: number[][] = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
 
-    for (let i = 0; i <= m; i++) dp[i][0] = i;
-    for (let j = 0; j <= n; j++) dp[0][j] = j;
+    // Optimization: use single array instead of 2D matrix (space O(n) instead of O(m*n))
+    let prev = new Array(n + 1);
+    let curr = new Array(n + 1);
+
+    for (let j = 0; j <= n; j++) prev[j] = j;
 
     for (let i = 1; i <= m; i++) {
+      curr[0] = i;
       for (let j = 1; j <= n; j++) {
         if (s1[i - 1] === s2[j - 1]) {
-          dp[i][j] = dp[i - 1][j - 1];
+          curr[j] = prev[j - 1];
         } else {
-          dp[i][j] = 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+          curr[j] = 1 + Math.min(prev[j], curr[j - 1], prev[j - 1]);
         }
       }
+      [prev, curr] = [curr, prev];
     }
 
-    return dp[m][n];
+    return prev[n];
   }
 
   selectGroup(group: DuplicateGroup): void {
@@ -263,12 +483,27 @@ export class GameDeduplication implements OnInit {
 
     if (sourceIds.length === 0) return;
 
+    const sourceIdSet = new Set(sourceIds);
+
     this.merging.set(true);
     this.gamesService.mergeGames(target.id, sourceIds).subscribe({
       next: () => {
         this.merging.set(false);
+
+        // Incremental update: Remove merged group and update local state
+        // Remove the current group from duplicateGroups
+        this.duplicateGroups.update(groups =>
+          groups.filter(g => g !== group)
+        );
+
+        // Remove merged (source) games from the games list and index
+        this.games.update(games =>
+          games.filter(g => !sourceIdSet.has(g.id))
+        );
+        this.gameIndex = this.gameIndex.filter(gi => !sourceIdSet.has(gi.game.id));
+
         this.cancelMerge();
-        this.loadGames();
+        console.log(`[Dedup] Incremental update: removed ${sourceIds.length} merged games`);
       },
       error: err => {
         console.error('Failed to merge games:', err);
@@ -313,8 +548,14 @@ export class GameDeduplication implements OnInit {
     this.gamesService.mergeGames(target.id, sourceIds).subscribe({
       next: () => {
         this.merging.set(false);
+
+        // Incremental update: Remove the merged group from catalogDuplicates
+        this.catalogDuplicates.update(groups =>
+          groups.filter(g => g !== group)
+        );
+
         this.cancelCatalogMerge();
-        this.loadCatalogDuplicates();
+        console.log(`[Dedup] Incremental update: removed catalog duplicate group "${group.name}"`);
       },
       error: err => {
         console.error('Failed to merge catalog games:', err);

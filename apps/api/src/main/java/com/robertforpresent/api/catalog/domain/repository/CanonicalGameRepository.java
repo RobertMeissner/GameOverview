@@ -22,4 +22,10 @@ public interface CanonicalGameRepository {
     List<CanonicalGame> findAllByIds(List<UUID> ids);
 
     void deleteById(UUID id);
+
+    /**
+     * Find all games that have duplicate names (case-insensitive).
+     * More efficient than findAll() when only duplicates are needed.
+     */
+    List<CanonicalGame> findGamesWithDuplicateNames();
 }

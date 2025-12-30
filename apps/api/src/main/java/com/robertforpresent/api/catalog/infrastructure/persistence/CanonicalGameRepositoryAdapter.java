@@ -65,4 +65,11 @@ public class CanonicalGameRepositoryAdapter implements CanonicalGameRepository {
     public void deleteById(UUID id) {
         springDataRepository.deleteById(id.toString());
     }
+
+    @Override
+    public List<CanonicalGame> findGamesWithDuplicateNames() {
+        return springDataRepository.findGamesWithDuplicateNames().stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
 }
