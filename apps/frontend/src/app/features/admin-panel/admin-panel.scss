@@ -223,6 +223,7 @@ tbody tr.name-mismatch .col-thumbnail, tbody tr.name-mismatch .col-name { backgr
     &:hover { transform: scale(1.1); }
     &.steam { background: #1b2838; color: #c7d5e0; i { font-size: 0.875rem; } }
     &.gog { background: #86328a; color: white; .gog-icon { font-size: 0.5rem; } }
+    &.epic { background: #2f2d2e; color: white; .epic-icon { font-size: 0.4rem; font-weight: 800; } }
     &.metacritic { background: #ffcc34; color: #333; .mc-icon { font-size: 0.55rem; font-weight: 800; } }
     &.igdb { background: #9147ff; color: white; .igdb-icon { font-size: 0.45rem; font-weight: 800; } }
   }

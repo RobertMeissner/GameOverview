@@ -14,6 +14,10 @@ export interface AdminGameEntry {
   gogId: number | null;
   gogName: string | null;
   gogLink: string | null;
+  // Epic Games data
+  epicId: string | null;
+  epicName: string | null;
+  epicLink: string | null;
   // IGDB data
   igdbId: number | null;
   igdbLink: string | null;

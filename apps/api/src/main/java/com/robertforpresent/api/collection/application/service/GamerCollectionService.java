@@ -143,6 +143,7 @@ public class GamerCollectionService {
     private AdminGameView toAdminView(PersonalizedGame pg, CanonicalGame canonical) {
         SteamGameData steamData = canonical.getSteamData();
         GogGameData gogData = canonical.getGogData();
+        EpicGameData epicData = canonical.getEpicData();
         MetacriticGameData metacriticData = canonical.getMetacriticData();
 
         // Calculate completeness percentage
@@ -168,6 +169,10 @@ public class GamerCollectionService {
                 gogData != null ? gogData.gogId() : null,
                 gogData != null ? gogData.name() : null,
                 gogData != null ? gogData.storeLink() : null,
+                // Epic Games data
+                epicData != null ? epicData.epicId() : null,
+                epicData != null ? epicData.name() : null,
+                buildEpicLink(epicData, canonical.getName()),
                 // IGDB data
                 igdbId,
                 igdbLink,
@@ -214,14 +219,35 @@ public class GamerCollectionService {
         EpicGameData epicData = canonical.getEpicData();
         MetacriticGameData metacriticData = canonical.getMetacriticData();
 
+        // Build Epic link with fallback to game name for search
+        String epicLink = buildEpicLink(epicData, canonical.getName());
+
         return new StoreLinksDTO(
                 steamData != null ? steamData.storeLink() : null,
                 canonical.getRating() > 0 ? canonical.getRating() : null,
                 gogData != null ? gogData.storeLink() : null,
-                epicData != null ? epicData.storeLink() : null,
+                epicLink,
                 metacriticData != null ? metacriticData.storeLink() : null,
                 metacriticData != null ? metacriticData.score() : null
         );
+    }
+
+    /**
+     * Build Epic Games store link with fallback to search URL using game name.
+     */
+    private String buildEpicLink(EpicGameData epicData, String gameName) {
+        if (epicData == null) return null;
+
+        // Try to get direct link from Epic data
+        String link = epicData.storeLink();
+        if (link != null) return link;
+
+        // Fallback to search URL using game name
+        if (gameName != null && !gameName.isBlank()) {
+            return "https://store.epicgames.com/browse?q=" + gameName.replace(" ", "%20");
+        }
+
+        return null;
     }
 
     private StoreOwnershipDTO buildStoreOwnership(PersonalizedGame pg) {

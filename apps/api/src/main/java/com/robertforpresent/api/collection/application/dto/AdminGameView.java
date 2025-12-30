@@ -18,6 +18,10 @@ public record AdminGameView(
         Long gogId,
         String gogName,
         String gogLink,
+        // Epic Games data
+        String epicId,
+        String epicName,
+        String epicLink,
         // IGDB data
         Long igdbId,
         String igdbLink,

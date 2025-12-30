@@ -153,16 +153,19 @@ public class CatalogService {
     /**
      * Find all canonical games that have duplicate names.
      * Returns a map of name -> list of games with that name (only entries with 2+ games).
+     * Uses an optimized database query to only fetch games with duplicate names.
      */
     public Map<String, List<CanonicalGame>> findDuplicatesByName() {
-        return repository.findAll().stream()
+        // Use optimized query that only returns games with duplicate names
+        List<CanonicalGame> duplicateGames = repository.findGamesWithDuplicateNames();
+        log.debug("Found {} games with duplicate names", duplicateGames.size());
+
+        // Group the already-filtered results by normalized name
+        return duplicateGames.stream()
                 .collect(Collectors.groupingBy(
                         game -> game.getName().toLowerCase().trim(),
                         Collectors.toList()
-                ))
-                .entrySet().stream()
-                .filter(entry -> entry.getValue().size() > 1)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                ));
     }
 
     /**

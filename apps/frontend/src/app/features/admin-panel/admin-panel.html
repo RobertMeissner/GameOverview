@@ -104,6 +104,11 @@
                     <span class="gog-icon">GOG</span>
                   </a>
                 }
+                @if (game.epicLink) {
+                  <a [href]="game.epicLink" target="_blank" rel="noopener" class="store-link epic" title="View on Epic Games">
+                    <span class="epic-icon">EPIC</span>
+                  </a>
+                }
                 @if (game.metacriticLink) {
                   <a [href]="game.metacriticLink" target="_blank" rel="noopener" class="store-link metacritic" title="View on Metacritic">
                     <span class="mc-icon">MC</span>

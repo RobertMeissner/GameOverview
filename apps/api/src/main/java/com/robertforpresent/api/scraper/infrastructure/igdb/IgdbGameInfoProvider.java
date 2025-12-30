@@ -260,6 +260,24 @@ public class IgdbGameInfoProvider implements GameInfoProvider {
                     String idPart = parts[1].split("/")[0];
                     return idPart.replaceAll("[^0-9]", "");
                 }
+            } else if (category == 16 && url.contains("store.epicgames.com")) {
+                // Extract Epic Games ID from URL like https://store.epicgames.com/p/game-name
+                // or https://store.epicgames.com/en-US/p/game-name
+                String[] parts = url.split("/p/");
+                if (parts.length > 1) {
+                    // Get the game slug, removing any query parameters or trailing slashes
+                    String idPart = parts[1].split("[?/#]")[0];
+                    return idPart;
+                }
+            } else if (category == 17 && url.contains("gog.com")) {
+                // Extract GOG ID from URL like https://www.gog.com/game/game_name
+                // or https://www.gog.com/en/game/game_name
+                String[] parts = url.split("/game/");
+                if (parts.length > 1) {
+                    // Get the game slug, removing any query parameters or trailing slashes
+                    String idPart = parts[1].split("[?/#]")[0];
+                    return idPart;
+                }
             }
         } catch (Exception e) {
             log.debug("Could not extract store ID from URL: {}", url);
