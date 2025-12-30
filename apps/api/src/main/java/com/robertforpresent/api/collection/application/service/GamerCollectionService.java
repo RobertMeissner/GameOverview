@@ -143,6 +143,7 @@ public class GamerCollectionService {
     private AdminGameView toAdminView(PersonalizedGame pg, CanonicalGame canonical) {
         SteamGameData steamData = canonical.getSteamData();
         GogGameData gogData = canonical.getGogData();
+        EpicGameData epicData = canonical.getEpicData();
         MetacriticGameData metacriticData = canonical.getMetacriticData();
 
         // Calculate completeness percentage
@@ -168,6 +169,10 @@ public class GamerCollectionService {
                 gogData != null ? gogData.gogId() : null,
                 gogData != null ? gogData.name() : null,
                 gogData != null ? gogData.storeLink() : null,
+                // Epic Games data
+                epicData != null ? epicData.epicId() : null,
+                epicData != null ? epicData.name() : null,
+                epicData != null ? epicData.storeLink() : null,
                 // IGDB data
                 igdbId,
                 igdbLink,
