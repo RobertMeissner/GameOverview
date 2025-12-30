@@ -20,7 +20,7 @@ export class StoreDashboard implements OnInit {
   // Import state
   importMode = signal<'none' | 'single' | 'bulk'>('none');
   bulkImportText = signal('');
-  selectedStore = signal<'steam' | 'gog' | 'epic' | 'steam-family'>('steam');
+  selectedStore = signal<'steam' | 'steam-family' | 'steam-licenses' | 'gog' | 'epic'>('steam');
   importResults = signal<BulkImportResponse | null>(null);
   isImporting = signal(false);
 
