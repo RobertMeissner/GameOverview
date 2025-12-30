@@ -14,8 +14,9 @@ public interface GameCollectionPort {
      *
      * @param gamerId The gamer's ID
      * @param gameId  The canonical game ID to add
+     * @param store   The store the game was imported from (steam, gog, epic, etc.)
      */
-    void addGameToCollection(UUID gamerId, UUID gameId);
+    void addGameToCollection(UUID gamerId, UUID gameId, String store);
 
     /**
      * Check if a game is already in a gamer's collection.

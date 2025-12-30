@@ -89,9 +89,8 @@ public class GameImportService {
 
         CanonicalGame savedGame = gameRepository.save(builder.build());
 
-        if (isNew) {
-            collectionPort.addGameToCollection(gamerId, savedGame.getId());
-        }
+        // Always update collection to set/update ownership flags
+        collectionPort.addGameToCollection(gamerId, savedGame.getId(), command.store());
 
         return new SingleImportResult(
                 normalizedName,
