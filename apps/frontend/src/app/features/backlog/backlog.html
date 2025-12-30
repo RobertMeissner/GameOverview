@@ -52,15 +52,50 @@
               <span class="rating-score">{{ game.rating }}/100</span>
             </div>
             <div class="store-links">
-              @if (game.storeLinks?.steamLink) {
-                <a [href]="game.storeLinks.steamLink" target="_blank" rel="noopener" class="store-link steam" title="View on Steam">
-                  <i class="bi bi-steam"></i>
-                </a>
+              @if (game.storeLinks?.steamLink || game.storeOwnership?.ownedOnSteam) {
+                @if (game.storeLinks?.steamLink) {
+                  <a [href]="game.storeLinks.steamLink" target="_blank" rel="noopener" class="store-link steam" [class.owned]="game.storeOwnership?.ownedOnSteam" title="View on Steam">
+                    <i class="bi bi-steam"></i>
+                    @if (game.storeOwnership?.ownedOnSteam) {
+                      <span class="owned-badge">✓</span>
+                    }
+                  </a>
+                } @else {
+                  <span class="store-link steam owned" title="Owned on Steam">
+                    <i class="bi bi-steam"></i>
+                    <span class="owned-badge">✓</span>
+                  </span>
+                }
               }
-              @if (game.storeLinks?.gogLink) {
-                <a [href]="game.storeLinks.gogLink" target="_blank" rel="noopener" class="store-link gog" title="View on GOG">
-                  <span class="gog-icon">GOG</span>
-                </a>
+              @if (game.storeLinks?.gogLink || game.storeOwnership?.ownedOnGog) {
+                @if (game.storeLinks?.gogLink) {
+                  <a [href]="game.storeLinks.gogLink" target="_blank" rel="noopener" class="store-link gog" [class.owned]="game.storeOwnership?.ownedOnGog" title="View on GOG">
+                    <span class="gog-icon">GOG</span>
+                    @if (game.storeOwnership?.ownedOnGog) {
+                      <span class="owned-badge">✓</span>
+                    }
+                  </a>
+                } @else {
+                  <span class="store-link gog owned" title="Owned on GOG">
+                    <span class="gog-icon">GOG</span>
+                    <span class="owned-badge">✓</span>
+                  </span>
+                }
+              }
+              @if (game.storeLinks?.epicLink || game.storeOwnership?.ownedOnEpic) {
+                @if (game.storeLinks?.epicLink) {
+                  <a [href]="game.storeLinks.epicLink" target="_blank" rel="noopener" class="store-link epic" [class.owned]="game.storeOwnership?.ownedOnEpic" title="View on Epic Games">
+                    <span class="epic-icon">E</span>
+                    @if (game.storeOwnership?.ownedOnEpic) {
+                      <span class="owned-badge">✓</span>
+                    }
+                  </a>
+                } @else {
+                  <span class="store-link epic owned" title="Owned on Epic Games">
+                    <span class="epic-icon">E</span>
+                    <span class="owned-badge">✓</span>
+                  </span>
+                }
               }
               @if (game.storeLinks?.metacriticLink) {
                 <a [href]="game.storeLinks.metacriticLink" target="_blank" rel="noopener" class="store-link metacritic" title="View on Metacritic">
