@@ -2,6 +2,7 @@ package com.robertforpresent.api.collection.application.service;
 
 import com.robertforpresent.api.catalog.application.service.CatalogService;
 import com.robertforpresent.api.catalog.domain.model.CanonicalGame;
+import com.robertforpresent.api.catalog.domain.model.EpicGameData;
 import com.robertforpresent.api.catalog.domain.model.GogGameData;
 import com.robertforpresent.api.catalog.domain.model.MetacriticGameData;
 import com.robertforpresent.api.catalog.domain.model.SteamGameData;
@@ -183,12 +184,14 @@ public class GamerCollectionService {
     private StoreLinksDTO buildStoreLinks(CanonicalGame canonical) {
         SteamGameData steamData = canonical.getSteamData();
         GogGameData gogData = canonical.getGogData();
+        EpicGameData epicData = canonical.getEpicData();
         MetacriticGameData metacriticData = canonical.getMetacriticData();
 
         return new StoreLinksDTO(
                 steamData != null ? steamData.storeLink() : null,
                 canonical.getRating() > 0 ? canonical.getRating() : null,
                 gogData != null ? gogData.storeLink() : null,
+                epicData != null ? epicData.storeLink() : null,
                 metacriticData != null ? metacriticData.storeLink() : null,
                 metacriticData != null ? metacriticData.score() : null
         );

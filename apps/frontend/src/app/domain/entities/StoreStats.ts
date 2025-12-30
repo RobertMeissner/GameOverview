@@ -15,7 +15,7 @@ export interface StoreCount {
 
 export interface GameImportRequest {
   name: string;
-  store: 'steam' | 'gog' | 'epic';
+  store: 'steam' | 'steam-family' | 'steam-licenses' | 'gog' | 'epic';
   storeId?: string;
   storeLink?: string;
   thumbnailUrl?: string;
