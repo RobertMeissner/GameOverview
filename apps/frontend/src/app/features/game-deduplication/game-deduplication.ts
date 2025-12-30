@@ -191,7 +191,7 @@ export class GameDeduplication implements OnInit, OnDestroy {
     }
 
     // Phase 3: Group by GoG ID (O(n))
-    const gogGroups = new Map<string, GameIndex[]>();
+    const gogGroups = new Map<number, GameIndex[]>();
     for (const gi of allGames) {
       if (gi.game.gogId) {
         if (!gogGroups.has(gi.game.gogId)) {
