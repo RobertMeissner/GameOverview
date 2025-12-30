@@ -10,6 +10,28 @@ All scripts output **JSONC format** with `name` and `appid` fields for better im
 ]
 ```
 
+## Name Cleanup Function
+
+All scripts below use this helper to clean up game names by removing common artifacts:
+
+```javascript
+// Cleans game names by removing date suffixes, promotional text, etc.
+const cleanName = (name) => {
+  if (!name) return name;
+  return name
+    // Remove date suffixes like " - Oct 2025", " - Jan 2024"
+    .replace(/ - (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4}$/i, '')
+    // Remove promotional package text
+    .replace(/Limited Free Promotional Packag(e)?/gi, '')
+    // Remove common suffixes
+    .replace(/ - Free$/i, '')
+    .replace(/ Demo$/i, '')
+    // Clean up leftover dashes and whitespace
+    .replace(/ - $/g, '')
+    .trim();
+};
+```
+
 ## Epic Games Library Export
 
 Navigate to: `https://www.epicgames.com/account/transactions`
@@ -17,12 +39,21 @@ Navigate to: `https://www.epicgames.com/account/transactions`
 This script fetches ALL pages automatically via the Epic Games order history API:
 
 ```javascript
+// Name cleanup helper (copy from above or include inline)
+const cleanName = (name) => {
+  if (!name) return name;
+  return name
+    .replace(/ - (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4}$/i, '')
+    .replace(/Limited Free Promotional Packag(e)?/gi, '')
+    .replace(/ - Free$/i, '').replace(/ Demo$/i, '').replace(/ - $/g, '').trim();
+};
+
 const fetchGamesList = async (pageToken = '', existingList = []) => {
   const data = await (await fetch(`https://www.epicgames.com/account/v2/payment/ajaxGetOrderHistory?sortDir=DESC&sortBy=DATE&nextPageToken=${pageToken}&locale=en-US`)).json();
   const gamesList = data.orders.reduce((acc, order) => [
     ...acc,
     ...order.items.map(item => ({
-      name: item.description,
+      name: cleanName(item.description),
       appid: item.offerId || item.id || null
     }))
   ], []);
@@ -55,6 +86,15 @@ fetchGamesList().then(games => {
 If you have a Steam API key, this returns the most complete data with app IDs:
 
 ```javascript
+// Name cleanup helper (copy from above or include inline)
+const cleanName = (name) => {
+  if (!name) return name;
+  return name
+    .replace(/ - (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4}$/i, '')
+    .replace(/Limited Free Promotional Packag(e)?/gi, '')
+    .replace(/ - Free$/i, '').replace(/ Demo$/i, '').replace(/ - $/g, '').trim();
+};
+
 // Replace with your values
 const STEAM_API_KEY = 'YOUR_API_KEY';
 const STEAM_ID = 'YOUR_STEAM_ID_64';
@@ -63,7 +103,7 @@ fetch(`https://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=${ST
   .then(r => r.json())
   .then(data => {
     const games = data.response.games.map(g => ({
-      name: g.name,
+      name: cleanName(g.name),
       appid: String(g.appid)
     }));
     console.log("=== STEAM GAMES (" + games.length + ") ===");
@@ -82,6 +122,15 @@ Navigate to: `https://steamcommunity.com/id/YOUR_STEAM_ID/games/?tab=all`
 **Important:** Scroll all the way to the bottom first to load ALL games!
 
 ```javascript
+// Name cleanup helper (copy from above or include inline)
+const cleanName = (name) => {
+  if (!name) return name;
+  return name
+    .replace(/ - (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4}$/i, '')
+    .replace(/Limited Free Promotional Packag(e)?/gi, '')
+    .replace(/ - Free$/i, '').replace(/ Demo$/i, '').replace(/ - $/g, '').trim();
+};
+
 // Try to find game elements with app IDs
 let gameRows = document.querySelectorAll('[data-appid]');
 if (!gameRows.length) gameRows = document.querySelectorAll('.gameListRow');
@@ -92,8 +141,8 @@ if (!gameRows.length) {
   const games = [...gameRows].map(row => {
     const appid = row.dataset?.appid || row.getAttribute('data-appid') || null;
     const nameEl = row.querySelector('.gameListRowItemName') || row.querySelector('[class*="GameName"]');
-    const name = nameEl ? nameEl.textContent.trim() : 'Unknown';
-    return { name, appid };
+    const rawName = nameEl ? nameEl.textContent.trim() : 'Unknown';
+    return { name: cleanName(rawName), appid };
   }).filter(g => g.name !== 'Unknown');
 
   console.log("=== STEAM GAMES (" + games.length + ") ===");
@@ -123,6 +172,15 @@ Navigate to: `https://www.gog.com/en/account`
 This script fetches ALL pages automatically:
 
 ```javascript
+// Name cleanup helper (copy from above or include inline)
+const cleanName = (name) => {
+  if (!name) return name;
+  return name
+    .replace(/ - (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4}$/i, '')
+    .replace(/Limited Free Promotional Packag(e)?/gi, '')
+    .replace(/ - Free$/i, '').replace(/ Demo$/i, '').replace(/ - $/g, '').trim();
+};
+
 async function fetchAllGogGames() {
   let page = 1;
   let allGames = [];
@@ -133,7 +191,7 @@ async function fetchAllGogGames() {
     const data = await response.json();
     totalPages = data.totalPages;
     const games = data.products.map(p => ({
-      name: p.title,
+      name: cleanName(p.title),
       appid: String(p.id)
     }));
     allGames = allGames.concat(games);
