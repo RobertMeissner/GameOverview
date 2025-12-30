@@ -169,15 +169,36 @@ const games = [];
 rows.forEach(row => {
   const cells = row.querySelectorAll('td');
   if (cells.length >= 2) {
-    // Second cell contains the game/package name
     const nameCell = cells[1];
     if (nameCell) {
       let name = nameCell.textContent.trim();
-      // Clean up the name (remove extra whitespace, newlines)
+      // Clean up whitespace
       name = name.replace(/\\s+/g, ' ').trim();
-      // Skip empty names and header rows
-      if (name && !name.includes('Product Name')) {
-        games.push(name);
+
+      // Skip empty, header rows, and removed licenses
+      if (!name || name.includes('Product Name') || name.startsWith('Remove ')) {
+        return;
+      }
+
+      // Remove "Limited Free Promotional Package - Month Year" suffix
+      name = name.replace(/ Limited Free Promotional Package - \\w+ \\d{4}$/, '');
+
+      // Remove common suffixes
+      name = name.replace(/ Retail(?: \\(.*?\\))?$/, '');
+      name = name.replace(/ Steam Store and Retail Key$/, '');
+      name = name.replace(/ Thirdparty Retail$/, '');
+      name = name.replace(/ Comp$/, '');
+      name = name.replace(/ \\(WW\\)$/, '');
+      name = name.replace(/ \\(Europe\\)$/, '');
+      name = name.replace(/ ROW$/, '');
+      name = name.replace(/ \\(Humble Monthly\\)$/, '');
+      name = name.replace(/ \\(DE\\)$/, '');
+      name = name.replace(/ Free$/, '');
+      name = name.replace(/ - Gift$/, '');
+
+      // Skip if name is now empty after cleanup
+      if (name.trim()) {
+        games.push(name.trim());
       }
     }
   }
