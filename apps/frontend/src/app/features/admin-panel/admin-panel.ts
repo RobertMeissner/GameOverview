@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal} from '@angular/core';
+import {ChangeDetectionStrategy, Component, computed, DestroyRef, effect, inject, OnInit, signal} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
@@ -23,6 +23,17 @@ export class AdminPanel implements OnInit {
   private scraperService = inject(ScraperService);
   private destroyRef = inject(DestroyRef);
 
+  constructor() {
+    // Reset to first page when filters change
+    effect(() => {
+      // Track filter signals
+      this.filterMissingAppId();
+      this.filterNameMismatch();
+      // Reset pagination (untracked to avoid infinite loop)
+      this.currentPage.set(0);
+    }, { allowSignalWrites: true });
+  }
+
   ngOnInit(): void {
     this.loadGames();
   }
@@ -41,6 +52,10 @@ export class AdminPanel implements OnInit {
 
   sortField = signal<SortField>('name');
   sortDirection = signal<SortDirection>('asc');
+
+  // Pagination
+  pageSize = signal(50);
+  currentPage = signal(0);
 
   // Rescrape modal state
   rescrapeModalOpen = signal(false);
@@ -93,6 +108,21 @@ export class AdminPanel implements OnInit {
     return filtered;
   });
 
+  // Paginated view of filtered games
+  paginatedGames = computed(() => {
+    const allFiltered = this.filteredAndSortedGames();
+    const page = this.currentPage();
+    const size = this.pageSize();
+    const start = page * size;
+    return allFiltered.slice(start, start + size);
+  });
+
+  // Pagination metadata
+  totalPages = computed(() => Math.ceil(this.filteredAndSortedGames().length / this.pageSize()));
+  totalItems = computed(() => this.filteredAndSortedGames().length);
+  startItem = computed(() => this.currentPage() * this.pageSize() + 1);
+  endItem = computed(() => Math.min((this.currentPage() + 1) * this.pageSize(), this.totalItems()));
+
   setSortField(field: SortField): void {
     if (this.sortField() === field) {
       this.sortDirection.update(dir => dir === 'asc' ? 'desc' : 'asc');
@@ -100,6 +130,27 @@ export class AdminPanel implements OnInit {
       this.sortField.set(field);
       this.sortDirection.set(field === 'rating' ? 'desc' : 'asc');
     }
+    this.currentPage.set(0); // Reset to first page when sorting changes
+  }
+
+  // Pagination methods
+  goToPage(page: number): void {
+    if (page >= 0 && page < this.totalPages()) {
+      this.currentPage.set(page);
+    }
+  }
+
+  nextPage(): void {
+    this.goToPage(this.currentPage() + 1);
+  }
+
+  prevPage(): void {
+    this.goToPage(this.currentPage() - 1);
+  }
+
+  setPageSize(size: number): void {
+    this.pageSize.set(size);
+    this.currentPage.set(0); // Reset to first page when page size changes
   }
 
   startEdit(game: AdminGameEntry): void {

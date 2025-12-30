@@ -72,7 +72,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (game of filteredAndSortedGames(); track game.id) {
+        @for (game of paginatedGames(); track game.id) {
           <tr [class.name-mismatch]="game.steamName && game.steamName !== game.name"
               [class.missing-appid]="!game.steamAppId">
             <td class="col-thumbnail">
@@ -209,6 +209,47 @@
       </tbody>
     </table>
   </div>
+
+  <!-- Pagination Controls -->
+  @if (totalItems() > 0) {
+    <div class="pagination-container">
+      <div class="pagination-info">
+        Showing {{ startItem() }} - {{ endItem() }} of {{ totalItems() }} games
+      </div>
+
+      <div class="pagination-controls">
+        <div class="page-size-selector">
+          <label for="page-size">Per page:</label>
+          <select id="page-size" class="form-select form-select-sm" [ngModel]="pageSize()" (ngModelChange)="setPageSize($event)">
+            <option [value]="25">25</option>
+            <option [value]="50">50</option>
+            <option [value]="100">100</option>
+            <option [value]="200">200</option>
+          </select>
+        </div>
+
+        <nav class="pagination-nav">
+          <button class="btn btn-sm btn-outline-secondary" (click)="goToPage(0)" [disabled]="currentPage() === 0" title="First page">
+            <i class="bi bi-chevron-double-left"></i>
+          </button>
+          <button class="btn btn-sm btn-outline-secondary" (click)="prevPage()" [disabled]="currentPage() === 0" title="Previous page">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+
+          <span class="page-indicator">
+            Page {{ currentPage() + 1 }} of {{ totalPages() }}
+          </span>
+
+          <button class="btn btn-sm btn-outline-secondary" (click)="nextPage()" [disabled]="currentPage() >= totalPages() - 1" title="Next page">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+          <button class="btn btn-sm btn-outline-secondary" (click)="goToPage(totalPages() - 1)" [disabled]="currentPage() >= totalPages() - 1" title="Last page">
+            <i class="bi bi-chevron-double-right"></i>
+          </button>
+        </nav>
+      </div>
+    </div>
+  }
 </div>
 
 <!-- Rescrape Modal -->
