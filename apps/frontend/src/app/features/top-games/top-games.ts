@@ -47,4 +47,17 @@ export class TopGames implements OnInit {
       }
     });
   }
+
+  // Generate store search URLs for games without direct links
+  getSteamSearchUrl(gameName: string): string {
+    return `https://store.steampowered.com/search/?term=${encodeURIComponent(gameName)}`;
+  }
+
+  getGogSearchUrl(gameName: string): string {
+    return `https://www.gog.com/games?search=${encodeURIComponent(gameName)}`;
+  }
+
+  getEpicSearchUrl(gameName: string): string {
+    return `https://store.epicgames.com/browse?q=${encodeURIComponent(gameName)}`;
+  }
 }
