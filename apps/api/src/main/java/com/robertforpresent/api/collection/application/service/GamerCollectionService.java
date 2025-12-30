@@ -31,12 +31,12 @@ public class GamerCollectionService {
     public List<CollectionGameView> getCollection(UUID gamerId) {
         List<PersonalizedGame> personalizedGames = repository.findByGamerId(gamerId);
 
-        // Deduplicate by canonical game ID (keep first occurrence)
+        // Deduplicate by canonical game ID, merging ownership flags from all duplicates
         Map<UUID, PersonalizedGame> uniqueByCanonicalId = personalizedGames.stream()
                 .collect(Collectors.toMap(
                         PersonalizedGame::getCanonicalGameId,
                         Function.identity(),
-                        (existing, replacement) -> existing, // Keep first
+                        this::mergePersonalizedGames, // Merge ownership flags
                         LinkedHashMap::new // Preserve order
                 ));
 
@@ -47,6 +47,33 @@ public class GamerCollectionService {
                 .filter(pg -> gamesById.containsKey(pg.getCanonicalGameId())) // Skip orphaned records
                 .map(pg -> toView(pg, gamesById.get(pg.getCanonicalGameId())))
                 .toList();
+    }
+
+    /**
+     * Merges two PersonalizedGame records, combining ownership flags (OR logic)
+     * and keeping flags/playtime from the record with more data.
+     */
+    private PersonalizedGame mergePersonalizedGames(PersonalizedGame existing, PersonalizedGame replacement) {
+        return new PersonalizedGame.Builder()
+                .setCanonicalId(existing.getCanonicalGameId())
+                .setGamerId(existing.getGamerId())
+                // Keep flags from existing (first record)
+                .setMarkAsPlayed(existing.isMarkedAsPlayed() || replacement.isMarkedAsPlayed())
+                .setMarkAsHidden(existing.isMarkedAsHidden() || replacement.isMarkedAsHidden())
+                .setMarkAsForLater(existing.isMarkedForLater() || replacement.isMarkedForLater())
+                // Keep highest playtime
+                .setSteamPlaytimeMinutes(Math.max(
+                        existing.getSteamPlaytimeMinutes() != null ? existing.getSteamPlaytimeMinutes() : 0,
+                        replacement.getSteamPlaytimeMinutes() != null ? replacement.getSteamPlaytimeMinutes() : 0
+                ))
+                // Merge ownership flags (OR logic - owned on either record = owned)
+                .setOwnedOnSteam(existing.isOwnedOnSteam() || replacement.isOwnedOnSteam())
+                .setOwnedOnGog(existing.isOwnedOnGog() || replacement.isOwnedOnGog())
+                .setOwnedOnEpic(existing.isOwnedOnEpic() || replacement.isOwnedOnEpic())
+                .setOwnedOnXbox(existing.isOwnedOnXbox() || replacement.isOwnedOnXbox())
+                .setOwnedOnPlayStation(existing.isOwnedOnPlayStation() || replacement.isOwnedOnPlayStation())
+                .setOtherStores(existing.getOtherStores() != null ? existing.getOtherStores() : replacement.getOtherStores())
+                .build();
     }
 
     public List<CollectionGameView> getTop3(UUID gamerId) {
@@ -88,12 +115,12 @@ public class GamerCollectionService {
     public List<AdminGameView> getAdminCollection(UUID gamerId) {
         List<PersonalizedGame> personalizedGames = repository.findByGamerId(gamerId);
 
-        // Deduplicate by canonical game ID (keep first occurrence)
+        // Deduplicate by canonical game ID, merging ownership flags from all duplicates
         Map<UUID, PersonalizedGame> uniqueByCanonicalId = personalizedGames.stream()
                 .collect(Collectors.toMap(
                         PersonalizedGame::getCanonicalGameId,
                         Function.identity(),
-                        (existing, replacement) -> existing, // Keep first
+                        this::mergePersonalizedGames, // Merge ownership flags
                         LinkedHashMap::new // Preserve order
                 ));
 
