@@ -230,7 +230,7 @@ class GamerCollectionControllerTest {
 
     private CollectionGameView createGameView(UUID id, String name, float rating,
                                                boolean played, boolean hidden, boolean later) {
-        StoreLinksDTO storeLinks = new StoreLinksDTO(null, null, null, null, null);
+        StoreLinksDTO storeLinks = new StoreLinksDTO(null, null, null, null, null, null);
         StoreOwnershipDTO storeOwnership = new StoreOwnershipDTO(false, false, false, false, false, null);
         return new CollectionGameView(id, name, "https://example.com/" + id + ".jpg", rating, played, hidden, later, storeLinks, null, storeOwnership);
     }

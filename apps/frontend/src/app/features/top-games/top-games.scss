@@ -217,10 +217,31 @@
   font-weight: 600;
   text-decoration: none;
   transition: all 0.2s ease;
+  position: relative;
 
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  &.owned {
+    box-shadow: 0 0 0 2px #22c55e;
+
+    .owned-badge {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: #22c55e;
+      color: white;
+      font-size: 0.5rem;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
   }
 
   // Steam badge - dark blue/gray
@@ -252,6 +273,22 @@
 
     &:hover {
       background: linear-gradient(135deg, #7b2ea0 0%, #a040d0 100%);
+    }
+  }
+
+  // Epic badge - dark gray/black
+  &.epic {
+    background: linear-gradient(135deg, #2a2a2a 0%, #404040 100%);
+    color: white;
+
+    .epic-icon {
+      font-family: "Inter Tight", sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    &:hover {
+      background: linear-gradient(135deg, #404040 0%, #555555 100%);
     }
   }
 

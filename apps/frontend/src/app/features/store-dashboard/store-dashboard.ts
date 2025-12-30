@@ -20,7 +20,7 @@ export class StoreDashboard implements OnInit {
   // Import state
   importMode = signal<'none' | 'single' | 'bulk'>('none');
   bulkImportText = signal('');
-  selectedStore = signal<'steam' | 'gog' | 'epic' | 'steam-family'>('steam');
+  selectedStore = signal<'steam' | 'steam-family' | 'steam-licenses' | 'gog' | 'epic'>('steam');
   importResults = signal<BulkImportResponse | null>(null);
   isImporting = signal(false);
 
@@ -133,7 +133,7 @@ export class StoreDashboard implements OnInit {
     window.open(url, '_blank');
   }
 
-  copyConsoleScript(store: 'steam' | 'gog' | 'epic'): void {
+  copyConsoleScript(store: 'steam' | 'gog' | 'epic' | 'steam-licenses' | 'steam-family'): void {
     let script = '';
 
     switch (store) {
@@ -156,6 +156,130 @@ if (!games.length) {
   console.log("=== STEAM GAMES (" + names.length + ") ===");
   console.log(names.join("\\n"));
 }`;
+        break;
+
+      case 'steam-licenses':
+        script = `// Steam Licenses Page Export Script
+// Run on: https://store.steampowered.com/account/licenses/
+// This extracts game names from your Steam licenses page
+
+const rows = document.querySelectorAll('.account_table tr');
+const games = [];
+
+rows.forEach(row => {
+  const cells = row.querySelectorAll('td');
+  if (cells.length >= 2) {
+    const nameCell = cells[1];
+    if (nameCell) {
+      let name = nameCell.textContent.trim();
+      // Clean up whitespace
+      name = name.replace(/\\s+/g, ' ').trim();
+
+      // Skip empty, header rows, and removed licenses
+      if (!name || name.includes('Product Name') || name.startsWith('Remove ')) {
+        return;
+      }
+
+      // Remove "Limited Free Promotional Package - Month Year" suffix
+      name = name.replace(/ Limited Free Promotional Package - \\w+ \\d{4}$/, '');
+
+      // Remove common suffixes
+      name = name.replace(/ Retail(?: \\(.*?\\))?$/, '');
+      name = name.replace(/ Steam Store and Retail Key$/, '');
+      name = name.replace(/ Thirdparty Retail$/, '');
+      name = name.replace(/ Comp$/, '');
+      name = name.replace(/ \\(WW\\)$/, '');
+      name = name.replace(/ \\(Europe\\)$/, '');
+      name = name.replace(/ ROW$/, '');
+      name = name.replace(/ \\(Humble Monthly\\)$/, '');
+      name = name.replace(/ \\(DE\\)$/, '');
+      name = name.replace(/ Free$/, '');
+      name = name.replace(/ - Gift$/, '');
+
+      // Skip if name is now empty after cleanup
+      if (name.trim()) {
+        games.push(name.trim());
+      }
+    }
+  }
+});
+
+// Remove duplicates
+const uniqueGames = [...new Set(games)];
+console.log("=== STEAM LICENSES (" + uniqueGames.length + ") ===");
+console.log(uniqueGames.join("\\n"));`;
+        break;
+
+      case 'steam-family':
+        script = `// Steam Family Library Export Script (Virtualized Scroll Handler)
+// Run on: https://store.steampowered.com/account/familymanagement?tab=library
+// This script auto-scrolls to capture all games from the virtualized list
+
+(async () => {
+  const games = new Map(); // Use Map to dedupe by appId
+  let lastCount = 0;
+  let noNewItemsCount = 0;
+  const maxNoNewItems = 5; // Stop after 5 scroll attempts with no new items
+
+  // Find the scrollable container
+  const container = document.querySelector('[class*="sharedlibrary_Container"]') ||
+                    document.querySelector('[class*="libraryhome_Container"]') ||
+                    document.documentElement;
+
+  const collectVisibleGames = () => {
+    const images = document.querySelectorAll('img[src*="steam/apps"]');
+    images.forEach(img => {
+      const alt = img.getAttribute('alt');
+      const src = img.getAttribute('src');
+      if (alt && src) {
+        const match = src.match(/\\/steam\\/apps\\/(\\d+)\\//);
+        const appId = match ? match[1] : null;
+        if (appId && !games.has(appId)) {
+          games.set(appId, { name: alt, appId: appId });
+        }
+      }
+    });
+  };
+
+  const scrollAndCollect = () => {
+    return new Promise(resolve => {
+      collectVisibleGames();
+
+      // Scroll down
+      window.scrollBy(0, window.innerHeight * 0.8);
+
+      // Wait for new content to load
+      setTimeout(() => {
+        collectVisibleGames();
+        resolve();
+      }, 300);
+    });
+  };
+
+  console.log("Starting auto-scroll collection...");
+  console.log("This will scroll through the entire library automatically.");
+
+  // Scroll loop
+  while (noNewItemsCount < maxNoNewItems) {
+    await scrollAndCollect();
+
+    if (games.size === lastCount) {
+      noNewItemsCount++;
+      console.log(\`No new games found (attempt \${noNewItemsCount}/\${maxNoNewItems}), current: \${games.size}\`);
+    } else {
+      noNewItemsCount = 0;
+      console.log(\`Found \${games.size} games so far...\`);
+    }
+    lastCount = games.size;
+  }
+
+  // Scroll back to top
+  window.scrollTo(0, 0);
+
+  const uniqueGames = [...games.values()];
+  console.log("=== STEAM FAMILY LIBRARY (" + uniqueGames.length + ") ===");
+  console.log(uniqueGames.map(g => JSON.stringify(g)).join("\\n"));
+})();`;
         break;
 
       case 'gog':
