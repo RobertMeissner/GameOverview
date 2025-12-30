@@ -211,28 +211,75 @@ console.log(uniqueGames.join("\\n"));`;
         break;
 
       case 'steam-family':
-        script = `// Steam Family Library Export Script
+        script = `// Steam Family Library Export Script (Virtualized Scroll Handler)
 // Run on: https://store.steampowered.com/account/familymanagement?tab=library
-// IMPORTANT: Scroll down to load all games first!
+// This script auto-scrolls to capture all games from the virtualized list
 
-const games = [];
-const images = document.querySelectorAll('img[src*="steam/apps"]');
+(async () => {
+  const games = new Map(); // Use Map to dedupe by appId
+  let lastCount = 0;
+  let noNewItemsCount = 0;
+  const maxNoNewItems = 5; // Stop after 5 scroll attempts with no new items
 
-images.forEach(img => {
-  const alt = img.getAttribute('alt');
-  const src = img.getAttribute('src');
-  if (alt && src) {
-    // Extract app ID from URL like /steam/apps/282800/
-    const match = src.match(/\\/steam\\/apps\\/(\\d+)\\//);
-    const appId = match ? match[1] : null;
-    games.push({ name: alt, appId: appId });
+  // Find the scrollable container
+  const container = document.querySelector('[class*="sharedlibrary_Container"]') ||
+                    document.querySelector('[class*="libraryhome_Container"]') ||
+                    document.documentElement;
+
+  const collectVisibleGames = () => {
+    const images = document.querySelectorAll('img[src*="steam/apps"]');
+    images.forEach(img => {
+      const alt = img.getAttribute('alt');
+      const src = img.getAttribute('src');
+      if (alt && src) {
+        const match = src.match(/\\/steam\\/apps\\/(\\d+)\\//);
+        const appId = match ? match[1] : null;
+        if (appId && !games.has(appId)) {
+          games.set(appId, { name: alt, appId: appId });
+        }
+      }
+    });
+  };
+
+  const scrollAndCollect = () => {
+    return new Promise(resolve => {
+      collectVisibleGames();
+
+      // Scroll down
+      window.scrollBy(0, window.innerHeight * 0.8);
+
+      // Wait for new content to load
+      setTimeout(() => {
+        collectVisibleGames();
+        resolve();
+      }, 300);
+    });
+  };
+
+  console.log("Starting auto-scroll collection...");
+  console.log("This will scroll through the entire library automatically.");
+
+  // Scroll loop
+  while (noNewItemsCount < maxNoNewItems) {
+    await scrollAndCollect();
+
+    if (games.size === lastCount) {
+      noNewItemsCount++;
+      console.log(\`No new games found (attempt \${noNewItemsCount}/\${maxNoNewItems}), current: \${games.size}\`);
+    } else {
+      noNewItemsCount = 0;
+      console.log(\`Found \${games.size} games so far...\`);
+    }
+    lastCount = games.size;
   }
-});
 
-// Remove duplicates by name
-const uniqueGames = [...new Map(games.map(g => [g.name, g])).values()];
-console.log("=== STEAM FAMILY LIBRARY (" + uniqueGames.length + ") ===");
-console.log(uniqueGames.map(g => JSON.stringify(g)).join("\\n"));`;
+  // Scroll back to top
+  window.scrollTo(0, 0);
+
+  const uniqueGames = [...games.values()];
+  console.log("=== STEAM FAMILY LIBRARY (" + uniqueGames.length + ") ===");
+  console.log(uniqueGames.map(g => JSON.stringify(g)).join("\\n"));
+})();`;
         break;
 
       case 'gog':
