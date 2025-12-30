@@ -191,6 +191,27 @@
     font-size: 0.75rem;
     font-weight: 700;
     transition: all 0.2s ease;
+    position: relative;
+
+    &.owned {
+      box-shadow: 0 0 0 2px #22c55e;
+
+      .owned-badge {
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        background: #22c55e;
+        color: white;
+        font-size: 0.5rem;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+      }
+    }
 
     &.steam {
       background: #1b2838;
@@ -218,6 +239,21 @@
       .gog-icon {
         font-size: 0.6rem;
         letter-spacing: -0.5px;
+      }
+    }
+
+    &.epic {
+      background: #2a2a2a;
+      color: white;
+
+      &:hover {
+        background: #404040;
+        transform: scale(1.1);
+      }
+
+      .epic-icon {
+        font-size: 0.75rem;
+        font-weight: 800;
       }
     }
 

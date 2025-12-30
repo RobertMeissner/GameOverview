@@ -133,7 +133,7 @@ export class StoreDashboard implements OnInit {
     window.open(url, '_blank');
   }
 
-  copyConsoleScript(store: 'steam' | 'gog' | 'epic'): void {
+  copyConsoleScript(store: 'steam' | 'gog' | 'epic' | 'steam-licenses' | 'steam-family'): void {
     let script = '';
 
     switch (store) {
@@ -156,6 +156,62 @@ if (!games.length) {
   console.log("=== STEAM GAMES (" + names.length + ") ===");
   console.log(names.join("\\n"));
 }`;
+        break;
+
+      case 'steam-licenses':
+        script = `// Steam Licenses Page Export Script
+// Run on: https://store.steampowered.com/account/licenses/
+// This extracts game names from your Steam licenses page
+
+const rows = document.querySelectorAll('.account_table tr');
+const games = [];
+
+rows.forEach(row => {
+  const cells = row.querySelectorAll('td');
+  if (cells.length >= 2) {
+    // Second cell contains the game/package name
+    const nameCell = cells[1];
+    if (nameCell) {
+      let name = nameCell.textContent.trim();
+      // Clean up the name (remove extra whitespace, newlines)
+      name = name.replace(/\\s+/g, ' ').trim();
+      // Skip empty names and header rows
+      if (name && !name.includes('Product Name')) {
+        games.push(name);
+      }
+    }
+  }
+});
+
+// Remove duplicates
+const uniqueGames = [...new Set(games)];
+console.log("=== STEAM LICENSES (" + uniqueGames.length + ") ===");
+console.log(uniqueGames.join("\\n"));`;
+        break;
+
+      case 'steam-family':
+        script = `// Steam Family Library Export Script
+// Run on: https://store.steampowered.com/account/familymanagement?tab=library
+// IMPORTANT: Scroll down to load all games first!
+
+const games = [];
+const images = document.querySelectorAll('img[src*="steam/apps"]');
+
+images.forEach(img => {
+  const alt = img.getAttribute('alt');
+  const src = img.getAttribute('src');
+  if (alt && src) {
+    // Extract app ID from URL like /steam/apps/282800/
+    const match = src.match(/\\/steam\\/apps\\/(\\d+)\\//);
+    const appId = match ? match[1] : null;
+    games.push({ name: alt, appId: appId });
+  }
+});
+
+// Remove duplicates by name
+const uniqueGames = [...new Map(games.map(g => [g.name, g])).values()];
+console.log("=== STEAM FAMILY LIBRARY (" + uniqueGames.length + ") ===");
+console.log(uniqueGames.map(g => JSON.stringify(g)).join("\\n"));`;
         break;
 
       case 'gog':

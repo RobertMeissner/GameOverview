@@ -7,6 +7,7 @@ public record StoreLinksDTO(
         String steamLink,
         Float steamRating,
         String gogLink,
+        String epicLink,
         String metacriticLink,
         Integer metacriticScore
 ) {

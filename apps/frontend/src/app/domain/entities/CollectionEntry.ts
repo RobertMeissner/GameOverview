@@ -2,6 +2,7 @@ export interface StoreLinks {
   steamLink: string | null;
   steamRating: number | null;
   gogLink: string | null;
+  epicLink: string | null;
   metacriticLink: string | null;
   metacriticScore: number | null;
 }
