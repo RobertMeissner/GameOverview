@@ -27,4 +27,5 @@ export interface CollectionEntry {
   storeLinks: StoreLinks;
   steamPlaytimeMinutes?: number | null; // Steam playtime in minutes
   storeOwnership?: StoreOwnership; // Which stores the user owns this game on
+  genres: string[]; // Game categories/tags from IGDB
 }

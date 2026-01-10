@@ -56,6 +56,30 @@
         </button>
       </div>
     </div>
+
+    @if (availableGenres().length > 0) {
+      <div class="genre-filter-row">
+        <span class="filter-label me-3">Filter by genre:</span>
+        <div class="genre-chips">
+          @for (genre of availableGenres(); track genre) {
+            <button type="button"
+                    class="genre-chip"
+                    [class.active]="isGenreSelected(genre)"
+                    (click)="toggleGenre(genre)">
+              {{ genre }}
+            </button>
+          }
+        </div>
+        @if (selectedGenres().length > 0) {
+          <button type="button"
+                  class="clear-genre-btn"
+                  (click)="clearGenreFilter()">
+            <i class="bi bi-x-circle"></i>
+            Clear
+          </button>
+        }
+      </div>
+    }
   </div>
 
   <div class="game-grid">
@@ -74,6 +98,13 @@
             </div>
             <span class="rating-score">{{ game.rating }}/100</span>
           </div>
+          @if (game.genres && game.genres.length > 0) {
+            <div class="game-genres">
+              @for (genre of game.genres; track genre) {
+                <span class="genre-tag" (click)="toggleGenre(genre)" [class.active]="isGenreSelected(genre)">{{ genre }}</span>
+              }
+            </div>
+          }
           <div class="store-links">
             @if (game.storeLinks?.steamLink || game.storeOwnership?.ownedOnSteam) {
               <a [href]="game.storeLinks?.steamLink || getSteamSearchUrl(game.name)" target="_blank" rel="noopener" class="store-link steam" [class.owned]="game.storeOwnership?.ownedOnSteam" [title]="game.storeLinks?.steamLink ? 'View on Steam' : 'Search on Steam'">

@@ -102,7 +102,8 @@ public class GamerCollectionService {
                 pg.isMarkedForLater(),
                 storeLinks,
                 pg.getSteamPlaytimeMinutes(),
-                storeOwnership
+                storeOwnership,
+                canonical.getGenres()
         );
     }
 
