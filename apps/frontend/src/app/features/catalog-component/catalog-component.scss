@@ -276,8 +276,10 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
+    gap: 0.25rem;
+    min-width: 28px;
     height: 28px;
+    padding: 0 0.4rem;
     border-radius: 6px;
     text-decoration: none;
     font-size: 0.75rem;
@@ -361,6 +363,32 @@
       .mc-icon {
         font-size: 0.65rem;
         font-weight: 800;
+      }
+
+      .store-rating {
+        font-size: 0.65rem;
+        font-weight: 700;
+      }
+    }
+
+    &.hltb {
+      background: linear-gradient(135deg, #4a90d9 0%, #2a6bb3 100%);
+      color: white;
+
+      &:hover {
+        background: linear-gradient(135deg, #5aa0e9 0%, #3a7bc3 100%);
+        transform: scale(1.1);
+      }
+
+      .hltb-icon {
+        font-size: 0.55rem;
+        font-weight: 700;
+        letter-spacing: 0.03rem;
+      }
+
+      .store-rating {
+        font-size: 0.65rem;
+        font-weight: 700;
       }
     }
   }

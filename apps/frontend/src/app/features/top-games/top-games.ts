@@ -37,10 +37,8 @@ export class TopGames implements OnInit {
     };
     this.gamesService.updateGameFlags(game.id, updates).subscribe({
       next: () => {
-        // Update local signal to trigger reactive updates
-        this.games.update(games => games.map(g =>
-          g.id === game.id ? {...g, ...updates} : g
-        ));
+        // Refresh the top games list since flagged games may no longer qualify
+        this.topGames();
       },
       error: err => {
         console.error(err);
