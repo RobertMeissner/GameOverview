@@ -34,6 +34,7 @@ public class CanonicalGame {
     private final @Nullable GogGameData gogData;
     private final @Nullable EpicGameData epicData;
     private final @Nullable MetacriticGameData metacriticData;
+    private final @Nullable HltbGameData hltbData;
 
     // IGDB reference
     private final @Nullable Long igdbId;
@@ -81,6 +82,10 @@ public class CanonicalGame {
         return epicData;
     }
 
+    public @Nullable HltbGameData getHltbData() {
+        return hltbData;
+    }
+
     public @Nullable Long getIgdbId() {
         return igdbId;
     }
@@ -110,6 +115,7 @@ public class CanonicalGame {
         private GogGameData gogData;
         private EpicGameData epicData;
         private MetacriticGameData metacriticData;
+        private HltbGameData hltbData;
         private Long igdbId;
         private String igdbSlug;
 
@@ -159,6 +165,11 @@ public class CanonicalGame {
             return this;
         }
 
+        public Builder setHltbData(HltbGameData hltbData) {
+            this.hltbData = hltbData;
+            return this;
+        }
+
         public Builder setIgdbId(Long igdbId) {
             this.igdbId = igdbId;
             return this;
@@ -196,6 +207,7 @@ public class CanonicalGame {
         gogData = builder.gogData;
         epicData = builder.epicData;
         metacriticData = builder.metacriticData;
+        hltbData = builder.hltbData;
         igdbId = builder.igdbId;
         igdbSlug = builder.igdbSlug;
         createdAt = Instant.now();

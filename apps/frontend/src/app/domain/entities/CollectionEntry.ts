@@ -5,6 +5,8 @@ export interface StoreLinks {
   epicLink: string | null;
   metacriticLink: string | null;
   metacriticScore: number | null;
+  hltbLink: string | null;
+  hltbMainHours: number | null;
 }
 
 export interface StoreOwnership {

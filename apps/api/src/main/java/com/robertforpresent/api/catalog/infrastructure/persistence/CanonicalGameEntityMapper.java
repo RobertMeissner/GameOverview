@@ -3,6 +3,7 @@ package com.robertforpresent.api.catalog.infrastructure.persistence;
 import com.robertforpresent.api.catalog.domain.model.CanonicalGame;
 import com.robertforpresent.api.catalog.domain.model.EpicGameData;
 import com.robertforpresent.api.catalog.domain.model.GogGameData;
+import com.robertforpresent.api.catalog.domain.model.HltbGameData;
 import com.robertforpresent.api.catalog.domain.model.MetacriticGameData;
 import com.robertforpresent.api.catalog.domain.model.SteamGameData;
 import com.robertforpresent.api.catalog.domain.model.steam.SteamRating;
@@ -21,6 +22,7 @@ public class CanonicalGameEntityMapper {
         GogGameData gogData = mapGogDataToDomain(entity);
         EpicGameData epicData = mapEpicDataToDomain(entity);
         MetacriticGameData metacriticData = mapMetacriticDataToDomain(entity);
+        HltbGameData hltbData = mapHltbDataToDomain(entity);
 
         return new CanonicalGame.Builder(entity.getName())
                 .setId(UUID.fromString(entity.getId()))
@@ -30,6 +32,7 @@ public class CanonicalGameEntityMapper {
                 .setGogData(gogData)
                 .setEpicData(epicData)
                 .setMetacriticData(metacriticData)
+                .setHltbData(hltbData)
                 .setIgdbId(entity.getIgdbId())
                 .setIgdbSlug(entity.getIgdbSlug())
                 .build();
@@ -44,6 +47,7 @@ public class CanonicalGameEntityMapper {
         GogGameData gogData = domain.getGogData();
         EpicGameData epicData = domain.getEpicData();
         MetacriticGameData metacriticData = domain.getMetacriticData();
+        HltbGameData hltbData = domain.getHltbData();
 
         return new CanonicalGameEntity(
                 domain.getId().toString(),
@@ -62,7 +66,12 @@ public class CanonicalGameEntityMapper {
                 domain.getIgdbSlug(),
                 metacriticData != null ? metacriticData.score() : null,
                 metacriticData != null ? metacriticData.gameName() : null,
-                metacriticData != null ? metacriticData.link() : null
+                metacriticData != null ? metacriticData.link() : null,
+                hltbData != null ? hltbData.hltbId() : null,
+                hltbData != null ? hltbData.gameName() : null,
+                hltbData != null ? hltbData.mainStoryHours() : null,
+                hltbData != null ? hltbData.mainExtraHours() : null,
+                hltbData != null ? hltbData.completionistHours() : null
         );
     }
 
@@ -96,6 +105,22 @@ public class CanonicalGameEntityMapper {
             return null;
         }
         return new MetacriticGameData(entity.getMetacriticScore(), entity.getMetacriticName(), entity.getMetacriticLink());
+    }
+
+    @Nullable
+    private HltbGameData mapHltbDataToDomain(CanonicalGameEntity entity) {
+        if (entity.getHltbId() == null && entity.getHltbName() == null &&
+            entity.getHltbMainHours() == null && entity.getHltbExtraHours() == null &&
+            entity.getHltbCompletionistHours() == null) {
+            return null;
+        }
+        return new HltbGameData(
+                entity.getHltbId(),
+                entity.getHltbName(),
+                entity.getHltbMainHours(),
+                entity.getHltbExtraHours(),
+                entity.getHltbCompletionistHours()
+        );
     }
 
     @Nullable

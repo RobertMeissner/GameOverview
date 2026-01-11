@@ -2,6 +2,7 @@ import {Routes} from '@angular/router';
 import {CatalogComponent} from './features/catalog-component/catalog-component';
 import {MainLayout} from './layout/main-layout/main-layout';
 import {TopGames} from './features/top-games/top-games';
+import {ShortGames} from './features/short-games/short-games';
 import {AdminPanel} from './features/admin-panel/admin-panel';
 import {Backlog} from './features/backlog/backlog';
 import {GameDeduplication} from './features/game-deduplication/game-deduplication';
@@ -15,6 +16,7 @@ export const routes: Routes = [
         {path: "", redirectTo: "catalog", pathMatch: "full"},
         {path: 'catalog', component: CatalogComponent},
         {path: "top-games", component: TopGames},
+        {path: "short-games", component: ShortGames},
         {path: "backlog", component: Backlog},
         {path: "stores", component: StoreDashboard},
         {path: "admin", component: AdminPanel},

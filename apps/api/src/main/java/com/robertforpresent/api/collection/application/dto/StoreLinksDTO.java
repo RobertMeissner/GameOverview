@@ -9,6 +9,8 @@ public record StoreLinksDTO(
         String gogLink,
         String epicLink,
         String metacriticLink,
-        Integer metacriticScore
+        Integer metacriticScore,
+        String hltbLink,
+        Double hltbMainHours
 ) {
 }

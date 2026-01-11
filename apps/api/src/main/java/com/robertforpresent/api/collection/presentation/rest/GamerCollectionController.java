@@ -48,4 +48,20 @@ public class GamerCollectionController {
         return service.getBacklog(userId);
     }
 
+    /**
+     * Get short and good games - games with HLTB playtime under maxHours and rating above minRating.
+     *
+     * @param userId    The user's ID
+     * @param maxHours  Maximum hours to beat (default: 5)
+     * @param minRating Minimum rating 0-100 (default: 80)
+     * @return List of short and good games
+     */
+    @GetMapping("/collection/short-good")
+    public List<CollectionGameView> getShortAndGoodGames(
+            @RequestParam UUID userId,
+            @RequestParam(defaultValue = "5") double maxHours,
+            @RequestParam(defaultValue = "80") int minRating) {
+        return service.getShortAndGoodGames(userId, maxHours, minRating);
+    }
+
 }

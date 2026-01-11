@@ -4,6 +4,7 @@ import com.robertforpresent.api.catalog.application.service.CatalogService;
 import com.robertforpresent.api.catalog.domain.model.CanonicalGame;
 import com.robertforpresent.api.catalog.domain.model.EpicGameData;
 import com.robertforpresent.api.catalog.domain.model.GogGameData;
+import com.robertforpresent.api.catalog.domain.model.HltbGameData;
 import com.robertforpresent.api.catalog.domain.model.MetacriticGameData;
 import com.robertforpresent.api.catalog.domain.model.SteamGameData;
 import com.robertforpresent.api.collection.application.dto.AdminGameView;
@@ -140,6 +141,28 @@ public class GamerCollectionService {
                 .toList();
     }
 
+    /**
+     * Returns games that are both short (under maxHours) and good (rating above minRating).
+     * Uses HLTB main story hours for playtime filtering.
+     * Only includes games that are not played, not hidden, and not marked for later.
+     *
+     * @param gamerId   The gamer's ID
+     * @param maxHours  Maximum hours to beat (from HLTB main story)
+     * @param minRating Minimum rating (0-100 scale)
+     * @return List of short and good games, sorted by rating descending
+     */
+    public List<CollectionGameView> getShortAndGoodGames(UUID gamerId, double maxHours, int minRating) {
+        return getCollection(gamerId).stream()
+                .filter(game -> !game.markedAsPlayed() && !game.markedAsHidden() && !game.markedForLater())
+                .filter(game -> game.rating() >= minRating)
+                .filter(game -> {
+                    Double hltbHours = game.storeLinks() != null ? game.storeLinks().hltbMainHours() : null;
+                    return hltbHours != null && hltbHours <= maxHours;
+                })
+                .sorted(Comparator.comparing(CollectionGameView::rating).reversed())
+                .toList();
+    }
+
     private AdminGameView toAdminView(PersonalizedGame pg, CanonicalGame canonical) {
         SteamGameData steamData = canonical.getSteamData();
         GogGameData gogData = canonical.getGogData();
@@ -218,6 +241,7 @@ public class GamerCollectionService {
         GogGameData gogData = canonical.getGogData();
         EpicGameData epicData = canonical.getEpicData();
         MetacriticGameData metacriticData = canonical.getMetacriticData();
+        HltbGameData hltbData = canonical.getHltbData();
 
         // Build Epic link with fallback to game name for search
         String epicLink = buildEpicLink(epicData, canonical.getName());
@@ -228,7 +252,9 @@ public class GamerCollectionService {
                 gogData != null ? gogData.storeLink() : null,
                 epicLink,
                 metacriticData != null ? metacriticData.storeLink() : null,
-                metacriticData != null ? metacriticData.score() : null
+                metacriticData != null ? metacriticData.score() : null,
+                hltbData != null ? hltbData.storeLink() : null,
+                hltbData != null ? hltbData.mainStoryHours() : null
         );
     }
 

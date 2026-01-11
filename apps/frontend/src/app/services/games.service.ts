@@ -62,6 +62,21 @@ export class GamesService {
       .pipe(map(games => games.map(game => this.withCachedThumbnail(game))));
   }
 
+  /**
+   * Get short and good games with filters.
+   * @param maxHours Maximum hours to beat (default: 5)
+   * @param minRating Minimum rating 0-100 (default: 80)
+   */
+  getShortGoodGames(maxHours: number = 5, minRating: number = 80): Observable<CollectionEntry[]> {
+    return this.http.get<CollectionEntry[]>(`${this.apiUrl}/collection/short-good`, {
+      params: {
+        "userId": this.userId,
+        "maxHours": maxHours.toString(),
+        "minRating": minRating.toString()
+      }
+    }).pipe(map(games => games.map(game => this.withCachedThumbnail(game))));
+  }
+
   updateCatalogValues(gameId: string, values: {
     steamAppId: number | null;
     steamName: string | null;
