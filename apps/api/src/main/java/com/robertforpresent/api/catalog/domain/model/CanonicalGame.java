@@ -4,6 +4,7 @@ import com.robertforpresent.api.catalog.domain.model.steam.SteamRating;
 import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -39,6 +40,9 @@ public class CanonicalGame {
     // IGDB reference
     private final @Nullable Long igdbId;
     private final @Nullable String igdbSlug;
+
+    // Game categories/tags from IGDB
+    private final List<String> genres;
 
     private CanonicalMetadata metadata;
 
@@ -94,6 +98,10 @@ public class CanonicalGame {
         return igdbSlug;
     }
 
+    public List<String> getGenres() {
+        return genres;
+    }
+
     // Convenience methods for backward compatibility
     public @Nullable Integer getSteamAppId() {
         return steamData != null ? steamData.appId() : null;
@@ -118,6 +126,7 @@ public class CanonicalGame {
         private HltbGameData hltbData;
         private Long igdbId;
         private String igdbSlug;
+        private List<String> genres = List.of();
 
         public Builder(String name) {
             this.name = name;
@@ -180,6 +189,11 @@ public class CanonicalGame {
             return this;
         }
 
+        public Builder setGenres(List<String> genres) {
+            this.genres = genres != null ? List.copyOf(genres) : List.of();
+            return this;
+        }
+
         // Convenience methods for backward compatibility
         public Builder setSteamAppId(Integer steamAppId) {
             if (this.steamData == null) {
@@ -210,6 +224,7 @@ public class CanonicalGame {
         hltbData = builder.hltbData;
         igdbId = builder.igdbId;
         igdbSlug = builder.igdbSlug;
+        genres = builder.genres;
         createdAt = Instant.now();
         updatedAt = Instant.now();
         ratings = new AggregatedRatings(builder.steamRating);

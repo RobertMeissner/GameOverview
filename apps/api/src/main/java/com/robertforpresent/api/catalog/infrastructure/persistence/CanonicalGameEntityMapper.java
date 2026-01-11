@@ -11,6 +11,8 @@ import com.robertforpresent.api.catalog.infrastructure.persistence.steam.SteamRa
 import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 
@@ -23,6 +25,7 @@ public class CanonicalGameEntityMapper {
         EpicGameData epicData = mapEpicDataToDomain(entity);
         MetacriticGameData metacriticData = mapMetacriticDataToDomain(entity);
         HltbGameData hltbData = mapHltbDataToDomain(entity);
+        List<String> genres = mapGenresToDomain(entity.getGenres());
 
         return new CanonicalGame.Builder(entity.getName())
                 .setId(UUID.fromString(entity.getId()))
@@ -35,6 +38,7 @@ public class CanonicalGameEntityMapper {
                 .setHltbData(hltbData)
                 .setIgdbId(entity.getIgdbId())
                 .setIgdbSlug(entity.getIgdbSlug())
+                .setGenres(genres)
                 .build();
     }
 
@@ -48,6 +52,7 @@ public class CanonicalGameEntityMapper {
         EpicGameData epicData = domain.getEpicData();
         MetacriticGameData metacriticData = domain.getMetacriticData();
         HltbGameData hltbData = domain.getHltbData();
+        String genres = mapGenresToEntity(domain.getGenres());
 
         return new CanonicalGameEntity(
                 domain.getId().toString(),
@@ -71,7 +76,8 @@ public class CanonicalGameEntityMapper {
                 hltbData != null ? hltbData.gameName() : null,
                 hltbData != null ? hltbData.mainStoryHours() : null,
                 hltbData != null ? hltbData.mainExtraHours() : null,
-                hltbData != null ? hltbData.completionistHours() : null
+                hltbData != null ? hltbData.completionistHours() : null,
+                genres
         );
     }
 
@@ -144,6 +150,24 @@ public class CanonicalGameEntityMapper {
                 rating.negative(),
                 rating.sentiment()
         );
+    }
+
+    private List<String> mapGenresToDomain(@Nullable String genresString) {
+        if (genresString == null || genresString.isBlank()) {
+            return List.of();
+        }
+        return Arrays.stream(genresString.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList();
+    }
+
+    @Nullable
+    private String mapGenresToEntity(List<String> genres) {
+        if (genres == null || genres.isEmpty()) {
+            return null;
+        }
+        return String.join(",", genres);
     }
 }
 

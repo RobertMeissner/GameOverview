@@ -28,9 +28,16 @@ export class CatalogComponent implements OnInit {
   filterHidden = signal(false);
   filterForLater = signal(false);
   filterUnflagged = signal(false);
+  selectedGenres = signal<string[]>([]);
 
   sortField = signal<SortField>('rating');
   sortDirection = signal<SortDirection>('desc');
+
+  // Compute all unique genres from games
+  availableGenres = computed(() => {
+    const allGenres = this.games().flatMap(game => game.genres || []);
+    return [...new Set(allGenres)].sort();
+  });
 
   filteredAndSortedGames = computed(() => {
     const allGames = this.games();
@@ -38,10 +45,11 @@ export class CatalogComponent implements OnInit {
     const showHidden = this.filterHidden();
     const showForLater = this.filterForLater();
     const showUnflagged = this.filterUnflagged();
+    const genreFilter = this.selectedGenres();
     const field = this.sortField();
     const direction = this.sortDirection();
 
-    // Filter games
+    // Filter games by flags
     let filtered: CollectionEntry[];
     if (!showPlayed && !showHidden && !showForLater && !showUnflagged) {
       filtered = [...allGames];
@@ -51,6 +59,13 @@ export class CatalogComponent implements OnInit {
         (showHidden && game.markedAsHidden) ||
         (showForLater && game.markedForLater) ||
         (showUnflagged && (!game.markedAsPlayed && !game.markedForLater && !game.markedAsHidden))
+      );
+    }
+
+    // Filter by genres (AND logic - game must have ALL selected genres)
+    if (genreFilter.length > 0) {
+      filtered = filtered.filter(game =>
+        genreFilter.every(genre => (game.genres || []).includes(genre))
       );
     }
 
@@ -127,5 +142,23 @@ export class CatalogComponent implements OnInit {
 
   getEpicSearchUrl(gameName: string): string {
     return `https://store.epicgames.com/browse?q=${encodeURIComponent(gameName)}`;
+  }
+
+  toggleGenre(genre: string): void {
+    this.selectedGenres.update(genres => {
+      if (genres.includes(genre)) {
+        return genres.filter(g => g !== genre);
+      } else {
+        return [...genres, genre];
+      }
+    });
+  }
+
+  isGenreSelected(genre: string): boolean {
+    return this.selectedGenres().includes(genre);
+  }
+
+  clearGenreFilter(): void {
+    this.selectedGenres.set([]);
   }
 }

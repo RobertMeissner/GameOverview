@@ -121,6 +121,7 @@ public class CatalogService {
                 .setMetacriticData(newMetacriticData)
                 .setIgdbId(existing.getIgdbId())
                 .setIgdbSlug(existing.getIgdbSlug())
+                .setGenres(existing.getGenres())
                 .build();
         return repository.save(updated);
     }
@@ -331,6 +332,11 @@ public class CatalogService {
         Long igdbId = info.externalId();
         String igdbSlug = info.slug();
 
+        // Get genres from scraped data, or preserve existing
+        List<String> genres = info.genres() != null && !info.genres().isEmpty()
+                ? info.genres()
+                : existing.getGenres();
+
         CanonicalGame updated = new CanonicalGame.Builder(existing.getName())
                 .setId(existing.getId())
                 .setSteamRating(existing.getRatings().steam())
@@ -341,6 +347,7 @@ public class CatalogService {
                 .setMetacriticData(existing.getMetacriticData())
                 .setIgdbId(igdbId)
                 .setIgdbSlug(igdbSlug)
+                .setGenres(genres)
                 .build();
 
         repository.save(updated);
