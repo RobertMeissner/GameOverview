@@ -46,6 +46,15 @@
                         [class.bi-fonts]="sortField() !== 'name'"></i>
           Name
         </button>
+        <button type="button"
+                class="sort-btn"
+                [class.active]="sortField() === 'playtime'"
+                (click)="setSortField('playtime')">
+          <i class="bi" [class.bi-sort-down]="sortField() === 'playtime' && sortDirection() === 'desc'"
+                        [class.bi-sort-up]="sortField() === 'playtime' && sortDirection() === 'asc'"
+                        [class.bi-clock]="sortField() !== 'playtime'"></i>
+          Playtime
+        </button>
       </div>
       <div class="export-buttons ms-auto">
         <button type="button"
