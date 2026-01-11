@@ -110,12 +110,19 @@ public class CanonicalGameEntity {
     @Column(name = "metacritic_link")
     private String metacriticLink;
 
+    // Game categories/tags from IGDB (stored as comma-separated string)
+    @Getter
+    @Setter
+    @Column(name = "genres")
+    private String genres;
+
     public CanonicalGameEntity(String id, String name, SteamRatingEmbeddable steamRating, String thumbnailUrl,
                                Integer steamAppId, String steamName,
                                Long gogId, String gogName, String gogLink,
                                String epicId, String epicName, String epicLink,
                                Long igdbId, String igdbSlug,
-                               Integer metacriticScore, String metacriticName, String metacriticLink) {
+                               Integer metacriticScore, String metacriticName, String metacriticLink,
+                               String genres) {
         this.id = id;
         this.name = name;
         this.steamRating = steamRating;
@@ -133,6 +140,7 @@ public class CanonicalGameEntity {
         this.metacriticScore = metacriticScore;
         this.metacriticName = metacriticName;
         this.metacriticLink = metacriticLink;
+        this.genres = genres;
     }
 
     public CanonicalGameEntity(){}

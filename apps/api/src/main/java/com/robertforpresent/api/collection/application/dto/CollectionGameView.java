@@ -1,5 +1,6 @@
 package com.robertforpresent.api.collection.application.dto;
 
+import java.util.List;
 import java.util.UUID;
 
 public record CollectionGameView(
@@ -12,6 +13,7 @@ public record CollectionGameView(
         boolean markedForLater,
         StoreLinksDTO storeLinks,
         Integer steamPlaytimeMinutes,
-        StoreOwnershipDTO storeOwnership
+        StoreOwnershipDTO storeOwnership,
+        List<String> genres
 ) {
 }
