@@ -79,6 +79,7 @@ public class HowLongToBeatEnrichmentProvider implements GameEnrichmentProvider {
                 .setHltbData(hltbData)
                 .setIgdbId(game.getIgdbId())
                 .setIgdbSlug(game.getIgdbSlug())
+                .setGenres(game.getGenres())
                 .build();
 
         String timeInfo = String.format("Main: %.1fh", hltbGame.mainStoryHours());

@@ -75,13 +75,23 @@ public class HltbApiClient {
 
     /**
      * Build the JSON request body for HLTB search API.
+     * The API expects searchTerms as an array of individual words.
      */
     private String buildSearchRequestBody(String gameName) {
+        // Split game name into individual words for searchTerms array
+        String[] words = gameName.trim().split("\\s+");
+        StringBuilder termsArray = new StringBuilder("[");
+        for (int i = 0; i < words.length; i++) {
+            if (i > 0) termsArray.append(", ");
+            termsArray.append("\"").append(escapeJson(words[i])).append("\"");
+        }
+        termsArray.append("]");
+
         // The HLTB API expects a specific JSON structure
         return String.format("""
             {
                 "searchType": "games",
-                "searchTerms": ["%s"],
+                "searchTerms": %s,
                 "searchPage": 1,
                 "size": 20,
                 "searchOptions": {
@@ -90,19 +100,17 @@ public class HltbApiClient {
                         "platform": "",
                         "sortCategory": "popular",
                         "rangeCategory": "main",
-                        "rangeTime": {"min": null, "max": null},
+                        "rangeTime": {"min": 0, "max": 0},
                         "gameplay": {"perspective": "", "flow": "", "genre": ""},
-                        "rangeYear": {"min": "", "max": ""},
                         "modifier": ""
                     },
                     "users": {"sortCategory": "postcount"},
-                    "lists": {"sortCategory": "follows"},
                     "filter": "",
                     "sort": 0,
                     "randomizer": 0
                 }
             }
-            """, escapeJson(gameName));
+            """, termsArray.toString());
     }
 
     /**
@@ -119,7 +127,7 @@ public class HltbApiClient {
 
     /**
      * Find the best matching game from search results.
-     * Uses fuzzy matching to find the closest match to the search term.
+     * Uses fuzzy matching with Levenshtein distance to find the closest match.
      *
      * @param searchResults The search results from HLTB
      * @param gameName      The game name we're looking for
@@ -131,27 +139,45 @@ public class HltbApiClient {
         }
 
         String normalizedSearchName = normalize(gameName);
+        HltbSearchResponse.HltbGame bestMatch = null;
+        double bestSimilarity = 0;
 
-        // First, try exact match (case-insensitive)
-        for (HltbSearchResponse.HltbGame game : searchResults.data()) {
-            if (normalize(game.gameName()).equals(normalizedSearchName)) {
-                return Optional.of(game);
-            }
-        }
-
-        // Then, try contains match
         for (HltbSearchResponse.HltbGame game : searchResults.data()) {
             String normalizedGameName = normalize(game.gameName());
+
+            // Exact match is always best
+            if (normalizedGameName.equals(normalizedSearchName)) {
+                logger.debug("Found exact match for '{}': {}", gameName, game.gameName());
+                return Optional.of(game);
+            }
+
+            // Calculate similarity using Levenshtein distance
+            double similarity = calculateLevenshteinSimilarity(normalizedSearchName, normalizedGameName);
+
+            // Also check if one contains the other (boost similarity)
             if (normalizedGameName.contains(normalizedSearchName) ||
                 normalizedSearchName.contains(normalizedGameName)) {
-                return Optional.of(game);
+                similarity = Math.max(similarity, 0.85);
+            }
+
+            if (similarity > bestSimilarity) {
+                bestSimilarity = similarity;
+                bestMatch = game;
             }
         }
 
-        // Finally, return first result if it looks similar enough
-        HltbSearchResponse.HltbGame firstResult = searchResults.data().get(0);
-        double similarity = calculateSimilarity(normalizedSearchName, normalize(firstResult.gameName()));
-        if (similarity > 0.6) {
+        // Accept match if similarity is above threshold
+        if (bestMatch != null && bestSimilarity >= 0.5) {
+            logger.debug("Best match for '{}': '{}' (similarity: {})",
+                    gameName, bestMatch.gameName(), String.format("%.2f", bestSimilarity));
+            return Optional.of(bestMatch);
+        }
+
+        // Fall back to first result if we have results but low similarity
+        // HLTB search is usually good at returning relevant results first
+        if (!searchResults.data().isEmpty()) {
+            HltbSearchResponse.HltbGame firstResult = searchResults.data().get(0);
+            logger.debug("Using first HLTB result for '{}': '{}'", gameName, firstResult.gameName());
             return Optional.of(firstResult);
         }
 
@@ -162,6 +188,7 @@ public class HltbApiClient {
      * Normalize a string for comparison (lowercase, remove special chars).
      */
     private String normalize(String text) {
+        if (text == null) return "";
         return text.toLowerCase()
                 .replaceAll("[^a-z0-9\\s]", "")
                 .replaceAll("\\s+", " ")
@@ -169,22 +196,41 @@ public class HltbApiClient {
     }
 
     /**
-     * Calculate similarity between two strings using Jaccard index on words.
+     * Calculate similarity between two strings using Levenshtein distance.
+     * Returns a value between 0 and 1, where 1 is identical.
      */
-    private double calculateSimilarity(String s1, String s2) {
-        String[] words1 = s1.split("\\s+");
-        String[] words2 = s2.split("\\s+");
+    private double calculateLevenshteinSimilarity(String s1, String s2) {
+        if (s1.equals(s2)) return 1.0;
+        if (s1.isEmpty() || s2.isEmpty()) return 0.0;
 
-        java.util.Set<String> set1 = new java.util.HashSet<>(java.util.Arrays.asList(words1));
-        java.util.Set<String> set2 = new java.util.HashSet<>(java.util.Arrays.asList(words2));
+        int distance = levenshteinDistance(s1, s2);
+        int maxLength = Math.max(s1.length(), s2.length());
+        return 1.0 - ((double) distance / maxLength);
+    }
 
-        java.util.Set<String> intersection = new java.util.HashSet<>(set1);
-        intersection.retainAll(set2);
+    /**
+     * Calculate Levenshtein (edit) distance between two strings.
+     */
+    private int levenshteinDistance(String s1, String s2) {
+        int[][] dp = new int[s1.length() + 1][s2.length() + 1];
 
-        java.util.Set<String> union = new java.util.HashSet<>(set1);
-        union.addAll(set2);
+        for (int i = 0; i <= s1.length(); i++) {
+            dp[i][0] = i;
+        }
+        for (int j = 0; j <= s2.length(); j++) {
+            dp[0][j] = j;
+        }
 
-        if (union.isEmpty()) return 0;
-        return (double) intersection.size() / union.size();
+        for (int i = 1; i <= s1.length(); i++) {
+            for (int j = 1; j <= s2.length(); j++) {
+                int cost = (s1.charAt(i - 1) == s2.charAt(j - 1)) ? 0 : 1;
+                dp[i][j] = Math.min(
+                        Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1),
+                        dp[i - 1][j - 1] + cost
+                );
+            }
+        }
+
+        return dp[s1.length()][s2.length()];
     }
 }
