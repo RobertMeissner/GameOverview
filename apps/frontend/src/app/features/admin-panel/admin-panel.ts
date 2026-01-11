@@ -73,6 +73,9 @@ export class AdminPanel implements OnInit {
   rescrapeAllTotal = signal(0);
   rescrapeAllSuccessCount = signal(0);
   rescrapeAllFailCount = signal(0);
+  rescrapeAllStartTime = signal<number | null>(null);
+  rescrapeAllElapsedSeconds = signal(0);
+  private rescrapeAllTimerInterval: ReturnType<typeof setInterval> | null = null;
 
   filteredAndSortedGames = computed(() => {
     const allGames = this.games();
@@ -122,6 +125,27 @@ export class AdminPanel implements OnInit {
   totalItems = computed(() => this.filteredAndSortedGames().length);
   startItem = computed(() => this.currentPage() * this.pageSize() + 1);
   endItem = computed(() => Math.min((this.currentPage() + 1) * this.pageSize(), this.totalItems()));
+
+  // Time tracking for rescrape all
+  formattedElapsedTime = computed(() => this.formatTime(this.rescrapeAllElapsedSeconds()));
+
+  estimatedRemainingSeconds = computed(() => {
+    const progress = this.rescrapeAllProgress();
+    const total = this.rescrapeAllTotal();
+    const elapsed = this.rescrapeAllElapsedSeconds();
+
+    if (progress === 0 || elapsed === 0) return null;
+
+    const avgTimePerGame = elapsed / progress;
+    const remaining = total - progress;
+    return Math.round(avgTimePerGame * remaining);
+  });
+
+  formattedRemainingTime = computed(() => {
+    const remaining = this.estimatedRemainingSeconds();
+    if (remaining === null) return null;
+    return this.formatTime(remaining);
+  });
 
   setSortField(field: SortField): void {
     if (this.sortField() === field) {
@@ -349,6 +373,7 @@ export class AdminPanel implements OnInit {
     this.rescrapeAllTotal.set(gamesToRescrape.length);
     this.rescrapeAllSuccessCount.set(0);
     this.rescrapeAllFailCount.set(0);
+    this.startRescrapeAllTimer();
 
     // Process games sequentially to avoid overwhelming the API
     this.processNextGame(gamesToRescrape, 0);
@@ -357,6 +382,7 @@ export class AdminPanel implements OnInit {
   private processNextGame(games: AdminGameEntry[], index: number): void {
     if (index >= games.length || !this.rescrapeAllInProgress()) {
       this.rescrapeAllInProgress.set(false);
+      this.stopRescrapeAllTimer();
       // Reload games to get updated data
       this.loadGames();
       return;
@@ -386,5 +412,38 @@ export class AdminPanel implements OnInit {
 
   cancelRescrapeAll(): void {
     this.rescrapeAllInProgress.set(false);
+    this.stopRescrapeAllTimer();
+  }
+
+  private startRescrapeAllTimer(): void {
+    this.rescrapeAllStartTime.set(Date.now());
+    this.rescrapeAllElapsedSeconds.set(0);
+    this.rescrapeAllTimerInterval = setInterval(() => {
+      const startTime = this.rescrapeAllStartTime();
+      if (startTime) {
+        this.rescrapeAllElapsedSeconds.set(Math.floor((Date.now() - startTime) / 1000));
+      }
+    }, 1000);
+  }
+
+  private stopRescrapeAllTimer(): void {
+    if (this.rescrapeAllTimerInterval) {
+      clearInterval(this.rescrapeAllTimerInterval);
+      this.rescrapeAllTimerInterval = null;
+    }
+  }
+
+  private formatTime(seconds: number): string {
+    if (seconds < 60) {
+      return `${seconds}s`;
+    }
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    if (minutes < 60) {
+      return `${minutes}m ${remainingSeconds}s`;
+    }
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return `${hours}h ${remainingMinutes}m`;
   }
 }

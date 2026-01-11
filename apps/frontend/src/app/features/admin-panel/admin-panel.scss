@@ -504,6 +504,22 @@ tbody tr.name-mismatch .col-thumbnail, tbody tr.name-mismatch .col-name { backgr
   padding: 1rem 0;
 }
 
+.time-stats {
+  padding: 0.75rem 1rem;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+
+  i {
+    color: var(--electric-violet);
+  }
+
+  strong {
+    color: var(--text-primary);
+  }
+}
+
 // Pagination Styles
 .pagination-container {
   display: flex;
