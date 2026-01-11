@@ -60,4 +60,16 @@ export class TopGames implements OnInit {
   getEpicSearchUrl(gameName: string): string {
     return `https://store.epicgames.com/browse?q=${encodeURIComponent(gameName)}`;
   }
+
+  getHltbSearchUrl(gameName: string): string {
+    return `https://howlongtobeat.com/?q=${encodeURIComponent(gameName)}`;
+  }
+
+  formatPlaytime(hours: number | null | undefined): string {
+    if (hours === null || hours === undefined) return '?h';
+    if (hours < 1) {
+      return `${Math.round(hours * 60)}m`;
+    }
+    return `${Math.round(hours * 10) / 10}h`;
+  }
 }

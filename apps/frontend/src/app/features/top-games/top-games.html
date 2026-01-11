@@ -59,6 +59,18 @@
                 }
               </a>
             }
+            @if (game.storeLinks?.hltbLink) {
+              <a [href]="game.storeLinks.hltbLink" target="_blank" class="store-badge hltb" title="View on HowLongToBeat">
+                <span class="hltb-icon">HLTB</span>
+                @if (game.storeLinks.hltbMainHours) {
+                  <span class="store-rating">{{ formatPlaytime(game.storeLinks.hltbMainHours) }}</span>
+                }
+              </a>
+            } @else {
+              <a [href]="getHltbSearchUrl(game.name)" target="_blank" class="store-badge hltb" title="Search on HowLongToBeat">
+                <span class="hltb-icon">HLTB</span>
+              </a>
+            }
           </div>
 
           <div class="game-flags">

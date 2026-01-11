@@ -307,6 +307,23 @@
       background: linear-gradient(135deg, #ffd54f 0%, #ffcc34 100%);
     }
   }
+
+  // HLTB badge - blue
+  &.hltb {
+    background: linear-gradient(135deg, #4a90d9 0%, #2a6bb3 100%);
+    color: white;
+
+    .hltb-icon {
+      font-family: "Inter Tight", sans-serif;
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.03rem;
+    }
+
+    &:hover {
+      background: linear-gradient(135deg, #5aa0e9 0%, #3a7bc3 100%);
+    }
+  }
 }
 
 .store-rating {
