@@ -115,6 +115,42 @@
   }
 }
 
+// Sort toggle
+.sort-toggle {
+  display: flex;
+  gap: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid oklch(85% 0.01 300);
+
+  .sort-btn {
+    flex: 1;
+    padding: 0.5rem 1rem;
+    border: none;
+    background: white;
+    font-family: "Inter Tight", sans-serif;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: oklch(55% 0.02 260);
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:not(:last-child) {
+      border-right: 1px solid oklch(85% 0.01 300);
+    }
+
+    &:hover:not(.active) {
+      background: oklch(97% 0.01 300);
+    }
+
+    &.active {
+      background: var(--red-to-pink-to-purple-horizontal-gradient);
+      color: white;
+      font-weight: 600;
+    }
+  }
+}
+
 // Games count
 .games-count {
   font-size: 0.875rem;

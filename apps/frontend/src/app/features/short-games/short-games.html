@@ -36,6 +36,26 @@
         <span class="filter-value">{{ minRating() }}%</span>
       </div>
     </div>
+
+    <div class="filter-group">
+      <label for="sortBy">Sort By</label>
+      <div class="sort-toggle">
+        <button
+          type="button"
+          class="sort-btn"
+          [class.active]="sortBy() === 'rating'"
+          (click)="sortBy.set('rating'); onSortChange()">
+          Rating
+        </button>
+        <button
+          type="button"
+          class="sort-btn"
+          [class.active]="sortBy() === 'playtime'"
+          (click)="sortBy.set('playtime'); onSortChange()">
+          Playtime
+        </button>
+      </div>
+    </div>
   </div>
 
   @if (loading()) {

@@ -19,6 +19,7 @@ export class ShortGames implements OnInit {
   // Filter settings with defaults
   maxHours = signal(5);
   minRating = signal(80);
+  sortBy = signal<'rating' | 'playtime'>('rating');
 
   ngOnInit(): void {
     this.loadGames();
@@ -28,7 +29,7 @@ export class ShortGames implements OnInit {
     this.loading.set(true);
     this.gamesService.getShortGoodGames(this.maxHours(), this.minRating()).subscribe({
       next: games => {
-        this.games.set(games);
+        this.games.set(this.sortGames(games));
         this.loading.set(false);
       },
       error: err => {
@@ -40,6 +41,22 @@ export class ShortGames implements OnInit {
 
   onFilterChange(): void {
     this.loadGames();
+  }
+
+  onSortChange(): void {
+    this.games.update(games => this.sortGames([...games]));
+  }
+
+  private sortGames(games: CollectionEntry[]): CollectionEntry[] {
+    if (this.sortBy() === 'playtime') {
+      return games.sort((a, b) => {
+        const aHours = a.storeLinks?.hltbMainHours ?? Infinity;
+        const bHours = b.storeLinks?.hltbMainHours ?? Infinity;
+        return aHours - bHours; // Shortest first
+      });
+    } else {
+      return games.sort((a, b) => b.rating - a.rating); // Highest rating first
+    }
   }
 
   onFlagChange(game: CollectionEntry): void {
