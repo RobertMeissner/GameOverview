@@ -109,8 +109,11 @@
           </div>
           @if (game.genres && game.genres.length > 0) {
             <div class="game-genres">
-              @for (genre of game.genres; track genre) {
+              @for (genre of game.genres.slice(0, 6); track genre) {
                 <span class="genre-tag" (click)="toggleGenre(genre)" [class.active]="isGenreSelected(genre)">{{ genre }}</span>
+              }
+              @if (game.genres.length > 6) {
+                <span class="genre-tag more-tag" [title]="game.genres.slice(6).join(', ')">+{{ game.genres.length - 6 }}</span>
               }
             </div>
           }

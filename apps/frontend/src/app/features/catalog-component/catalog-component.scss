@@ -269,6 +269,18 @@
     color: white;
     border-color: var(--electric-violet);
   }
+
+  &.more-tag {
+    background: var(--bg-hover);
+    color: var(--text-secondary);
+    font-weight: 600;
+    cursor: default;
+
+    &:hover {
+      background: var(--bg-hover);
+      border-color: transparent;
+    }
+  }
 }
 
 .store-links {
