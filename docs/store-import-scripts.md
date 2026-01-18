@@ -1,6 +1,88 @@
 # Game Store Import Scripts
 
-This document contains browser console scripts to export your game libraries from various stores. These scripts are based on reverse-engineered APIs - use at your own discretion.
+This document provides **automated and manual** methods to import your game libraries from various stores into GameOverview.
+
+## 🚀 Automated Methods (Recommended)
+
+### Method 1: Tampermonkey Userscript (One-Click Export)
+
+**The easiest way!** Install once, then just click a button on each store website.
+
+1. **Install Tampermonkey/Greasemonkey**
+   - Chrome/Edge: [Tampermonkey](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo)
+   - Firefox: [Tampermonkey](https://addons.mozilla.org/en-US/firefox/addon/tampermonkey/) or [Greasemonkey](https://addons.mozilla.org/en-US/firefox/addon/greasemonkey/)
+
+2. **Install the Userscript**
+   - Open `scripts/store-auto-export.user.js` from this repository
+   - Copy the entire file content
+   - Click the Tampermonkey icon → Create new script
+   - Paste the content and save (Ctrl+S)
+
+3. **Usage**
+   - Make sure GameOverview is running on `http://localhost:8080`
+   - Visit any supported store page while logged in:
+     - Epic: `https://www.epicgames.com/account/transactions`
+     - GOG: `https://www.gog.com/en/account`
+     - Steam: `https://steamcommunity.com/id/YOUR_ID/games/?tab=all`
+     - Steam Family: `https://store.steampowered.com/account/familymanagement?tab=library`
+   - Click the **"📤 Export to GameOverview"** button that appears
+   - Games are automatically imported!
+
+**Benefits:**
+- ✓ One-click export - no copy/paste needed
+- ✓ Automatically handles pagination
+- ✓ Direct import to GameOverview
+- ✓ Visual notifications for progress and results
+
+### Method 2: Python Automation Script (Command Line)
+
+**For power users and automation!** Fetch and import games automatically using your browser cookies.
+
+1. **Install Requirements**
+   ```bash
+   pip install requests browser-cookie3
+   ```
+
+2. **Usage**
+   ```bash
+   # Import from all stores (Epic + GOG, Steam requires API key)
+   python scripts/auto_import_stores.py --all
+
+   # Import only Epic Games
+   python scripts/auto_import_stores.py --epic
+
+   # Import only GOG
+   python scripts/auto_import_stores.py --gog
+
+   # Import Steam (requires API key - see below)
+   python scripts/auto_import_stores.py --steam YOUR_API_KEY YOUR_STEAM_ID_64
+
+   # Specify browser for cookies (default: auto-detect)
+   python scripts/auto_import_stores.py --browser chrome --all
+
+   # Custom API URL
+   python scripts/auto_import_stores.py --api-url http://localhost:8080 --all
+   ```
+
+3. **Get Steam API Key** (for Steam import)
+   - Visit: https://steamcommunity.com/dev/apikey
+   - Find your Steam ID 64: https://steamid.io/
+
+**Benefits:**
+- ✓ Fully automated - no browser needed
+- ✓ Can be scheduled (cron jobs, Task Scheduler)
+- ✓ Uses your existing browser login sessions
+- ✓ Batch import from multiple stores at once
+
+**Requirements:**
+- Must be logged into stores in your browser (Chrome or Firefox)
+- GameOverview must be running
+
+---
+
+## 📝 Manual Methods (Browser Console)
+
+If you prefer the traditional manual approach, or if the automated methods don't work, use these browser console scripts.
 
 All scripts output **JSONC format** with `name` and `appid` fields for better import compatibility:
 ```jsonc
