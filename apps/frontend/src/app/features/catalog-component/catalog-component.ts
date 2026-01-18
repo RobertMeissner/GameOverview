@@ -5,7 +5,7 @@ import {GamesService} from '../../services/games.service';
 import {ExportService} from '../../services/export.service';
 import {CollectionEntry} from '../../domain/entities/CollectionEntry';
 
-export type SortField = 'name' | 'rating';
+export type SortField = 'name' | 'rating' | 'playtime';
 export type SortDirection = 'asc' | 'desc';
 
 @Component({
@@ -76,6 +76,10 @@ export class CatalogComponent implements OnInit {
         comparison = a.name.localeCompare(b.name);
       } else if (field === 'rating') {
         comparison = a.rating - b.rating;
+      } else if (field === 'playtime') {
+        const aHours = a.storeLinks?.hltbMainHours ?? Infinity;
+        const bHours = b.storeLinks?.hltbMainHours ?? Infinity;
+        comparison = aHours - bHours;
       }
       return direction === 'asc' ? comparison : -comparison;
     });
@@ -92,7 +96,7 @@ export class CatalogComponent implements OnInit {
       this.sortDirection.update(dir => dir === 'asc' ? 'desc' : 'asc');
     } else {
       this.sortField.set(field);
-      // Default to descending for rating, ascending for name
+      // Default to descending for rating, ascending for name and playtime
       this.sortDirection.set(field === 'rating' ? 'desc' : 'asc');
     }
   }
@@ -142,6 +146,18 @@ export class CatalogComponent implements OnInit {
 
   getEpicSearchUrl(gameName: string): string {
     return `https://store.epicgames.com/browse?q=${encodeURIComponent(gameName)}`;
+  }
+
+  getHltbSearchUrl(gameName: string): string {
+    return `https://howlongtobeat.com/?q=${encodeURIComponent(gameName)}`;
+  }
+
+  formatPlaytime(hours: number | null | undefined): string {
+    if (hours === null || hours === undefined) return '?h';
+    if (hours < 1) {
+      return `${Math.round(hours * 60)}m`;
+    }
+    return `${Math.round(hours * 10) / 10}h`;
   }
 
   toggleGenre(genre: string): void {

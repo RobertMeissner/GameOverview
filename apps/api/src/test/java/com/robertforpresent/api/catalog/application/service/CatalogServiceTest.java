@@ -35,11 +35,14 @@ class CatalogServiceTest {
     @Mock
     private ThumbnailService thumbnailService;
 
+    @Mock
+    private GameEnrichmentService enrichmentService;
+
     private CatalogService service;
 
     @BeforeEach
     void setUp() {
-        service = new CatalogService(repository, collectionPort, scraperService, thumbnailService);
+        service = new CatalogService(repository, collectionPort, scraperService, thumbnailService, enrichmentService);
     }
 
     @Test

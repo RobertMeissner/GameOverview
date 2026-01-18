@@ -116,12 +116,39 @@ public class CanonicalGameEntity {
     @Column(name = "genres")
     private String genres;
 
+    // HLTB (HowLongToBeat) data
+    @Getter
+    @Setter
+    @Column(name = "hltb_id")
+    private Integer hltbId;
+
+    @Getter
+    @Setter
+    @Column(name = "hltb_name")
+    private String hltbName;
+
+    @Getter
+    @Setter
+    @Column(name = "hltb_main_hours")
+    private Double hltbMainHours;
+
+    @Getter
+    @Setter
+    @Column(name = "hltb_extra_hours")
+    private Double hltbExtraHours;
+
+    @Getter
+    @Setter
+    @Column(name = "hltb_completionist_hours")
+    private Double hltbCompletionistHours;
+
     public CanonicalGameEntity(String id, String name, SteamRatingEmbeddable steamRating, String thumbnailUrl,
                                Integer steamAppId, String steamName,
                                Long gogId, String gogName, String gogLink,
                                String epicId, String epicName, String epicLink,
                                Long igdbId, String igdbSlug,
                                Integer metacriticScore, String metacriticName, String metacriticLink,
+                               Integer hltbId, String hltbName, Double hltbMainHours, Double hltbExtraHours, Double hltbCompletionistHours,
                                String genres) {
         this.id = id;
         this.name = name;
@@ -140,8 +167,14 @@ public class CanonicalGameEntity {
         this.metacriticScore = metacriticScore;
         this.metacriticName = metacriticName;
         this.metacriticLink = metacriticLink;
+        this.hltbId = hltbId;
+        this.hltbName = hltbName;
+        this.hltbMainHours = hltbMainHours;
+        this.hltbExtraHours = hltbExtraHours;
+        this.hltbCompletionistHours = hltbCompletionistHours;
         this.genres = genres;
     }
 
-    public CanonicalGameEntity(){}
+    public CanonicalGameEntity() {
+    }
 }

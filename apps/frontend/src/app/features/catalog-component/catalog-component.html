@@ -46,6 +46,15 @@
                         [class.bi-fonts]="sortField() !== 'name'"></i>
           Name
         </button>
+        <button type="button"
+                class="sort-btn"
+                [class.active]="sortField() === 'playtime'"
+                (click)="setSortField('playtime')">
+          <i class="bi" [class.bi-sort-down]="sortField() === 'playtime' && sortDirection() === 'desc'"
+                        [class.bi-sort-up]="sortField() === 'playtime' && sortDirection() === 'asc'"
+                        [class.bi-clock]="sortField() !== 'playtime'"></i>
+          Playtime
+        </button>
       </div>
       <div class="export-buttons ms-auto">
         <button type="button"
@@ -100,8 +109,11 @@
           </div>
           @if (game.genres && game.genres.length > 0) {
             <div class="game-genres">
-              @for (genre of game.genres; track genre) {
+              @for (genre of game.genres.slice(0, 6); track genre) {
                 <span class="genre-tag" (click)="toggleGenre(genre)" [class.active]="isGenreSelected(genre)">{{ genre }}</span>
+              }
+              @if (game.genres.length > 6) {
+                <span class="genre-tag more-tag" [title]="game.genres.slice(6).join(', ')">+{{ game.genres.length - 6 }}</span>
               }
             </div>
           }
@@ -133,6 +145,21 @@
             @if (game.storeLinks?.metacriticLink) {
               <a [href]="game.storeLinks.metacriticLink" target="_blank" rel="noopener" class="store-link metacritic" title="View on Metacritic">
                 <span class="mc-icon">MC</span>
+                @if (game.storeLinks.metacriticScore) {
+                  <span class="store-rating">{{ game.storeLinks.metacriticScore }}</span>
+                }
+              </a>
+            }
+            @if (game.storeLinks?.hltbLink) {
+              <a [href]="game.storeLinks.hltbLink" target="_blank" rel="noopener" class="store-link hltb" title="View on HowLongToBeat">
+                <span class="hltb-icon">HLTB</span>
+                @if (game.storeLinks.hltbMainHours) {
+                  <span class="store-rating">{{ formatPlaytime(game.storeLinks.hltbMainHours) }}</span>
+                }
+              </a>
+            } @else {
+              <a [href]="getHltbSearchUrl(game.name)" target="_blank" rel="noopener" class="store-link hltb" title="Search on HowLongToBeat">
+                <span class="hltb-icon">HLTB</span>
               </a>
             }
           </div>

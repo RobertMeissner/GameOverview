@@ -1,0 +1,172 @@
+<section class="short-games-section">
+  <h2 class="section-title">Short & Good Games</h2>
+  <p class="section-subtitle">Games you can beat quickly with great ratings</p>
+
+  <div class="filters-container">
+    <div class="filter-group">
+      <label for="maxHours">Max Hours to Beat</label>
+      <div class="filter-input-wrapper">
+        <input
+          type="range"
+          id="maxHours"
+          [ngModel]="maxHours()"
+          (ngModelChange)="maxHours.set($event)"
+          (change)="onFilterChange()"
+          min="1"
+          max="20"
+          step="1"
+        />
+        <span class="filter-value">{{ maxHours() }}h</span>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <label for="minRating">Min Rating</label>
+      <div class="filter-input-wrapper">
+        <input
+          type="range"
+          id="minRating"
+          [ngModel]="minRating()"
+          (ngModelChange)="minRating.set($event)"
+          (change)="onFilterChange()"
+          min="50"
+          max="100"
+          step="5"
+        />
+        <span class="filter-value">{{ minRating() }}%</span>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <label for="sortBy">Sort By</label>
+      <div class="sort-toggle">
+        <button
+          type="button"
+          class="sort-btn"
+          [class.active]="sortBy() === 'rating'"
+          (click)="sortBy.set('rating'); onSortChange()">
+          Rating
+        </button>
+        <button
+          type="button"
+          class="sort-btn"
+          [class.active]="sortBy() === 'playtime'"
+          (click)="sortBy.set('playtime'); onSortChange()">
+          Playtime
+        </button>
+      </div>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-indicator">
+      <span class="spinner"></span>
+      <span>Loading games...</span>
+    </div>
+  } @else if (games().length === 0) {
+    <div class="empty-state">
+      <i class="bi bi-clock-history empty-icon"></i>
+      <h3>No Short Games Found</h3>
+      <p>No games match your criteria. Try adjusting the filters or enrich your games with HLTB data.</p>
+    </div>
+  } @else {
+    <div class="games-count">
+      Found {{ games().length }} game{{ games().length !== 1 ? 's' : '' }}
+    </div>
+
+    <div class="games-list">
+      @for (game of games(); track game.id ?? game.name; let idx = $index) {
+        <article class="game-card">
+          <div class="game-thumbnail">
+            <img [src]="game.thumbnailUrl"
+                 [alt]='game.name'
+                 loading="lazy"/>
+            <div class="playtime-badge">
+              <i class="bi bi-clock"></i>
+              {{ formatPlaytime(game.storeLinks?.hltbMainHours) }}
+            </div>
+          </div>
+
+          <div class="game-info">
+            <h3 class="game-title">{{ game.name }}</h3>
+
+            <div class="rating-container">
+              <div class="rating-bar">
+                <div class="rating-fill" [style.width.%]="game.rating"></div>
+              </div>
+              <span class="rating-score">{{ game.rating }}/100</span>
+            </div>
+
+            <div class="store-links">
+              @if (game.storeLinks?.steamLink || game.storeOwnership?.ownedOnSteam) {
+                <a [href]="game.storeLinks?.steamLink || getSteamSearchUrl(game.name)" target="_blank" class="store-badge steam" [class.owned]="game.storeOwnership?.ownedOnSteam" [title]="game.storeLinks?.steamLink ? 'View on Steam' : 'Search on Steam'">
+                  <i class="bi bi-steam"></i>
+                  @if (game.storeLinks?.steamRating) {
+                    <span class="store-rating">{{ game.storeLinks.steamRating | number:'1.0-0' }}%</span>
+                  }
+                  @if (game.storeOwnership?.ownedOnSteam) {
+                    <span class="owned-badge">&#10003;</span>
+                  }
+                </a>
+              }
+              @if (game.storeLinks?.gogLink || game.storeOwnership?.ownedOnGog) {
+                <a [href]="game.storeLinks?.gogLink || getGogSearchUrl(game.name)" target="_blank" class="store-badge gog" [class.owned]="game.storeOwnership?.ownedOnGog" [title]="game.storeLinks?.gogLink ? 'View on GOG' : 'Search on GOG'">
+                  <span class="gog-icon">GOG</span>
+                  @if (game.storeOwnership?.ownedOnGog) {
+                    <span class="owned-badge">&#10003;</span>
+                  }
+                </a>
+              }
+              @if (game.storeLinks?.epicLink || game.storeOwnership?.ownedOnEpic) {
+                <a [href]="game.storeLinks?.epicLink || getEpicSearchUrl(game.name)" target="_blank" class="store-badge epic" [class.owned]="game.storeOwnership?.ownedOnEpic" [title]="game.storeLinks?.epicLink ? 'View on Epic Games' : 'Search on Epic Games'">
+                  <span class="epic-icon">E</span>
+                  @if (game.storeOwnership?.ownedOnEpic) {
+                    <span class="owned-badge">&#10003;</span>
+                  }
+                </a>
+              }
+              @if (game.storeLinks?.metacriticLink) {
+                <a [href]="game.storeLinks.metacriticLink" target="_blank" class="store-badge metacritic" title="View on Metacritic">
+                  <span class="mc-icon">MC</span>
+                  @if (game.storeLinks.metacriticScore) {
+                    <span class="store-rating">{{ game.storeLinks.metacriticScore }}</span>
+                  }
+                </a>
+              }
+              @if (game.storeLinks?.hltbLink) {
+                <a [href]="game.storeLinks.hltbLink" target="_blank" class="store-badge hltb" title="View on HowLongToBeat">
+                  <span class="hltb-icon">HLTB</span>
+                  @if (game.storeLinks.hltbMainHours) {
+                    <span class="store-rating">{{ formatPlaytime(game.storeLinks.hltbMainHours) }}</span>
+                  }
+                </a>
+              } @else {
+                <a [href]="getHltbSearchUrl(game.name)" target="_blank" class="store-badge hltb" title="Search on HowLongToBeat">
+                  <span class="hltb-icon">HLTB</span>
+                </a>
+              }
+            </div>
+
+            <div class="game-flags">
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" [id]="'short-played-'+game.id" [(ngModel)]="game.markedAsPlayed"
+                       (ngModelChange)="onFlagChange(game)">
+                <label class="form-check-label" [for]="'short-played-'+game.id">Played</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" [id]="'short-hide-'+game.id" [(ngModel)]="game.markedAsHidden"
+                       (ngModelChange)="onFlagChange(game)">
+                <label class="form-check-label" [for]="'short-hide-'+game.id">Hide</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" [id]="'short-later-'+game.id" [(ngModel)]="game.markedForLater"
+                       (ngModelChange)="onFlagChange(game)">
+                <label class="form-check-label" [for]="'short-later-'+game.id">For Later</label>
+              </div>
+            </div>
+          </div>
+        </article>
+      }
+    </div>
+  }
+</section>

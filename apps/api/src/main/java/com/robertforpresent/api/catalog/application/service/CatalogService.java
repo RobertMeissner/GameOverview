@@ -30,16 +30,19 @@ public class CatalogService {
     private final GameCollectionPort collectionPort;
     private final GameScraperService scraperService;
     private final ThumbnailService thumbnailService;
+    private final GameEnrichmentService enrichmentService;
 
     public CatalogService(
             CanonicalGameRepository repository,
             GameCollectionPort collectionPort,
             GameScraperService scraperService,
-            ThumbnailService thumbnailService) {
+            ThumbnailService thumbnailService,
+            GameEnrichmentService enrichmentService) {
         this.repository = repository;
         this.collectionPort = collectionPort;
         this.scraperService = scraperService;
         this.thumbnailService = thumbnailService;
+        this.enrichmentService = enrichmentService;
     }
 
     public CanonicalGame get(UUID id) {
@@ -345,6 +348,7 @@ public class CatalogService {
                 .setGogData(newGogData)
                 .setEpicData(newEpicData)
                 .setMetacriticData(existing.getMetacriticData())
+                .setHltbData(existing.getHltbData())
                 .setIgdbId(igdbId)
                 .setIgdbSlug(igdbSlug)
                 .setGenres(genres)
@@ -356,6 +360,14 @@ public class CatalogService {
         if (info.coverUrl() != null && !info.coverUrl().equals(existing.getThumbnailUrl())) {
             thumbnailService.evict(gameId);
             log.debug("Evicted cached thumbnail for game {} to download new image", gameName);
+        }
+
+        // Enrich with external data (HLTB, etc.) after saving basic IGDB data
+        try {
+            enrichmentService.enrichGame(gameId);
+            log.debug("Completed enrichment for game {}", gameName);
+        } catch (Exception e) {
+            log.warn("Enrichment failed for game {}: {}", gameName, e.getMessage());
         }
 
         RescrapeResult.UpdatedFields fields = new RescrapeResult.UpdatedFields(

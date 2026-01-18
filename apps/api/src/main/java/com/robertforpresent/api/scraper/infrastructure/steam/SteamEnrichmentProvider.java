@@ -85,6 +85,15 @@ public class SteamEnrichmentProvider implements GameEnrichmentProvider {
         if (game.getMetacriticData() != null) {
             builder.setMetacriticData(game.getMetacriticData());
         }
+        if (game.getHltbData() != null) {
+            builder.setHltbData(game.getHltbData());
+        }
+        if (game.getIgdbId() != null) {
+            builder.setIgdbId(game.getIgdbId());
+        }
+        if (game.getIgdbSlug() != null) {
+            builder.setIgdbSlug(game.getIgdbSlug());
+        }
 
         // Build the enriched game
         CanonicalGame enrichedGame = builder.build();

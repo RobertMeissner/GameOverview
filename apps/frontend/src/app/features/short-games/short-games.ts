@@ -5,28 +5,58 @@ import {CollectionEntry} from '../../domain/entities/CollectionEntry';
 import {GamesService} from '../../services/games.service';
 
 @Component({
-  selector: 'app-top-games',
+  selector: 'app-short-games',
   imports: [FormsModule, DecimalPipe],
-  templateUrl: './top-games.html',
-  styleUrl: './top-games.scss',
+  templateUrl: './short-games.html',
+  styleUrl: './short-games.scss',
 })
-export class TopGames implements OnInit {
-  ngOnInit(): void {
-    this.topGames();
-  }
-
+export class ShortGames implements OnInit {
   private gamesService = inject(GamesService);
 
   games = signal<CollectionEntry[]>([]);
+  loading = signal(false);
 
-  protected topGames(): void {
-    this.gamesService.getTopGames().subscribe({
+  // Filter settings with defaults
+  maxHours = signal(5);
+  minRating = signal(80);
+  sortBy = signal<'rating' | 'playtime'>('rating');
+
+  ngOnInit(): void {
+    this.loadGames();
+  }
+
+  loadGames(): void {
+    this.loading.set(true);
+    this.gamesService.getShortGoodGames(this.maxHours(), this.minRating()).subscribe({
       next: games => {
-        this.games.set(games);
-      }, error: err => {
-        console.log(err)
+        this.games.set(this.sortGames(games));
+        this.loading.set(false);
+      },
+      error: err => {
+        console.error(err);
+        this.loading.set(false);
       }
     });
+  }
+
+  onFilterChange(): void {
+    this.loadGames();
+  }
+
+  onSortChange(): void {
+    this.games.update(games => this.sortGames([...games]));
+  }
+
+  private sortGames(games: CollectionEntry[]): CollectionEntry[] {
+    if (this.sortBy() === 'playtime') {
+      return games.sort((a, b) => {
+        const aHours = a.storeLinks?.hltbMainHours ?? Infinity;
+        const bHours = b.storeLinks?.hltbMainHours ?? Infinity;
+        return aHours - bHours; // Shortest first
+      });
+    } else {
+      return games.sort((a, b) => b.rating - a.rating); // Highest rating first
+    }
   }
 
   onFlagChange(game: CollectionEntry): void {
@@ -37,8 +67,10 @@ export class TopGames implements OnInit {
     };
     this.gamesService.updateGameFlags(game.id, updates).subscribe({
       next: () => {
-        // Refresh the top games list since flagged games may no longer qualify
-        this.topGames();
+        // Update local signal to trigger reactive updates
+        this.games.update(games => games.map(g =>
+          g.id === game.id ? {...g, ...updates} : g
+        ));
       },
       error: err => {
         console.error(err);
@@ -64,10 +96,12 @@ export class TopGames implements OnInit {
   }
 
   formatPlaytime(hours: number | null | undefined): string {
-    if (hours === null || hours === undefined) return '?h';
+    if (hours == null) return 'N/A';
     if (hours < 1) {
       return `${Math.round(hours * 60)}m`;
     }
-    return `${Math.round(hours * 10) / 10}h`;
+    const h = Math.floor(hours);
+    const m = Math.round((hours - h) * 60);
+    return m > 0 ? `${h}h ${m}m` : `${h}h`;
   }
 }
