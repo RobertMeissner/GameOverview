@@ -4,7 +4,7 @@ import {FormsModule} from '@angular/forms';
 import {GamesService} from '../../services/games.service';
 import {CollectionEntry} from '../../domain/entities/CollectionEntry';
 
-export type SortField = 'name' | 'rating';
+export type SortField = 'name' | 'rating' | 'playtime';
 export type SortDirection = 'asc' | 'desc';
 
 @Component({
@@ -24,24 +24,50 @@ export class Backlog implements OnInit {
 
   sortField = signal<SortField>('rating');
   sortDirection = signal<SortDirection>('desc');
+  selectedGenres = signal<string[]>([]);
 
-  sortedGames = computed(() => {
-    const allGames = [...this.games()];
+  // Compute all unique genres from games
+  availableGenres = computed(() => {
+    const allGenres = this.games().flatMap(game => game.genres || []);
+    return [...new Set(allGenres)].sort();
+  });
+
+  filteredAndSortedGames = computed(() => {
+    const allGames = this.games();
+    const genreFilter = this.selectedGenres();
     const field = this.sortField();
     const direction = this.sortDirection();
 
-    allGames.sort((a, b) => {
+    // Filter by genres (AND logic - game must have ALL selected genres)
+    let filtered: CollectionEntry[];
+    if (genreFilter.length > 0) {
+      filtered = allGames.filter(game =>
+        genreFilter.every(genre => (game.genres || []).includes(genre))
+      );
+    } else {
+      filtered = [...allGames];
+    }
+
+    // Sort games
+    filtered.sort((a, b) => {
       let comparison = 0;
       if (field === 'name') {
         comparison = a.name.localeCompare(b.name);
       } else if (field === 'rating') {
         comparison = a.rating - b.rating;
+      } else if (field === 'playtime') {
+        const aHours = a.storeLinks?.hltbMainHours ?? Infinity;
+        const bHours = b.storeLinks?.hltbMainHours ?? Infinity;
+        comparison = aHours - bHours;
       }
       return direction === 'asc' ? comparison : -comparison;
     });
 
-    return allGames;
+    return filtered;
   });
+
+  // Keep old name for backwards compatibility
+  sortedGames = this.filteredAndSortedGames;
 
   setSortField(field: SortField): void {
     if (this.sortField() === field) {
@@ -98,5 +124,35 @@ export class Backlog implements OnInit {
 
   getEpicSearchUrl(gameName: string): string {
     return `https://store.epicgames.com/browse?q=${encodeURIComponent(gameName)}`;
+  }
+
+  getHltbSearchUrl(gameName: string): string {
+    return `https://howlongtobeat.com/?q=${encodeURIComponent(gameName)}`;
+  }
+
+  formatPlaytime(hours: number | null | undefined): string {
+    if (hours === null || hours === undefined) return '?h';
+    if (hours < 1) {
+      return `${Math.round(hours * 60)}m`;
+    }
+    return `${Math.round(hours * 10) / 10}h`;
+  }
+
+  toggleGenre(genre: string): void {
+    this.selectedGenres.update(genres => {
+      if (genres.includes(genre)) {
+        return genres.filter(g => g !== genre);
+      } else {
+        return [...genres, genre];
+      }
+    });
+  }
+
+  isGenreSelected(genre: string): boolean {
+    return this.selectedGenres().includes(genre);
+  }
+
+  clearGenreFilter(): void {
+    this.selectedGenres.set([]);
   }
 }
