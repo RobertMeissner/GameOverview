@@ -12,6 +12,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Client for interacting with the HowLongToBeat API.
@@ -20,37 +22,141 @@ import java.util.Optional;
 @Component
 public class HltbApiClient {
     private static final Logger logger = LoggerFactory.getLogger(HltbApiClient.class);
-    private static final String HLTB_SEARCH_URL = "https://howlongtobeat.com/api/s/";
-    private static final String HLTB_INIT_URL = "https://howlongtobeat.com/api/search/init";
+    private static final String HLTB_BASE_URL = "https://howlongtobeat.com";
     private static final String HLTB_REFERER = "https://howlongtobeat.com";
+    // Pattern to find the search API key in HLTB's JavaScript
+    // The key is a hex string used in the search endpoint
+    private static final Pattern API_KEY_PATTERN = Pattern.compile(
+            "\"([a-f0-9]{16})\"",
+            Pattern.CASE_INSENSITIVE
+    );
+    // Known fallback API key (changes periodically)
+    private static final String FALLBACK_API_KEY = "d4b2e330db04dbf3";
 
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
 
-    // Cached auth token
+    // Cached search endpoint and token
+    private volatile String searchEndpoint;
     private volatile String authToken;
-    private volatile long tokenFetchTime;
-    private static final long TOKEN_EXPIRY_MS = 30 * 60 * 1000; // 30 minutes
+    private volatile long cacheTime;
+    private static final long CACHE_EXPIRY_MS = 60 * 60 * 1000; // 1 hour
 
     public HltbApiClient() {
         this.objectMapper = new ObjectMapper();
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(10))
+                .followRedirects(HttpClient.Redirect.NORMAL)
                 .build();
     }
 
     /**
-     * Fetch authentication token from HLTB init endpoint.
-     * This token is required for search requests.
+     * Fetch the dynamic search endpoint from HLTB's JavaScript.
+     * HLTB embeds a hash/key in their API endpoint that changes periodically.
+     */
+    private String fetchSearchEndpoint() {
+        // Return cached endpoint if still valid
+        if (searchEndpoint != null && (System.currentTimeMillis() - cacheTime) < CACHE_EXPIRY_MS) {
+            return searchEndpoint;
+        }
+
+        String apiKey = null;
+
+        try {
+            // Fetch the main page to find script references
+            HttpRequest pageRequest = HttpRequest.newBuilder()
+                    .uri(URI.create(HLTB_BASE_URL))
+                    .timeout(Duration.ofSeconds(15))
+                    .header("Accept", "text/html,application/xhtml+xml")
+                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+                    .GET()
+                    .build();
+
+            HttpResponse<String> pageResponse = httpClient.send(pageRequest, HttpResponse.BodyHandlers.ofString());
+
+            if (pageResponse.statusCode() == 200) {
+                String html = pageResponse.body();
+
+                // Look for _app JavaScript files that contain the API key
+                Pattern scriptPattern = Pattern.compile("/_next/static/chunks/pages/_app-([a-f0-9]+)\\.js");
+                Matcher scriptMatcher = scriptPattern.matcher(html);
+
+                if (scriptMatcher.find()) {
+                    String scriptUrl = HLTB_BASE_URL + scriptMatcher.group(0);
+                    logger.debug("Found HLTB app script: {}", scriptUrl);
+
+                    HttpRequest scriptRequest = HttpRequest.newBuilder()
+                            .uri(URI.create(scriptUrl))
+                            .timeout(Duration.ofSeconds(15))
+                            .header("Accept", "*/*")
+                            .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+                            .header("Referer", HLTB_REFERER)
+                            .GET()
+                            .build();
+
+                    HttpResponse<String> scriptResponse = httpClient.send(scriptRequest, HttpResponse.BodyHandlers.ofString());
+
+                    if (scriptResponse.statusCode() == 200) {
+                        String js = scriptResponse.body();
+
+                        // Look for the API key pattern - a 16-char hex string near "api/s" or fetch calls
+                        // The key appears in patterns like: "/api/s/"+"{key}" or concat("/api/s/", key)
+                        Pattern apiPattern = Pattern.compile("/api/s/[\"']?\\s*\\+\\s*[\"']?([a-f0-9]{16})[\"']?", Pattern.CASE_INSENSITIVE);
+                        Matcher apiMatcher = apiPattern.matcher(js);
+                        if (apiMatcher.find()) {
+                            apiKey = apiMatcher.group(1);
+                            logger.info("Found HLTB API key from concat pattern: {}", apiKey);
+                        }
+
+                        // Also try finding standalone hex strings that could be the key
+                        if (apiKey == null) {
+                            Matcher keyMatcher = API_KEY_PATTERN.matcher(js);
+                            while (keyMatcher.find()) {
+                                String candidate = keyMatcher.group(1);
+                                // Check if this appears near "api" or "search" context
+                                int pos = keyMatcher.start();
+                                int contextStart = Math.max(0, pos - 50);
+                                int contextEnd = Math.min(js.length(), pos + 50);
+                                String context = js.substring(contextStart, contextEnd).toLowerCase();
+                                if (context.contains("api") || context.contains("search") || context.contains("fetch")) {
+                                    apiKey = candidate;
+                                    logger.info("Found HLTB API key from context: {}", apiKey);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Error fetching HLTB search endpoint", e);
+        }
+
+        // Use extracted key or fallback
+        if (apiKey == null) {
+            apiKey = FALLBACK_API_KEY;
+            logger.info("Using fallback HLTB API key: {}", apiKey);
+        }
+
+        searchEndpoint = HLTB_BASE_URL + "/api/s/" + apiKey;
+        cacheTime = System.currentTimeMillis();
+        logger.info("HLTB search endpoint: {}", searchEndpoint);
+        return searchEndpoint;
+    }
+
+    /**
+     * Fetch authentication token from HLTB.
+     * The token may be embedded in the page or returned from an init endpoint.
      */
     private String fetchAuthToken() {
         // Return cached token if still valid
-        if (authToken != null && (System.currentTimeMillis() - tokenFetchTime) < TOKEN_EXPIRY_MS) {
+        if (authToken != null && (System.currentTimeMillis() - cacheTime) < CACHE_EXPIRY_MS) {
             return authToken;
         }
 
         try {
-            String initUrl = HLTB_INIT_URL + "?_=" + System.currentTimeMillis();
+            // Try the init endpoint first
+            String initUrl = HLTB_BASE_URL + "/api/search/init?_=" + System.currentTimeMillis();
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(initUrl))
                     .timeout(Duration.ofSeconds(10))
@@ -64,18 +170,16 @@ public class HltbApiClient {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() == 200) {
-                // Parse the token from JSON response
                 var jsonNode = objectMapper.readTree(response.body());
                 if (jsonNode.has("token")) {
                     authToken = jsonNode.get("token").asText();
-                    tokenFetchTime = System.currentTimeMillis();
                     logger.info("Successfully fetched HLTB auth token");
                     return authToken;
                 }
             }
-            logger.warn("Failed to fetch HLTB auth token: status={}, body={}", response.statusCode(), response.body());
+            logger.debug("HLTB init endpoint did not return token: status={}", response.statusCode());
         } catch (Exception e) {
-            logger.error("Error fetching HLTB auth token", e);
+            logger.debug("Could not fetch HLTB auth token from init endpoint", e);
         }
         return null;
     }
@@ -88,17 +192,17 @@ public class HltbApiClient {
      */
     public Optional<HltbSearchResponse> searchGame(String gameName) {
         try {
-            // Fetch auth token first
+            // Fetch dynamic search endpoint
+            String endpoint = fetchSearchEndpoint();
+
+            // Fetch auth token
             String token = fetchAuthToken();
-            if (token == null) {
-                logger.warn("Could not fetch HLTB auth token, search may fail");
-            }
 
             // Build the search request body
             String requestBody = buildSearchRequestBody(gameName);
 
             HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
-                    .uri(URI.create(HLTB_SEARCH_URL))
+                    .uri(URI.create(endpoint))
                     .timeout(Duration.ofSeconds(30))
                     .header("Content-Type", "application/json")
                     .header("Accept", "*/*")
@@ -115,7 +219,7 @@ public class HltbApiClient {
                     .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                     .build();
 
-            logger.debug("Searching HLTB for game: {}", gameName);
+            logger.debug("Searching HLTB for game: {} at endpoint: {}", gameName, endpoint);
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() == 200) {
@@ -123,33 +227,41 @@ public class HltbApiClient {
                 int resultCount = searchResponse.data() != null ? searchResponse.data().size() : 0;
                 logger.info("HLTB search for '{}' returned {} results", gameName, resultCount);
                 return Optional.of(searchResponse);
-            } else if (response.statusCode() == 403) {
-                // Token might be expired, clear it and retry once
-                logger.warn("HLTB returned 403, clearing token and retrying");
+            } else if (response.statusCode() == 403 || response.statusCode() == 308) {
+                // Endpoint or token might be stale, clear cache and retry once
+                logger.warn("HLTB returned {}, clearing cache and retrying", response.statusCode());
+                searchEndpoint = null;
                 authToken = null;
-                token = fetchAuthToken();
-                if (token != null) {
-                    HttpRequest retryRequest = HttpRequest.newBuilder()
-                            .uri(URI.create(HLTB_SEARCH_URL))
-                            .timeout(Duration.ofSeconds(30))
-                            .header("Content-Type", "application/json")
-                            .header("Accept", "*/*")
-                            .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-                            .header("Referer", HLTB_REFERER)
-                            .header("Origin", HLTB_REFERER)
-                            .header("x-auth-token", token)
-                            .POST(HttpRequest.BodyPublishers.ofString(requestBody))
-                            .build();
+                cacheTime = 0;
 
-                    HttpResponse<String> retryResponse = httpClient.send(retryRequest, HttpResponse.BodyHandlers.ofString());
-                    if (retryResponse.statusCode() == 200) {
-                        HltbSearchResponse searchResponse = objectMapper.readValue(retryResponse.body(), HltbSearchResponse.class);
-                        int resultCount = searchResponse.data() != null ? searchResponse.data().size() : 0;
-                        logger.info("HLTB search for '{}' returned {} results (after retry)", gameName, resultCount);
-                        return Optional.of(searchResponse);
-                    }
+                endpoint = fetchSearchEndpoint();
+                token = fetchAuthToken();
+
+                HttpRequest.Builder retryBuilder = HttpRequest.newBuilder()
+                        .uri(URI.create(endpoint))
+                        .timeout(Duration.ofSeconds(30))
+                        .header("Content-Type", "application/json")
+                        .header("Accept", "*/*")
+                        .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+                        .header("Referer", HLTB_REFERER)
+                        .header("Origin", HLTB_REFERER);
+
+                if (token != null) {
+                    retryBuilder.header("x-auth-token", token);
                 }
-                logger.warn("HLTB search failed with status {}: {}", response.statusCode(), response.body());
+
+                HttpRequest retryRequest = retryBuilder
+                        .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                        .build();
+
+                HttpResponse<String> retryResponse = httpClient.send(retryRequest, HttpResponse.BodyHandlers.ofString());
+                if (retryResponse.statusCode() == 200) {
+                    HltbSearchResponse searchResponse = objectMapper.readValue(retryResponse.body(), HltbSearchResponse.class);
+                    int resultCount = searchResponse.data() != null ? searchResponse.data().size() : 0;
+                    logger.info("HLTB search for '{}' returned {} results (after retry)", gameName, resultCount);
+                    return Optional.of(searchResponse);
+                }
+                logger.warn("HLTB search failed with status {}: {}", retryResponse.statusCode(), retryResponse.body());
                 return Optional.empty();
             } else {
                 logger.warn("HLTB search failed with status {}: {}", response.statusCode(), response.body());
