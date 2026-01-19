@@ -6,6 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Optional;
 
@@ -161,6 +162,54 @@ class HltbApiClientTest {
             assertTrue(result.isPresent());
             assertEquals("Portal 2", result.get().gameName());
         }
+
+        @Test
+        @DisplayName("handles games with subtitles")
+        void handlesGamesWithSubtitles() {
+            var game = createHltbGame(1, "Horizon Zero Dawn: Complete Edition", 40, 60, 80);
+            var response = new HltbSearchResponse(List.of(game));
+
+            var result = apiClient.findBestMatch(response, "Horizon Zero Dawn");
+
+            assertTrue(result.isPresent());
+            assertEquals("Horizon Zero Dawn: Complete Edition", result.get().gameName());
+        }
+
+        @Test
+        @DisplayName("handles games with ampersand")
+        void handlesGamesWithAmpersand() {
+            var game = createHltbGame(1, "Ratchet & Clank", 12, 18, 25);
+            var response = new HltbSearchResponse(List.of(game));
+
+            var result = apiClient.findBestMatch(response, "Ratchet and Clank");
+
+            assertTrue(result.isPresent());
+            assertEquals("Ratchet & Clank", result.get().gameName());
+        }
+
+        @Test
+        @DisplayName("handles empty search term")
+        void handlesEmptySearchTerm() {
+            var game = createHltbGame(1, "Test Game", 10, 20, 30);
+            var response = new HltbSearchResponse(List.of(game));
+
+            var result = apiClient.findBestMatch(response, "");
+
+            // Should return first result as fallback
+            assertTrue(result.isPresent());
+        }
+
+        @Test
+        @DisplayName("handles null game name in results")
+        void handlesNullGameName() {
+            var game = new HltbSearchResponse.HltbGame(1, null, null, 10, 20, 30, 0, 0, null);
+            var response = new HltbSearchResponse(List.of(game));
+
+            var result = apiClient.findBestMatch(response, "Test Game");
+
+            // Should still return result (fallback behavior)
+            assertTrue(result.isPresent());
+        }
     }
 
     @Nested
@@ -202,6 +251,271 @@ class HltbApiClientTest {
             assertEquals(0.0, game.mainStoryHours());
             assertEquals(0.0, game.mainExtraHours());
             assertEquals(0.0, game.completionistHours());
+        }
+
+        @Test
+        @DisplayName("handles large playtime values")
+        void handlesLargePlaytimeValues() {
+            // 360000 seconds = 100 hours
+            var game = createHltbGame(1, "Long RPG", 360000, 540000, 720000);
+
+            assertEquals(100.0, game.mainStoryHours(), 0.01);
+            assertEquals(150.0, game.mainExtraHours(), 0.01);
+            assertEquals(200.0, game.completionistHours(), 0.01);
+        }
+    }
+
+    @Nested
+    @DisplayName("buildSearchRequestBody()")
+    class BuildSearchRequestBodyTests {
+
+        @Test
+        @DisplayName("builds valid JSON for single word game name")
+        void buildsValidJson_singleWord() throws Exception {
+            String requestBody = invokeBuildSearchRequestBody("Hades");
+
+            assertTrue(requestBody.contains("\"searchTerms\": [\"Hades\"]"));
+            assertTrue(requestBody.contains("\"searchType\": \"games\""));
+            assertTrue(requestBody.contains("\"searchPage\": 1"));
+            assertTrue(requestBody.contains("\"size\": 20"));
+        }
+
+        @Test
+        @DisplayName("builds valid JSON for multi-word game name")
+        void buildsValidJson_multiWord() throws Exception {
+            String requestBody = invokeBuildSearchRequestBody("Dark Souls III");
+
+            assertTrue(requestBody.contains("\"searchTerms\": [\"Dark\", \"Souls\", \"III\"]"));
+        }
+
+        @Test
+        @DisplayName("escapes quotes in game name")
+        void escapesQuotes() throws Exception {
+            String requestBody = invokeBuildSearchRequestBody("Game \"With\" Quotes");
+
+            assertTrue(requestBody.contains("\\\"With\\\""));
+        }
+
+        @Test
+        @DisplayName("handles game name with extra whitespace")
+        void handlesExtraWhitespace() throws Exception {
+            String requestBody = invokeBuildSearchRequestBody("  Dark   Souls  ");
+
+            assertTrue(requestBody.contains("\"searchTerms\": [\"Dark\", \"Souls\"]"));
+        }
+
+        @Test
+        @DisplayName("includes required search options")
+        void includesRequiredSearchOptions() throws Exception {
+            String requestBody = invokeBuildSearchRequestBody("Test");
+
+            assertTrue(requestBody.contains("\"searchOptions\""));
+            assertTrue(requestBody.contains("\"games\""));
+            assertTrue(requestBody.contains("\"sortCategory\": \"popular\""));
+            assertTrue(requestBody.contains("\"rangeCategory\": \"main\""));
+        }
+
+        /**
+         * Helper to invoke the private buildSearchRequestBody method.
+         */
+        private String invokeBuildSearchRequestBody(String gameName) throws Exception {
+            Method method = HltbApiClient.class.getDeclaredMethod("buildSearchRequestBody", String.class);
+            method.setAccessible(true);
+            return (String) method.invoke(apiClient, gameName);
+        }
+    }
+
+    @Nested
+    @DisplayName("escapeJson()")
+    class EscapeJsonTests {
+
+        @Test
+        @DisplayName("escapes backslashes")
+        void escapesBackslashes() throws Exception {
+            String result = invokeEscapeJson("path\\to\\file");
+
+            assertEquals("path\\\\to\\\\file", result);
+        }
+
+        @Test
+        @DisplayName("escapes quotes")
+        void escapesQuotes() throws Exception {
+            String result = invokeEscapeJson("say \"hello\"");
+
+            assertEquals("say \\\"hello\\\"", result);
+        }
+
+        @Test
+        @DisplayName("escapes newlines")
+        void escapesNewlines() throws Exception {
+            String result = invokeEscapeJson("line1\nline2");
+
+            assertEquals("line1\\nline2", result);
+        }
+
+        @Test
+        @DisplayName("escapes carriage returns")
+        void escapesCarriageReturns() throws Exception {
+            String result = invokeEscapeJson("line1\rline2");
+
+            assertEquals("line1\\rline2", result);
+        }
+
+        @Test
+        @DisplayName("escapes tabs")
+        void escapesTabs() throws Exception {
+            String result = invokeEscapeJson("col1\tcol2");
+
+            assertEquals("col1\\tcol2", result);
+        }
+
+        @Test
+        @DisplayName("handles normal text unchanged")
+        void handlesNormalText() throws Exception {
+            String result = invokeEscapeJson("Normal Game Name 123");
+
+            assertEquals("Normal Game Name 123", result);
+        }
+
+        @Test
+        @DisplayName("handles empty string")
+        void handlesEmptyString() throws Exception {
+            String result = invokeEscapeJson("");
+
+            assertEquals("", result);
+        }
+
+        /**
+         * Helper to invoke the private escapeJson method.
+         */
+        private String invokeEscapeJson(String text) throws Exception {
+            Method method = HltbApiClient.class.getDeclaredMethod("escapeJson", String.class);
+            method.setAccessible(true);
+            return (String) method.invoke(apiClient, text);
+        }
+    }
+
+    @Nested
+    @DisplayName("Levenshtein similarity")
+    class LevenshteinSimilarityTests {
+
+        @Test
+        @DisplayName("returns 1.0 for identical strings")
+        void returnsOne_forIdenticalStrings() throws Exception {
+            double similarity = invokeCalculateSimilarity("test", "test");
+
+            assertEquals(1.0, similarity, 0.001);
+        }
+
+        @Test
+        @DisplayName("returns 0.0 for completely different strings")
+        void returnsLow_forDifferentStrings() throws Exception {
+            double similarity = invokeCalculateSimilarity("abc", "xyz");
+
+            assertTrue(similarity < 0.5);
+        }
+
+        @Test
+        @DisplayName("returns high similarity for similar strings")
+        void returnsHigh_forSimilarStrings() throws Exception {
+            double similarity = invokeCalculateSimilarity("dark souls", "dark soul");
+
+            assertTrue(similarity > 0.8);
+        }
+
+        @Test
+        @DisplayName("handles empty first string")
+        void handlesEmptyFirstString() throws Exception {
+            double similarity = invokeCalculateSimilarity("", "test");
+
+            assertEquals(0.0, similarity);
+        }
+
+        @Test
+        @DisplayName("handles empty second string")
+        void handlesEmptySecondString() throws Exception {
+            double similarity = invokeCalculateSimilarity("test", "");
+
+            assertEquals(0.0, similarity);
+        }
+
+        @Test
+        @DisplayName("handles both empty strings")
+        void handlesBothEmptyStrings() throws Exception {
+            double similarity = invokeCalculateSimilarity("", "");
+
+            assertEquals(1.0, similarity);
+        }
+
+        /**
+         * Helper to invoke the private calculateLevenshteinSimilarity method.
+         */
+        private double invokeCalculateSimilarity(String s1, String s2) throws Exception {
+            Method method = HltbApiClient.class.getDeclaredMethod("calculateLevenshteinSimilarity", String.class, String.class);
+            method.setAccessible(true);
+            return (double) method.invoke(apiClient, s1, s2);
+        }
+    }
+
+    @Nested
+    @DisplayName("normalize()")
+    class NormalizeTests {
+
+        @Test
+        @DisplayName("converts to lowercase")
+        void convertsToLowercase() throws Exception {
+            String result = invokeNormalize("UPPERCASE");
+
+            assertEquals("uppercase", result);
+        }
+
+        @Test
+        @DisplayName("removes special characters")
+        void removesSpecialCharacters() throws Exception {
+            String result = invokeNormalize("Game: The Sequel!");
+
+            assertEquals("game the sequel", result);
+        }
+
+        @Test
+        @DisplayName("normalizes multiple spaces")
+        void normalizesMultipleSpaces() throws Exception {
+            String result = invokeNormalize("Game    Name");
+
+            assertEquals("game name", result);
+        }
+
+        @Test
+        @DisplayName("trims whitespace")
+        void trimsWhitespace() throws Exception {
+            String result = invokeNormalize("  Game Name  ");
+
+            assertEquals("game name", result);
+        }
+
+        @Test
+        @DisplayName("keeps numbers")
+        void keepsNumbers() throws Exception {
+            String result = invokeNormalize("Portal 2");
+
+            assertEquals("portal 2", result);
+        }
+
+        @Test
+        @DisplayName("handles null")
+        void handlesNull() throws Exception {
+            String result = invokeNormalize(null);
+
+            assertEquals("", result);
+        }
+
+        /**
+         * Helper to invoke the private normalize method.
+         */
+        private String invokeNormalize(String text) throws Exception {
+            Method method = HltbApiClient.class.getDeclaredMethod("normalize", String.class);
+            method.setAccessible(true);
+            return (String) method.invoke(apiClient, text);
         }
     }
 
