@@ -24,14 +24,8 @@ public class HltbApiClient {
     private static final Logger logger = LoggerFactory.getLogger(HltbApiClient.class);
     private static final String HLTB_BASE_URL = "https://howlongtobeat.com";
     private static final String HLTB_REFERER = "https://howlongtobeat.com";
-    // Pattern to find the search API key in HLTB's JavaScript
-    // The key is a hex string used in the search endpoint
-    private static final Pattern API_KEY_PATTERN = Pattern.compile(
-            "\"([a-f0-9]{16})\"",
-            Pattern.CASE_INSENSITIVE
-    );
-    // Known fallback API key (changes periodically)
-    private static final String FALLBACK_API_KEY = "d4b2e330db04dbf3";
+    // Search endpoint - extracted dynamically or use fallback
+    private static final String FALLBACK_SEARCH_ENDPOINT = "/api/search";
 
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
@@ -52,15 +46,13 @@ public class HltbApiClient {
 
     /**
      * Fetch the dynamic search endpoint from HLTB's JavaScript.
-     * HLTB embeds a hash/key in their API endpoint that changes periodically.
+     * HLTB may change their API endpoint periodically.
      */
     private String fetchSearchEndpoint() {
         // Return cached endpoint if still valid
         if (searchEndpoint != null && (System.currentTimeMillis() - cacheTime) < CACHE_EXPIRY_MS) {
             return searchEndpoint;
         }
-
-        String apiKey = null;
 
         try {
             // Fetch the main page to find script references
@@ -77,7 +69,7 @@ public class HltbApiClient {
             if (pageResponse.statusCode() == 200) {
                 String html = pageResponse.body();
 
-                // Look for _app JavaScript files that contain the API key
+                // Look for _app JavaScript files
                 Pattern scriptPattern = Pattern.compile("/_next/static/chunks/pages/_app-([a-f0-9]+)\\.js");
                 Matcher scriptMatcher = scriptPattern.matcher(html);
 
@@ -99,48 +91,35 @@ public class HltbApiClient {
                     if (scriptResponse.statusCode() == 200) {
                         String js = scriptResponse.body();
 
-                        // Look for the API key pattern - a 16-char hex string near "api/s" or fetch calls
-                        // The key appears in patterns like: "/api/s/"+"{key}" or concat("/api/s/", key)
-                        Pattern apiPattern = Pattern.compile("/api/s/[\"']?\\s*\\+\\s*[\"']?([a-f0-9]{16})[\"']?", Pattern.CASE_INSENSITIVE);
-                        Matcher apiMatcher = apiPattern.matcher(js);
-                        if (apiMatcher.find()) {
-                            apiKey = apiMatcher.group(1);
-                            logger.info("Found HLTB API key from concat pattern: {}", apiKey);
-                        }
+                        // Look for fetch calls with POST method to find the search endpoint
+                        // Pattern: fetch("/api/something", { method: "POST" ...
+                        Pattern fetchPattern = Pattern.compile(
+                                "fetch\\s*\\(\\s*[\"'](/api/[a-zA-Z0-9_/]+)[\"']\\s*,\\s*\\{[^}]*method:\\s*[\"']POST[\"']",
+                                Pattern.CASE_INSENSITIVE | Pattern.DOTALL
+                        );
+                        Matcher fetchMatcher = fetchPattern.matcher(js);
 
-                        // Also try finding standalone hex strings that could be the key
-                        if (apiKey == null) {
-                            Matcher keyMatcher = API_KEY_PATTERN.matcher(js);
-                            while (keyMatcher.find()) {
-                                String candidate = keyMatcher.group(1);
-                                // Check if this appears near "api" or "search" context
-                                int pos = keyMatcher.start();
-                                int contextStart = Math.max(0, pos - 50);
-                                int contextEnd = Math.min(js.length(), pos + 50);
-                                String context = js.substring(contextStart, contextEnd).toLowerCase();
-                                if (context.contains("api") || context.contains("search") || context.contains("fetch")) {
-                                    apiKey = candidate;
-                                    logger.info("Found HLTB API key from context: {}", apiKey);
-                                    break;
-                                }
+                        while (fetchMatcher.find()) {
+                            String endpoint = fetchMatcher.group(1);
+                            // Skip find endpoints, we want search
+                            if (!endpoint.contains("find")) {
+                                searchEndpoint = HLTB_BASE_URL + endpoint;
+                                cacheTime = System.currentTimeMillis();
+                                logger.info("Found HLTB search endpoint from JS: {}", searchEndpoint);
+                                return searchEndpoint;
                             }
                         }
                     }
                 }
             }
         } catch (Exception e) {
-            logger.error("Error fetching HLTB search endpoint", e);
+            logger.warn("Error fetching HLTB search endpoint dynamically: {}", e.getMessage());
         }
 
-        // Use extracted key or fallback
-        if (apiKey == null) {
-            apiKey = FALLBACK_API_KEY;
-            logger.info("Using fallback HLTB API key: {}", apiKey);
-        }
-
-        searchEndpoint = HLTB_BASE_URL + "/api/s/" + apiKey;
+        // Use fallback
+        searchEndpoint = HLTB_BASE_URL + FALLBACK_SEARCH_ENDPOINT;
         cacheTime = System.currentTimeMillis();
-        logger.info("HLTB search endpoint: {}", searchEndpoint);
+        logger.info("Using fallback HLTB search endpoint: {}", searchEndpoint);
         return searchEndpoint;
     }
 
@@ -227,7 +206,7 @@ public class HltbApiClient {
                 int resultCount = searchResponse.data() != null ? searchResponse.data().size() : 0;
                 logger.info("HLTB search for '{}' returned {} results", gameName, resultCount);
                 return Optional.of(searchResponse);
-            } else if (response.statusCode() == 403 || response.statusCode() == 308) {
+            } else if (response.statusCode() == 403 || response.statusCode() == 308 || response.statusCode() == 404) {
                 // Endpoint or token might be stale, clear cache and retry once
                 logger.warn("HLTB returned {}, clearing cache and retrying", response.statusCode());
                 searchEndpoint = null;
