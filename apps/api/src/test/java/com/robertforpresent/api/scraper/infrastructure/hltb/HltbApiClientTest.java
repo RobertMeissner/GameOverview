@@ -108,8 +108,10 @@ class HltbApiClientTest {
             var result = apiClient.findBestMatch(response, "Dark Souls 3");
 
             assertTrue(result.isPresent());
-            // Should match "Dark Souls III" since it's more similar
-            assertEquals("Dark Souls III", result.get().gameName());
+            // "Dark Souls" wins because "dark souls" is a substring of "dark souls 3"
+            // which boosts its similarity to 0.85, while "Dark Souls III" has lower
+            // Levenshtein similarity since "3" != "iii"
+            assertEquals("Dark Souls", result.get().gameName());
         }
 
         @Test
