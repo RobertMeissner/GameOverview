@@ -119,7 +119,7 @@ export class Backlog implements OnInit {
   }
 
   getGogSearchUrl(gameName: string): string {
-    return `https://www.gog.com/games?search=${encodeURIComponent(gameName)}`;
+    return `https://www.gog.com/en/games?query=${encodeURIComponent(gameName)}&order=desc:score`;
   }
 
   getEpicSearchUrl(gameName: string): string {
