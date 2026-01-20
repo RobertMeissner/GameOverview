@@ -248,13 +248,13 @@ class EpicGameDataTest {
         }
 
         @Test
-        @DisplayName("handles link without /p/ path")
+        @DisplayName("handles link without /p/ path falls back to search")
         void handlesLinkWithoutPPath() {
-            // given - Link without /p/ won't have ID extracted, so it's returned as-is
+            // given - Link without /p/ can't have ID extracted, so it falls back to search
             var epicData = new EpicGameData(null, "Test", "https://store.epicgames.com/collection/games");
 
-            // then
-            assertEquals("https://store.epicgames.com/collection/games", epicData.storeLink());
+            // then - Falls back to search because no ID can be extracted from the link
+            assertEquals("https://store.epicgames.com/browse?q=Test", epicData.storeLink());
         }
 
         @Test
