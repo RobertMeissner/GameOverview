@@ -25,7 +25,8 @@ public class HltbApiClient {
     private static final String HLTB_BASE_URL = "https://howlongtobeat.com";
     private static final String HLTB_REFERER = "https://howlongtobeat.com";
     // Search endpoint - extracted dynamically or use fallback
-    private static final String FALLBACK_SEARCH_ENDPOINT = "/api/search";
+    // Note: HLTB endpoint format has changed over time. Try /api/s first.
+    private static final String[] FALLBACK_ENDPOINTS = {"/api/s", "/api/search", "/api/s/"};
 
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
@@ -116,11 +117,46 @@ public class HltbApiClient {
             logger.warn("Error fetching HLTB search endpoint dynamically: {}", e.getMessage());
         }
 
-        // Use fallback
-        searchEndpoint = HLTB_BASE_URL + FALLBACK_SEARCH_ENDPOINT;
+        // Use first fallback (will try others in searchGame if this fails)
+        searchEndpoint = HLTB_BASE_URL + FALLBACK_ENDPOINTS[0];
         cacheTime = System.currentTimeMillis();
         logger.info("Using fallback HLTB search endpoint: {}", searchEndpoint);
         return searchEndpoint;
+    }
+
+    /**
+     * Try a specific endpoint for search.
+     */
+    private Optional<HltbSearchResponse> trySearchEndpoint(String endpoint, String token, String requestBody) {
+        try {
+            HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
+                    .uri(URI.create(endpoint))
+                    .timeout(Duration.ofSeconds(30))
+                    .header("Content-Type", "application/json")
+                    .header("Accept", "*/*")
+                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+                    .header("Referer", HLTB_REFERER)
+                    .header("Origin", HLTB_REFERER);
+
+            if (token != null) {
+                requestBuilder.header("x-auth-token", token);
+            }
+
+            HttpRequest request = requestBuilder
+                    .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                HltbSearchResponse searchResponse = objectMapper.readValue(response.body(), HltbSearchResponse.class);
+                return Optional.of(searchResponse);
+            }
+            logger.debug("Endpoint {} returned status {}", endpoint, response.statusCode());
+        } catch (Exception e) {
+            logger.debug("Endpoint {} failed: {}", endpoint, e.getMessage());
+        }
+        return Optional.empty();
     }
 
     /**
@@ -171,81 +207,45 @@ public class HltbApiClient {
      */
     public Optional<HltbSearchResponse> searchGame(String gameName) {
         try {
-            // Fetch dynamic search endpoint
-            String endpoint = fetchSearchEndpoint();
-
             // Fetch auth token
             String token = fetchAuthToken();
 
             // Build the search request body
             String requestBody = buildSearchRequestBody(gameName);
 
-            HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
-                    .uri(URI.create(endpoint))
-                    .timeout(Duration.ofSeconds(30))
-                    .header("Content-Type", "application/json")
-                    .header("Accept", "*/*")
-                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-                    .header("Referer", HLTB_REFERER)
-                    .header("Origin", HLTB_REFERER);
+            // First try the dynamically extracted or cached endpoint
+            String primaryEndpoint = fetchSearchEndpoint();
+            logger.debug("Searching HLTB for game: {} at endpoint: {}", gameName, primaryEndpoint);
 
-            // Add auth token if available
-            if (token != null) {
-                requestBuilder.header("x-auth-token", token);
-            }
-
-            HttpRequest request = requestBuilder
-                    .POST(HttpRequest.BodyPublishers.ofString(requestBody))
-                    .build();
-
-            logger.debug("Searching HLTB for game: {} at endpoint: {}", gameName, endpoint);
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-            if (response.statusCode() == 200) {
-                HltbSearchResponse searchResponse = objectMapper.readValue(response.body(), HltbSearchResponse.class);
-                int resultCount = searchResponse.data() != null ? searchResponse.data().size() : 0;
+            Optional<HltbSearchResponse> result = trySearchEndpoint(primaryEndpoint, token, requestBody);
+            if (result.isPresent()) {
+                int resultCount = result.get().data() != null ? result.get().data().size() : 0;
                 logger.info("HLTB search for '{}' returned {} results", gameName, resultCount);
-                return Optional.of(searchResponse);
-            } else if (response.statusCode() == 403 || response.statusCode() == 308 || response.statusCode() == 404) {
-                // Endpoint or token might be stale, clear cache and retry once
-                logger.warn("HLTB returned {}, clearing cache and retrying", response.statusCode());
-                searchEndpoint = null;
-                authToken = null;
-                cacheTime = 0;
-
-                endpoint = fetchSearchEndpoint();
-                token = fetchAuthToken();
-
-                HttpRequest.Builder retryBuilder = HttpRequest.newBuilder()
-                        .uri(URI.create(endpoint))
-                        .timeout(Duration.ofSeconds(30))
-                        .header("Content-Type", "application/json")
-                        .header("Accept", "*/*")
-                        .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-                        .header("Referer", HLTB_REFERER)
-                        .header("Origin", HLTB_REFERER);
-
-                if (token != null) {
-                    retryBuilder.header("x-auth-token", token);
-                }
-
-                HttpRequest retryRequest = retryBuilder
-                        .POST(HttpRequest.BodyPublishers.ofString(requestBody))
-                        .build();
-
-                HttpResponse<String> retryResponse = httpClient.send(retryRequest, HttpResponse.BodyHandlers.ofString());
-                if (retryResponse.statusCode() == 200) {
-                    HltbSearchResponse searchResponse = objectMapper.readValue(retryResponse.body(), HltbSearchResponse.class);
-                    int resultCount = searchResponse.data() != null ? searchResponse.data().size() : 0;
-                    logger.info("HLTB search for '{}' returned {} results (after retry)", gameName, resultCount);
-                    return Optional.of(searchResponse);
-                }
-                logger.warn("HLTB search failed with status {}: {}", retryResponse.statusCode(), retryResponse.body());
-                return Optional.empty();
-            } else {
-                logger.warn("HLTB search failed with status {}: {}", response.statusCode(), response.body());
-                return Optional.empty();
+                return result;
             }
+
+            // Primary endpoint failed, try all fallback endpoints
+            logger.warn("Primary endpoint {} failed, trying fallbacks", primaryEndpoint);
+            for (String fallbackPath : FALLBACK_ENDPOINTS) {
+                String fallbackEndpoint = HLTB_BASE_URL + fallbackPath;
+                if (fallbackEndpoint.equals(primaryEndpoint)) {
+                    continue; // Already tried this one
+                }
+
+                logger.debug("Trying fallback endpoint: {}", fallbackEndpoint);
+                result = trySearchEndpoint(fallbackEndpoint, token, requestBody);
+                if (result.isPresent()) {
+                    // Update cached endpoint to the working one
+                    searchEndpoint = fallbackEndpoint;
+                    cacheTime = System.currentTimeMillis();
+                    int resultCount = result.get().data() != null ? result.get().data().size() : 0;
+                    logger.info("HLTB search for '{}' returned {} results (via fallback {})", gameName, resultCount, fallbackPath);
+                    return result;
+                }
+            }
+
+            logger.warn("All HLTB endpoints failed for search: {}", gameName);
+            return Optional.empty();
         } catch (Exception e) {
             logger.error("Error searching HLTB for game: {}", gameName, e);
             return Optional.empty();
