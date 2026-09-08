@@ -53,7 +53,7 @@ If you have a dev server running, just navigate to the htmx-test directory.
 ## 🔧 Configuration
 
 ### User ID
-The default user ID used in all API calls is: `123e4567-e89b-12d3-a456-426614174000`
+The default user ID used in all API calls is: `00000000-0000-0000-0000-000000000001`
 
 **To change it:**
 1. Open any of the HTML files (games.html, top-games.html, etc.)

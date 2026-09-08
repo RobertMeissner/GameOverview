@@ -89,7 +89,7 @@
                         <div class="alert alert-info mt-3">
                             <i class="bi bi-info-circle"></i> 
                             <strong>Note:</strong> You may need to update the <code>userId</code> in each view. 
-                            The default is <code>123e4567-e89b-12d3-a456-426614174000</code> - replace it with your actual UUID.
+                            The default is <code>00000000-0000-0000-0000-000000000001</code> - replace it with your actual UUID.
                         </div>
                         
                         <div class="alert alert-warning mt-3">
@@ -133,7 +133,7 @@
             event.target.classList.add('active');
             
             // Load the view
-            fetch(`htmx-test/${viewName}`)
+            fetch(`${viewName}`)
                 .then(response => response.text())
                 .then(html => {
                     document.getElementById('main-content').innerHTML = html;
@@ -147,7 +147,7 @@
         // Test API connection
         async function testApiConnection() {
             const resultDiv = document.getElementById('test-result');
-            const testUserId = '123e4567-e89b-12d3-a456-426614174000';
+            const testUserId = '00000000-0000-0000-0000-000000000001';
             
             resultDiv.innerHTML = '<div class="alert alert-info"><i class="bi bi-hourglass-split"></i> Testing connection to http://localhost:8080/api...</div>';
             
