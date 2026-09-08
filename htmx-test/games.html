@@ -1,0 +1,287 @@
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">All Games</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" 
+                    onclick="location.reload()">
+                <i class="bi bi-arrow-clockwise"></i> Refresh
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Filters Section -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h3>Filters</h3>
+    </div>
+    <div class="card-body">
+        <form class="row g-3" id="filter-form">
+            <div class="col-md-3">
+                <label for="userId" class="form-label">User ID</label>
+                <input type="text" class="form-control" id="userId" 
+                       value="00000000-0000-0000-0000-000000000001"
+                       placeholder="Enter UUID">
+                <small class="text-muted">Update this to your actual user ID</small>
+            </div>
+            
+            <div class="col-md-3">
+                <label for="storeFilter" class="form-label">Store</label>
+                <select class="form-select" id="storeFilter">
+                    <option value="">All Stores</option>
+                    <option value="steam">Steam</option>
+                    <option value="gog">GOG</option>
+                    <option value="epic">Epic</option>
+                </select>
+            </div>
+            
+            <div class="col-md-3">
+                <label for="playedFilter" class="form-label">Status</label>
+                <select class="form-select" id="playedFilter">
+                    <option value="">All</option>
+                    <option value="true">Played</option>
+                    <option value="false">Unplayed</option>
+                </select>
+            </div>
+            
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-funnel"></i> Apply Filters
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Game List Section -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h3>Games <span id="game-count" class="badge bg-secondary">Loading...</span></h3>
+        <div>
+            <button class="btn btn-sm btn-outline-primary" onclick="location.reload()">
+                <i class="bi bi-arrow-clockwise"></i> Reset
+            </button>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Name</th>
+                        <th>Rating</th>
+                        <th>Playtime</th>
+                        <th>Stores</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="game-list">
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">
+                            <div class="spinner-border spinner-border-sm" role="status"></div>
+                            Loading games from Spring backend (http://localhost:8080)...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer text-muted">
+        <small>Connected to Spring Boot API at <code>http://localhost:8080/api</code></small>
+    </div>
+</div>
+
+<script>
+// Simple fetch-based approach since HTMX + JSON from Spring is complex
+// This gives you the "feel" of HTMX-style simplicity
+
+const API_BASE = 'http://localhost:8080/api';
+
+// Load games on page load
+async function loadGames() {
+    const userId = document.getElementById('userId').value;
+    const storeFilter = document.getElementById('storeFilter').value;
+    const playedFilter = document.getElementById('playedFilter').value;
+    
+    const gameList = document.getElementById('game-list');
+    const gameCount = document.getElementById('game-count');
+    
+    gameList.innerHTML = '<tr><td colspan="5" class="text-center"><div class="spinner-border spinner-border-sm"></div> Loading...</td></tr>';
+    
+    try {
+        // Build query parameters
+        const params = new URLSearchParams();
+        params.append('userId', userId);
+        
+        let url = `${API_BASE}/collection?${params.toString()}`;
+        
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const games = await response.json();
+        
+        if (gameCount) {
+            gameCount.textContent = games.length;
+        }
+        
+        if (games.length === 0) {
+            gameList.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No games found</td></tr>';
+            return;
+        }
+        
+        // Filter locally (since Spring API doesn't support all these filters)
+        let filteredGames = games;
+        
+        if (storeFilter) {
+            filteredGames = filteredGames.filter(g => 
+                g.storeOwnership?.ownedOnSteam && storeFilter === 'steam' ||
+                g.storeOwnership?.ownedOnGog && storeFilter === 'gog' ||
+                g.storeOwnership?.ownedOnEpic && storeFilter === 'epic'
+            );
+        }
+        
+        if (playedFilter) {
+            const showPlayed = playedFilter === 'true';
+            filteredGames = filteredGames.filter(g => g.markedAsPlayed === showPlayed);
+        }
+        
+        gameList.innerHTML = filteredGames.map(game => renderGameRow(game, userId)).join('');
+        
+    } catch (error) {
+        console.error('Error loading games:', error);
+        gameList.innerHTML = `
+            <tr>
+                <td colspan="5" class="text-center text-danger">
+                    <i class="bi bi-exclamation-triangle"></i> 
+                    Error loading games: ${error.message}
+                    <br><small>Make sure Spring Boot is running at http://localhost:8080</small>
+                </td>
+            </tr>
+        `;
+    }
+}
+
+// Render a single game row
+function renderGameRow(game, userId) {
+    const playedClass = game.markedAsPlayed ? 'success' : 'secondary';
+    const backlogClass = game.markedForLater ? 'warning' : 'secondary';
+    const playedIcon = game.markedAsPlayed ? 'bi-check-circle' : 'bi-circle';
+    const backlogIcon = game.markedForLater ? 'bi-bookmark-fill' : 'bi-bookmark';
+    const playedText = game.markedAsPlayed ? 'Played' : 'Mark Played';
+    const backlogText = game.markedForLater ? 'Backlog' : 'Add to Backlog';
+    
+    const playtime = game.storeLinks?.hltbMainHours ? `${game.storeLinks.hltbMainHours}h` : 'N/A';
+    const rating = game.rating ? game.rating.toFixed(1) : 'N/A';
+    const name = game.name || 'Unknown';
+    
+    // Store ownership icons
+    const storeIcons = [];
+    if (game.storeOwnership?.ownedOnSteam) storeIcons.push('<i class="bi bi-steam text-primary" title="Steam"></i>');
+    if (game.storeOwnership?.ownedOnGog) storeIcons.push('<i class="bi bi-box-seam text-success" title="GOG"></i>');
+    if (game.storeOwnership?.ownedOnEpic) storeIcons.push('<i class="bi bi-controller text-warning" title="Epic"></i>');
+    
+    const thumbnail = game.thumbnailUrl ? 
+        `<img src="${game.thumbnailUrl}" alt="${name}" class="game-thumbnail me-2" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">` : 
+        '<div class="me-2" style="width: 40px; height: 40px;"></div>';
+    
+    return `
+        <tr class="game-row" id="game-${game.id}">
+            <td>
+                <div class="d-flex align-items-center">
+                    ${thumbnail}
+                    <span>${name}</span>
+                </div>
+            </td>
+            <td><span class="badge bg-primary">${rating}</span></td>
+            <td>${playtime}</td>
+            <td>${storeIcons.join(' ')}</td>
+            <td>
+                <div class="btn-group btn-group-sm" role="group">
+                    <button class="btn btn-outline-${playedClass} btn-mark-played" 
+                            onclick="togglePlayed('${game.id}', ${game.markedAsPlayed}, '${userId}')"
+                            data-game-id="${game.id}">
+                        <i class="bi ${playedIcon}"></i> ${playedText}
+                    </button>
+                    <button class="btn btn-outline-${backlogClass} btn-mark-backlog" 
+                            onclick="toggleBacklog('${game.id}', ${game.markedForLater}, '${userId}')"
+                            data-game-id="${game.id}">
+                        <i class="bi ${backlogIcon}"></i> ${backlogText}
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `;
+}
+
+// Toggle played status
+async function togglePlayed(gameId, currentStatus, userId) {
+    const newStatus = !currentStatus;
+    await updateGameFlags(gameId, { markedAsPlayed: newStatus }, userId);
+}
+
+// Toggle backlog status
+async function toggleBacklog(gameId, currentStatus, userId) {
+    const newStatus = !currentStatus;
+    await updateGameFlags(gameId, { markedForLater: newStatus }, userId);
+}
+
+// Update game flags via Spring API
+async function updateGameFlags(gameId, flags, userId) {
+    const button = document.querySelector(`[data-game-id="${gameId}"]`);
+    const originalHtml = button.innerHTML;
+    
+    try {
+        // Show loading state
+        button.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Loading...';
+        button.disabled = true;
+        
+        // Get current state of the game
+        const response = await fetch(`${API_BASE}/collection?userId=${userId}`);
+        const games = await response.json();
+        const game = games.find(g => g.id === gameId);
+        
+        if (!game) {
+            throw new Error('Game not found');
+        }
+        
+        // Merge flags with current state
+        const updateBody = {
+            markedAsPlayed: flags.markedAsPlayed !== undefined ? flags.markedAsPlayed : game.markedAsPlayed,
+            markedAsHidden: game.markedAsHidden,
+            markedForLater: flags.markedForLater !== undefined ? flags.markedForLater : game.markedForLater
+        };
+        
+        const updateResponse = await fetch(`${API_BASE}/collection/games/${gameId}?userId=${userId}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(updateBody)
+        });
+        
+        if (!updateResponse.ok) {
+            throw new Error(`HTTP ${updateResponse.status}: ${updateResponse.statusText}`);
+        }
+        
+        // Reload the game list
+        await loadGames();
+        
+    } catch (error) {
+        console.error('Error updating game:', error);
+        button.innerHTML = originalHtml;
+        button.disabled = false;
+        alert(`Error: ${error.message}`);
+    }
+}
+
+// Form submission handler
+document.getElementById('filter-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    loadGames();
+});
+
+// Load games on page load
+loadGames();
+</script>
