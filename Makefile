@@ -14,6 +14,7 @@ run-backend:
 
 run-frontend:
 	cd apps/frontend && bun run start
+	# ➜  htmx-test git:(vibe/htmx-exploration-361fae) ✗ python3 -m http.server 4200
 
 test:
 	cd apps/api && ./mvnw test
