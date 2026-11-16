@@ -31,13 +31,22 @@ public class SteamEnrichmentProvider implements GameEnrichmentProvider {
 
     @Override
     public EnrichmentResult enrichGame(CanonicalGame game) {
-        // Check if game has Steam App ID
+        // Check if game has Steam App ID, otherwise try to resolve it by name
         SteamGameData steamData = game.getSteamData();
-        if (steamData == null || steamData.appId() == null) {
-            return EnrichmentResult.noChange(game, "No Steam App ID available");
+        Integer existingAppId = steamData != null ? steamData.appId() : null;
+
+        int appId;
+        if (existingAppId != null) {
+            appId = existingAppId;
+        } else {
+            Optional<Integer> resolvedAppId = apiClient.findAppIdByName(game.getName());
+            if (resolvedAppId.isEmpty()) {
+                return EnrichmentResult.noChange(game, "No Steam App ID available and no exact Steam match for '" + game.getName() + "'");
+            }
+            appId = resolvedAppId.get();
+            logger.info("Resolved Steam App ID {} for game '{}' via store search", appId, game.getName());
         }
 
-        int appId = steamData.appId();
         logger.debug("Enriching game {} with Steam data for app ID {}", game.getName(), appId);
 
         // Fetch app details from Steam
@@ -58,7 +67,8 @@ public class SteamEnrichmentProvider implements GameEnrichmentProvider {
         // Update Steam data with official name if different
         String officialName = appData.name();
         if (!game.getName().equals(officialName)) {
-            logger.info("Updating Steam name from '{}' to '{}'", steamData.name(), officialName);
+            String currentSteamName = steamData != null ? steamData.name() : null;
+            logger.info("Updating Steam name from '{}' to '{}'", currentSteamName, officialName);
         }
         builder.setSteamData(new SteamGameData(appId, officialName));
         builder.setSteamRating(game.getRatings().steam());
