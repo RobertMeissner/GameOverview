@@ -79,6 +79,7 @@ public class HowLongToBeatEnrichmentProvider implements GameEnrichmentProvider {
                 .setHltbData(hltbData)
                 .setIgdbId(game.getIgdbId())
                 .setIgdbSlug(game.getIgdbSlug())
+                .setIgdbRating(game.getRatings().igdb())
                 .setGenres(game.getGenres())
                 .build();
 
