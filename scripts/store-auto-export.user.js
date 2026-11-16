@@ -20,6 +20,7 @@
 
     // Configuration
     const API_BASE_URL = GM_getValue('apiBaseUrl', 'http://localhost:8080');
+    const USER_ID = GM_getValue('userId', '4c580456-1116-4091-b1d6-99fc02b47246');
 
     // Name cleanup helper
     const cleanName = (name) => {
@@ -113,7 +114,7 @@
 
         GM_xmlhttpRequest({
             method: 'POST',
-            url: `${API_BASE_URL}/import/bulk`,
+            url: `${API_BASE_URL}/import/bulk?userId=${encodeURIComponent(USER_ID)}`,
             headers: {
                 'Content-Type': 'application/json'
             },

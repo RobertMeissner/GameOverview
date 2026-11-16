@@ -34,8 +34,9 @@ except ImportError:
 
 
 class GameImporter:
-    def __init__(self, api_base_url: str = "http://localhost:8080"):
+    def __init__(self, api_base_url: str = "http://localhost:8080", user_id: str = "4c580456-1116-4091-b1d6-99fc02b47246"):
         self.api_base_url = api_base_url
+        self.user_id = user_id
 
     @staticmethod
     def clean_name(name: str) -> str:
@@ -61,6 +62,7 @@ class GameImporter:
         try:
             response = requests.post(
                 f"{self.api_base_url}/import/bulk",
+                params={"userId": self.user_id},
                 json=games,
                 headers={"Content-Type": "application/json"}
             )
@@ -208,6 +210,8 @@ def main():
     )
     parser.add_argument('--api-url', default='http://localhost:8080',
                        help='GameOverview API base URL (default: http://localhost:8080)')
+    parser.add_argument('--user-id', default='4c580456-1116-4091-b1d6-99fc02b47246',
+                       help='GameOverview gamer UUID the imported games are assigned to')
     parser.add_argument('--browser', choices=['chrome', 'firefox', 'auto'], default='auto',
                        help='Browser to extract cookies from (default: auto)')
 
@@ -228,7 +232,7 @@ def main():
         parser.print_help()
         sys.exit(1)
 
-    importer = GameImporter(api_base_url=args.api_url)
+    importer = GameImporter(api_base_url=args.api_url, user_id=args.user_id)
 
     print("=" * 60)
     print("GameOverview - Automated Store Import")
