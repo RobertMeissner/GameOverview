@@ -22,7 +22,7 @@ class AggregatedRatingsTest {
         void returnsSteamRatingWhenPresent() {
             // given
             var steamRating = SteamRating.of(85, 15, ReviewSentiment.VERY_POSITIVE);
-            var aggregated = new AggregatedRatings(steamRating);
+            var aggregated = new AggregatedRatings(steamRating, null);
 
             // then
             assertEquals(85, aggregated.rating());
@@ -32,7 +32,7 @@ class AggregatedRatingsTest {
         @DisplayName("returns 0 when no ratings are present")
         void returnsZeroWhenNoRatingsPresent() {
             // given
-            var aggregated = new AggregatedRatings(null);
+            var aggregated = new AggregatedRatings(null, null);
 
             // then
             assertEquals(0, aggregated.rating());
@@ -43,15 +43,15 @@ class AggregatedRatingsTest {
         void returnsAverageWithVariousSteamRatings() {
             // Test with low rating
             var lowRating = SteamRating.of(30, 70, ReviewSentiment.NEGATIVE);
-            assertEquals(30, new AggregatedRatings(lowRating).rating());
+            assertEquals(30, new AggregatedRatings(lowRating, null).rating());
 
             // Test with medium rating
             var mediumRating = SteamRating.of(60, 40, ReviewSentiment.MIXED);
-            assertEquals(60, new AggregatedRatings(mediumRating).rating());
+            assertEquals(60, new AggregatedRatings(mediumRating, null).rating());
 
             // Test with high rating
             var highRating = SteamRating.of(95, 5, ReviewSentiment.OVERWHELMING_POSITIVE);
-            assertEquals(95, new AggregatedRatings(highRating).rating());
+            assertEquals(95, new AggregatedRatings(highRating, null).rating());
         }
     }
 
@@ -64,7 +64,7 @@ class AggregatedRatingsTest {
         void returnsSteamRatingWhenPresent() {
             // given
             var steamRating = SteamRating.of(85, 15, ReviewSentiment.VERY_POSITIVE);
-            var aggregated = new AggregatedRatings(steamRating);
+            var aggregated = new AggregatedRatings(steamRating, null);
 
             // then
             assertNotNull(aggregated.steam());
@@ -75,7 +75,7 @@ class AggregatedRatingsTest {
         @DisplayName("returns null when Steam rating is absent")
         void returnsNullWhenSteamRatingIsAbsent() {
             // given
-            var aggregated = new AggregatedRatings(null);
+            var aggregated = new AggregatedRatings(null, null);
 
             // then
             assertNull(aggregated.steam());
@@ -91,8 +91,8 @@ class AggregatedRatingsTest {
         void equalAggregatedRatingsAreEqual() {
             // given
             var steamRating = SteamRating.of(85, 15, ReviewSentiment.VERY_POSITIVE);
-            var aggregated1 = new AggregatedRatings(steamRating);
-            var aggregated2 = new AggregatedRatings(steamRating);
+            var aggregated1 = new AggregatedRatings(steamRating, null);
+            var aggregated2 = new AggregatedRatings(steamRating, null);
 
             // then
             assertEquals(aggregated1, aggregated2);
@@ -103,8 +103,8 @@ class AggregatedRatingsTest {
         @DisplayName("both null are equal")
         void bothNullAreEqual() {
             // given
-            var aggregated1 = new AggregatedRatings(null);
-            var aggregated2 = new AggregatedRatings(null);
+            var aggregated1 = new AggregatedRatings(null, null);
+            var aggregated2 = new AggregatedRatings(null, null);
 
             // then
             assertEquals(aggregated1, aggregated2);
@@ -116,8 +116,8 @@ class AggregatedRatingsTest {
             // given
             var rating1 = SteamRating.of(85, 15, ReviewSentiment.VERY_POSITIVE);
             var rating2 = SteamRating.of(90, 10, ReviewSentiment.VERY_POSITIVE);
-            var aggregated1 = new AggregatedRatings(rating1);
-            var aggregated2 = new AggregatedRatings(rating2);
+            var aggregated1 = new AggregatedRatings(rating1, null);
+            var aggregated2 = new AggregatedRatings(rating2, null);
 
             // then
             assertNotEquals(aggregated1, aggregated2);
@@ -133,7 +133,7 @@ class AggregatedRatingsTest {
         void handlesRatingWithZeroNegativeReviews() {
             // given - Note: SteamRating.rating() returns 0 when negative=0
             var steamRating = SteamRating.of(100, 0, ReviewSentiment.OVERWHELMING_POSITIVE);
-            var aggregated = new AggregatedRatings(steamRating);
+            var aggregated = new AggregatedRatings(steamRating, null);
 
             // then - This is the current implementation behavior
             assertEquals(0, aggregated.rating());
@@ -144,10 +144,43 @@ class AggregatedRatingsTest {
         void handlesRatingWithZeroPositiveReviews() {
             // given
             var steamRating = SteamRating.of(0, 100, ReviewSentiment.OVERWHELMING_NEGATIVE);
-            var aggregated = new AggregatedRatings(steamRating);
+            var aggregated = new AggregatedRatings(steamRating, null);
 
             // then
             assertEquals(0, aggregated.rating());
+        }
+    }
+
+    @Nested
+    @DisplayName("IGDB rating aggregation")
+    class IgdbRatingTests {
+
+        @Test
+        @DisplayName("uses IGDB rating when only IGDB is present")
+        void usesIgdbRatingWhenOnlyIgdbPresent() {
+            assertEquals(88, new AggregatedRatings(null, 88.0).rating());
+        }
+
+        @Test
+        @DisplayName("averages Steam and IGDB ratings when both are present")
+        void averagesSteamAndIgdbRatings() {
+            var steamRating = SteamRating.of(90, 10, ReviewSentiment.VERY_POSITIVE);
+
+            assertEquals(85, new AggregatedRatings(steamRating, 80.0).rating());
+        }
+
+        @Test
+        @DisplayName("rounds the average to the nearest integer")
+        void roundsTheAverage() {
+            var steamRating = SteamRating.of(90, 10, ReviewSentiment.VERY_POSITIVE);
+
+            assertEquals(86, new AggregatedRatings(steamRating, 81.0).rating());
+        }
+
+        @Test
+        @DisplayName("returns zero when no ratings are present")
+        void returnsZeroWhenNoRatingsPresent() {
+            assertEquals(0, new AggregatedRatings(null, null).rating());
         }
     }
 }

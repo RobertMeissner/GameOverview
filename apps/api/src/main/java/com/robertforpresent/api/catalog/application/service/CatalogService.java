@@ -124,6 +124,7 @@ public class CatalogService {
                 .setMetacriticData(newMetacriticData)
                 .setIgdbId(existing.getIgdbId())
                 .setIgdbSlug(existing.getIgdbSlug())
+                .setIgdbRating(existing.getRatings().igdb())
                 .setGenres(existing.getGenres())
                 .build();
         return repository.save(updated);
@@ -351,6 +352,7 @@ public class CatalogService {
                 .setHltbData(existing.getHltbData())
                 .setIgdbId(igdbId)
                 .setIgdbSlug(igdbSlug)
+                .setIgdbRating(info.rating() != null ? info.rating() : existing.getRatings().igdb())
                 .setGenres(genres)
                 .build();
 

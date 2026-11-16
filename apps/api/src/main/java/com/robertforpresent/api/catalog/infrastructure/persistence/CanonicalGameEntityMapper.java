@@ -38,6 +38,7 @@ public class CanonicalGameEntityMapper {
                 .setHltbData(hltbData)
                 .setIgdbId(entity.getIgdbId())
                 .setIgdbSlug(entity.getIgdbSlug())
+                .setIgdbRating(entity.getIgdbRating())
                 .setGenres(genres)
                 .build();
     }
@@ -69,6 +70,7 @@ public class CanonicalGameEntityMapper {
                 epicData != null ? epicData.link() : null,
                 domain.getIgdbId(),
                 domain.getIgdbSlug(),
+                domain.getRatings().igdb(),
                 metacriticData != null ? metacriticData.score() : null,
                 metacriticData != null ? metacriticData.gameName() : null,
                 metacriticData != null ? metacriticData.link() : null,

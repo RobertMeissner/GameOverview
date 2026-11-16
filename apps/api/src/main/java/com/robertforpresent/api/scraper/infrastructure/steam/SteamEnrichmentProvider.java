@@ -61,9 +61,11 @@ public class SteamEnrichmentProvider implements GameEnrichmentProvider {
             logger.info("Updating Steam name from '{}' to '{}'", steamData.name(), officialName);
         }
         builder.setSteamData(new SteamGameData(appId, officialName));
+        builder.setSteamRating(game.getRatings().steam());
 
-        // Update thumbnail if better quality available
-        if (appData.headerImage() != null && !appData.headerImage().isBlank()) {
+        // Update thumbnail only if none is set yet; never override an existing (IGDB) cover
+        if ((game.getThumbnailUrl() == null || game.getThumbnailUrl().isBlank())
+                && appData.headerImage() != null && !appData.headerImage().isBlank()) {
             builder.setThumbnailUrl(appData.headerImage());
         } else if (game.getThumbnailUrl() != null) {
             builder.setThumbnailUrl(game.getThumbnailUrl());
@@ -94,6 +96,8 @@ public class SteamEnrichmentProvider implements GameEnrichmentProvider {
         if (game.getIgdbSlug() != null) {
             builder.setIgdbSlug(game.getIgdbSlug());
         }
+        builder.setIgdbRating(game.getRatings().igdb());
+        builder.setGenres(game.getGenres());
 
         // Build the enriched game
         CanonicalGame enrichedGame = builder.build();

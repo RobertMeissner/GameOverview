@@ -119,6 +119,7 @@ public class CanonicalGame {
         private UUID id;
         private String thumbnailUrl;
         private SteamRating steamRating;
+        private Double igdbRating;
         private SteamGameData steamData;
         private GogGameData gogData;
         private EpicGameData epicData;
@@ -151,6 +152,11 @@ public class CanonicalGame {
 
         public Builder setSteamRating(SteamRating rating) {
             this.steamRating = rating;
+            return this;
+        }
+
+        public Builder setIgdbRating(Double rating) {
+            this.igdbRating = rating;
             return this;
         }
 
@@ -227,6 +233,6 @@ public class CanonicalGame {
         genres = builder.genres;
         createdAt = Instant.now();
         updatedAt = Instant.now();
-        ratings = new AggregatedRatings(builder.steamRating);
+        ratings = new AggregatedRatings(builder.steamRating, builder.igdbRating);
     }
 }
