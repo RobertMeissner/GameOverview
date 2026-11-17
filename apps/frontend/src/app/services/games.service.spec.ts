@@ -33,9 +33,15 @@ describe('GamesService', () => {
     markedForLater: false,
     storeLinks: {
       steamLink: 'https://store.steampowered.com/app/413150',
+      steamRating: null,
       gogLink: null,
+      epicLink: null,
       metacriticLink: null,
+      metacriticScore: null,
+      hltbLink: null,
+      hltbMainHours: null,
     },
+    genres: [],
   };
 
   const mockGame: Game = {
@@ -62,6 +68,12 @@ describe('GamesService', () => {
     metacriticScore: 89,
     metacriticName: 'stardew-valley',
     metacriticLink: 'https://www.metacritic.com/game/stardew-valley',
+    epicId: null,
+    epicName: null,
+    epicLink: null,
+    igdbId: null,
+    igdbLink: null,
+    completenessPercent: 50,
   };
 
   beforeEach(() => {
@@ -281,6 +293,7 @@ describe('GamesService', () => {
       // given
       const gameId = 'game-123';
       const values = {
+        name: 'Stardew Valley',
         steamAppId: 413150,
         steamName: 'Stardew Valley',
         gogId: 1453375253,
@@ -303,6 +316,7 @@ describe('GamesService', () => {
       // given
       const gameId = 'game-456';
       const values = {
+        name: null,
         steamAppId: null,
         steamName: null,
         gogId: null,
@@ -324,6 +338,7 @@ describe('GamesService', () => {
       // given
       const gameId = 'nonexistent';
       const values = {
+        name: 'Test',
         steamAppId: 123,
         steamName: 'Test',
         gogId: null,

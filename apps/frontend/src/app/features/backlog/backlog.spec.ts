@@ -27,9 +27,15 @@ describe('Backlog', () => {
     markedForLater: true, // backlog games are marked for later
     storeLinks: {
       steamLink: null,
+      steamRating: null,
       gogLink: null,
+      epicLink: null,
       metacriticLink: null,
+      metacriticScore: null,
+      hltbLink: null,
+      hltbMainHours: null,
     },
+    genres: [],
     ...overrides,
   });
 
@@ -231,8 +237,13 @@ describe('Backlog', () => {
           id: '1',
           storeLinks: {
             steamLink: 'https://store.steampowered.com/app/413150',
+            steamRating: null,
             gogLink: 'https://www.gog.com/game/stardew_valley',
+            epicLink: null,
             metacriticLink: null,
+            metacriticScore: null,
+            hltbLink: null,
+            hltbMainHours: null,
           },
         }),
       ];

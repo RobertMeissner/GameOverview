@@ -17,9 +17,15 @@ describe('ExportService', () => {
     markedForLater: false,
     storeLinks: {
       steamLink: null,
+      steamRating: null,
       gogLink: null,
+      epicLink: null,
       metacriticLink: null,
+      metacriticScore: null,
+      hltbLink: null,
+      hltbMainHours: null,
     },
+    genres: [],
     ...overrides,
   });
 

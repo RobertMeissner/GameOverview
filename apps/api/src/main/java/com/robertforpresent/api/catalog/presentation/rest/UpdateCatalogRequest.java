@@ -1,6 +1,7 @@
 package com.robertforpresent.api.catalog.presentation.rest;
 
 public record UpdateCatalogRequest(
+        String name,
         // Steam data
         Integer steamAppId,
         String steamName,

@@ -7,6 +7,7 @@ import org.jspecify.annotations.Nullable;
  * Application layer command - decoupled from presentation layer.
  */
 public record UpdateCatalogCommand(
+        @Nullable String name,
         // Steam data
         @Nullable Integer steamAppId,
         @Nullable String steamName,

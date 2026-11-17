@@ -8,7 +8,7 @@ import {AdminGameEntry} from '../../domain/entities/AdminGameEntry';
 import {ScrapedGameInfo} from '../../domain/entities/ScrapedGameInfo';
 import {forkJoin} from 'rxjs';
 
-export type SortField = 'name' | 'rating' | 'steamAppId';
+export type SortField = 'name' | 'rating' | 'steamAppId' | 'completeness';
 export type SortDirection = 'asc' | 'desc';
 
 @Component({
@@ -40,6 +40,7 @@ export class AdminPanel implements OnInit {
 
   games = signal<AdminGameEntry[]>([]);
   editingGame = signal<AdminGameEntry | null>(null);
+  editName = signal<string | null>(null);
   editSteamAppId = signal<number | null>(null);
   editSteamName = signal<string | null>(null);
   editGogId = signal<number | null>(null);
@@ -104,6 +105,8 @@ export class AdminPanel implements OnInit {
         const aVal = a.steamAppId ?? -1;
         const bVal = b.steamAppId ?? -1;
         comparison = aVal - bVal;
+      } else if (field === 'completeness') {
+        comparison = a.completenessPercent - b.completenessPercent;
       }
       return direction === 'asc' ? comparison : -comparison;
     });
@@ -152,7 +155,7 @@ export class AdminPanel implements OnInit {
       this.sortDirection.update(dir => dir === 'asc' ? 'desc' : 'asc');
     } else {
       this.sortField.set(field);
-      this.sortDirection.set(field === 'rating' ? 'desc' : 'asc');
+      this.sortDirection.set(field === 'rating' || field === 'completeness' ? 'desc' : 'asc');
     }
     this.currentPage.set(0); // Reset to first page when sorting changes
   }
@@ -179,6 +182,7 @@ export class AdminPanel implements OnInit {
 
   startEdit(game: AdminGameEntry): void {
     this.editingGame.set(game);
+    this.editName.set(game.name);
     this.editSteamAppId.set(game.steamAppId);
     this.editSteamName.set(game.steamName);
     this.editGogId.set(game.gogId);
@@ -189,6 +193,7 @@ export class AdminPanel implements OnInit {
 
   cancelEdit(): void {
     this.editingGame.set(null);
+    this.editName.set(null);
     this.editSteamAppId.set(null);
     this.editSteamName.set(null);
     this.editGogId.set(null);
@@ -202,6 +207,7 @@ export class AdminPanel implements OnInit {
     if (!game) return;
 
     const updates = {
+      name: this.editName() ?? game.name,
       steamAppId: this.editSteamAppId(),
       steamName: this.editSteamName(),
       gogId: this.editGogId(),

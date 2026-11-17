@@ -22,6 +22,12 @@ describe('GameDeduplication', () => {
     metacriticScore: null,
     metacriticName: null,
     metacriticLink: null,
+    epicId: null,
+    epicName: null,
+    epicLink: null,
+    igdbId: null,
+    igdbLink: null,
+    completenessPercent: 0,
     ...overrides,
   });
 
