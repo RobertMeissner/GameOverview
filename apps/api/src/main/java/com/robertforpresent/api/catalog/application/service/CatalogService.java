@@ -114,7 +114,8 @@ public class CatalogService {
                 command.metacriticLink() != null ? command.metacriticLink() : (existingMc != null ? existingMc.link() : null)
         );
 
-        CanonicalGame updated = new CanonicalGame.Builder(existing.getName())
+        CanonicalGame updated = new CanonicalGame.Builder(
+                command.name() != null && !command.name().isBlank() ? command.name() : existing.getName())
                 .setId(existing.getId())
                 .setSteamRating(existing.getRatings().steam())
                 .setThumbnailUrl(existing.getThumbnailUrl())

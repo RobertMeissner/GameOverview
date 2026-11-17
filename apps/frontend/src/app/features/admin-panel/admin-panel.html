@@ -42,6 +42,15 @@
           <i class="bi bi-steam"></i>
           App ID
         </button>
+        <button type="button"
+                class="sort-btn"
+                [class.active]="sortField() === 'completeness'"
+                (click)="setSortField('completeness')">
+          <i class="bi" [class.bi-sort-down]="sortField() === 'completeness' && sortDirection() === 'desc'"
+                        [class.bi-sort-up]="sortField() === 'completeness' && sortDirection() === 'asc'"
+                        [class.bi-pie-chart]="sortField() !== 'completeness'"></i>
+          Complete
+        </button>
       </div>
       <div class="ms-auto">
         <button type="button" class="btn btn-outline-warning" (click)="openRescrapeAllModal()" title="Rescrape all displayed games">
@@ -78,7 +87,13 @@
             <td class="col-thumbnail">
               <img [src]="game.thumbnailUrl" [alt]="game.name" class="thumbnail-img" loading="lazy"/>
             </td>
-            <td class="col-name">{{ game.name }}</td>
+            <td class="col-name">
+              @if (editingGame()?.id === game.id) {
+                <input type="text" class="form-control form-control-sm" [(ngModel)]="editName">
+              } @else {
+                {{ game.name }}
+              }
+            </td>
             <td class="col-rating">
               <div class="rating-container">
                 <div class="rating-bar">

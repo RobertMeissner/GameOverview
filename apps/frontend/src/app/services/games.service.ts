@@ -78,6 +78,7 @@ export class GamesService {
   }
 
   updateCatalogValues(gameId: string, values: {
+    name: string | null;
     steamAppId: number | null;
     steamName: string | null;
     gogId: number | null;
