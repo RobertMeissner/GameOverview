@@ -1,5 +1,6 @@
 package com.robertforpresent.api.collection.presentation.rest;
 
+import com.robertforpresent.api.collection.application.command.UpdateFlagsCommand;
 import com.robertforpresent.api.collection.application.dto.AdminGameView;
 import com.robertforpresent.api.collection.application.dto.CollectionGameView;
 import com.robertforpresent.api.collection.application.service.GamerCollectionService;
@@ -34,7 +35,8 @@ public class GamerCollectionController {
 
     @PatchMapping("/collection/games/{gameId}")
     public CollectionGameView updateFlags(@PathVariable UUID gameId, @RequestParam UUID userId, @RequestBody UpdateFlagsRequest request) {
-        return service.updateFlags(userId, gameId, request);
+        UpdateFlagsCommand command = new UpdateFlagsCommand(request.markedAsPlayed(), request.markedAsHidden(), request.markedForLater());
+        return service.updateFlags(userId, gameId, command);
     }
 
     @GetMapping("/collection/admin")

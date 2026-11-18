@@ -1,6 +1,8 @@
 package com.robertforpresent.api.catalog.presentation.rest;
 
+import com.robertforpresent.api.catalog.application.command.RescrapeCommand;
 import com.robertforpresent.api.catalog.application.command.UpdateCatalogCommand;
+import com.robertforpresent.api.catalog.application.dto.RescrapeResult;
 import com.robertforpresent.api.catalog.application.service.CatalogService;
 import com.robertforpresent.api.catalog.domain.model.CanonicalGame;
 import com.robertforpresent.api.catalog.domain.model.SteamGameData;
@@ -120,8 +122,8 @@ public class CatalogController {
             @RequestBody(required = false) RescrapeRequest request) {
         log.debug("Rescrape request for game {}: {}", gameId, request);
 
-        RescrapeRequest effectiveRequest = request != null ? request : new RescrapeRequest(null);
-        RescrapeResult result = service.rescrapeGame(gameId, effectiveRequest);
+        RescrapeCommand command = new RescrapeCommand(request != null ? request.igdbId() : null);
+        RescrapeResult result = service.rescrapeGame(gameId, command);
 
         if (result.success()) {
             return ResponseEntity.ok(result);

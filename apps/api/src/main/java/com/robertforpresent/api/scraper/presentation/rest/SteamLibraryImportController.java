@@ -1,5 +1,7 @@
-package com.robertforpresent.api.scraper.infrastructure.steam;
+package com.robertforpresent.api.scraper.presentation.rest;
 
+import com.robertforpresent.api.scraper.infrastructure.steam.SteamConfig;
+import com.robertforpresent.api.scraper.infrastructure.steam.SteamLibraryImportService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;

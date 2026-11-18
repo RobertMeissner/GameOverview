@@ -1,5 +1,6 @@
 package com.robertforpresent.api.scraper.domain.port;
 
+import com.robertforpresent.api.catalog.domain.port.ExternalSource;
 import com.robertforpresent.api.scraper.domain.model.ScrapedGameInfo;
 
 import java.util.List;
@@ -12,7 +13,7 @@ import java.util.Optional;
  * from external sources (IGDB, RAWG, etc.) following hexagonal architecture.
  * Implementations (adapters) live in the infrastructure layer.
  */
-public interface GameInfoProvider {
+public interface GameInfoProvider extends ExternalSource {
 
     /**
      * Search for games by name.
@@ -30,18 +31,4 @@ public interface GameInfoProvider {
      * @return Game details if found
      */
     Optional<ScrapedGameInfo> getGameDetails(long externalId);
-
-    /**
-     * Check if this provider is enabled and properly configured.
-     *
-     * @return true if the provider is ready to use
-     */
-    boolean isEnabled();
-
-    /**
-     * Get the name of this provider (e.g., "igdb", "rawg").
-     *
-     * @return Provider identifier
-     */
-    String getProviderName();
 }

@@ -1,6 +1,7 @@
 package com.robertforpresent.api.collection.presentation.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.robertforpresent.api.collection.application.command.UpdateFlagsCommand;
 import com.robertforpresent.api.collection.application.dto.CollectionGameView;
 import com.robertforpresent.api.collection.application.dto.StoreLinksDTO;
 import com.robertforpresent.api.collection.application.dto.StoreOwnershipDTO;
@@ -167,7 +168,7 @@ class GamerCollectionControllerTest {
             // given
             UpdateFlagsRequest request = new UpdateFlagsRequest(true, false, true);
             CollectionGameView updatedGame = createGameView(GAME_ID_1, "Test Game", 0.8f, true, false, true);
-            when(collectionService.updateFlags(eq(TEST_USER_ID), eq(GAME_ID_1), any(UpdateFlagsRequest.class)))
+            when(collectionService.updateFlags(eq(TEST_USER_ID), eq(GAME_ID_1), any(UpdateFlagsCommand.class)))
                     .thenReturn(updatedGame);
 
             // when/then
@@ -187,7 +188,7 @@ class GamerCollectionControllerTest {
             // given
             UpdateFlagsRequest request = new UpdateFlagsRequest(true, false, false);
             CollectionGameView updatedGame = createGameView(GAME_ID_1, "Test Game", 0.8f, true, false, false);
-            when(collectionService.updateFlags(eq(TEST_USER_ID), eq(GAME_ID_1), any(UpdateFlagsRequest.class)))
+            when(collectionService.updateFlags(eq(TEST_USER_ID), eq(GAME_ID_1), any(UpdateFlagsCommand.class)))
                     .thenReturn(updatedGame);
 
             // when/then
@@ -205,7 +206,7 @@ class GamerCollectionControllerTest {
             // given
             UpdateFlagsRequest request = new UpdateFlagsRequest(false, true, false);
             CollectionGameView updatedGame = createGameView(GAME_ID_1, "Test Game", 0.8f, false, true, false);
-            when(collectionService.updateFlags(eq(TEST_USER_ID), eq(GAME_ID_1), any(UpdateFlagsRequest.class)))
+            when(collectionService.updateFlags(eq(TEST_USER_ID), eq(GAME_ID_1), any(UpdateFlagsCommand.class)))
                     .thenReturn(updatedGame);
 
             // when/then
