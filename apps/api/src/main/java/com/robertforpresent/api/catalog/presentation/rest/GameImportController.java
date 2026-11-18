@@ -5,6 +5,7 @@ import com.robertforpresent.api.catalog.application.service.GameImportService;
 import com.robertforpresent.api.catalog.application.service.GameImportService.BulkImportResult;
 import com.robertforpresent.api.catalog.application.service.GameImportService.SingleImportResult;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,12 +20,14 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/import")
 public class GameImportController {
-    private static final UUID DEFAULT_GAMER_ID = UUID.fromString("4c580456-1116-4091-b1d6-99fc02b47246");
-
     private final GameImportService importService;
+    private final UUID defaultGamerId;
 
-    public GameImportController(GameImportService importService) {
+    public GameImportController(
+            GameImportService importService,
+            @Value("${app.default-gamer-id:4c580456-1116-4091-b1d6-99fc02b47246}") UUID defaultGamerId) {
         this.importService = importService;
+        this.defaultGamerId = defaultGamerId;
     }
 
     /**
@@ -71,7 +74,7 @@ public class GameImportController {
     }
 
     private UUID resolveGamerId(UUID userId) {
-        return userId != null ? userId : DEFAULT_GAMER_ID;
+        return userId != null ? userId : defaultGamerId;
     }
 
     private ImportResult toResponse(SingleImportResult result) {

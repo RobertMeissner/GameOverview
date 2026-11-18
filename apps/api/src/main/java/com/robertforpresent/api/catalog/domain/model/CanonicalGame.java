@@ -44,8 +44,6 @@ public class CanonicalGame {
     // Game categories/tags from IGDB
     private final List<String> genres;
 
-    private CanonicalMetadata metadata;
-
     private Instant createdAt;
     private Instant updatedAt;
 
