@@ -63,10 +63,31 @@ jobs:
             echo " No coverage report generated" >> $GITHUB_STEP_SUMMARY
           fi
 
+  api-tests:
+    runs-on: ubuntu-latest
+    name: API Tests (Spring Boot)
+    defaults:
+      run:
+        working-directory: apps/api
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java 25
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      - name: Build and test API
+        run: ./mvnw --batch-mode --no-transfer-progress verify
+
   quality-summary:
     runs-on: ubuntu-latest
     name: Quality Metrics Summary
-    needs: [frontend-tests]
+    needs: [frontend-tests, api-tests]
     if: always()
 
     steps:
@@ -86,7 +107,11 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Component | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-----------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| API (Spring Boot) | Skipped (Java 25 not available in CI) |" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ needs.api-tests.result }}" == "success" ]; then
+            echo "| API (Spring Boot) | \u2705 Passed |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| API (Spring Boot) | \u274c Failed |" >> $GITHUB_STEP_SUMMARY
+          fi
 
           if [ "${{ needs.frontend-tests.result }}" == "success" ]; then
             echo "| Frontend (Angular) | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
@@ -100,5 +125,4 @@ jobs:
           echo "Coverage reports are available as artifacts:" >> $GITHUB_STEP_SUMMARY
           echo "- **frontend-coverage**: LCOV and JSON coverage for Frontend" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo " **Note**: API tests require Java 25 which is not yet available in GitHub Actions." >> $GITHUB_STEP_SUMMARY
-          echo "Run API tests locally with \`./mvnw test\` in the \`apps/api\` directory." >> $GITHUB_STEP_SUMMARY
+          echo " **Note**: API tests run on Java 25 in the \`api-tests\` job; locally use \`./mvnw test\` in the \`apps/api\` directory." >> $GITHUB_STEP_SUMMARY
