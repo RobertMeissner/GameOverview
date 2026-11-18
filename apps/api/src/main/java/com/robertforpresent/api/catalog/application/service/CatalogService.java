@@ -282,27 +282,14 @@ public class CatalogService {
         log.debug("Found IGDB data for {}: coverUrl={}, storeLinks={}", gameName, info.coverUrl(), info.storeLinks());
 
         // Extract store links from scraped data
-        Integer steamAppId = null;
-        String steamLink = null;
-        String gogLink = null;
-        String epicLink = null;
-
-        for (ScrapedGameInfo.StoreLink link : info.storeLinks()) {
-            switch (link.storeName()) {
-                case "Steam" -> {
-                    steamLink = link.url();
-                    if (link.storeId() != null) {
-                        try {
-                            steamAppId = Integer.parseInt(link.storeId());
-                        } catch (NumberFormatException e) {
-                            log.debug("Could not parse Steam app ID: {}", link.storeId());
-                        }
-                    }
-                }
-                case "GOG" -> gogLink = link.url();
-                case "Epic Games" -> epicLink = link.url();
-            }
+        var steamLinkOpt = info.storeLink("Steam");
+        String steamLink = steamLinkOpt.map(ScrapedGameInfo.StoreLink::url).orElse(null);
+        Integer steamAppId = steamLinkOpt.flatMap(ScrapedGameInfo.StoreLink::storeIdAsInt).orElse(null);
+        if (steamAppId == null && steamLinkOpt.map(ScrapedGameInfo.StoreLink::storeId).isPresent()) {
+            log.debug("Could not parse Steam app ID: {}", steamLinkOpt.get().storeId());
         }
+        String gogLink = info.storeLink("GOG").map(ScrapedGameInfo.StoreLink::url).orElse(null);
+        String epicLink = info.storeLink("Epic Games").map(ScrapedGameInfo.StoreLink::url).orElse(null);
 
         // Build updated game - preserve existing data if scraped data is null
         SteamGameData existingSteam = existing.getSteamData();

@@ -1,5 +1,7 @@
 package com.robertforpresent.api.collection.domain.model;
 
+import com.robertforpresent.api.catalog.domain.model.StoreCode;
+
 import java.util.UUID;
 
 /**
@@ -116,6 +118,20 @@ public class PersonalizedGame {
 
     public void setOwnedOnPlayStation(boolean ownedOnPlayStation) {
         this.ownedOnPlayStation = ownedOnPlayStation;
+    }
+
+    /**
+     * Marks this game as owned on the given store.
+     */
+    public void markOwned(StoreCode store) {
+        switch (store) {
+            case STEAM -> ownedOnSteam = true;
+            case GOG -> ownedOnGog = true;
+            case EPIC -> ownedOnEpic = true;
+            case XBOX -> ownedOnXbox = true;
+            case PLAYSTATION -> ownedOnPlayStation = true;
+            default -> { }
+        }
     }
 
     public String getOtherStores() {
