@@ -114,21 +114,15 @@ public class CatalogService {
                 command.metacriticLink() != null ? command.metacriticLink() : (existingMc != null ? existingMc.link() : null)
         );
 
-        CanonicalGame updated = new CanonicalGame.Builder(
-                command.name() != null && !command.name().isBlank() ? command.name() : existing.getName())
-                .setId(existing.getId())
-                .setSteamRating(existing.getRatings().steam())
-                .setThumbnailUrl(existing.getThumbnailUrl())
+        CanonicalGame.Builder builder = existing.toBuilder()
                 .setSteamData(newSteamData)
                 .setGogData(newGogData)
                 .setEpicData(newEpicData)
-                .setMetacriticData(newMetacriticData)
-                .setIgdbId(existing.getIgdbId())
-                .setIgdbSlug(existing.getIgdbSlug())
-                .setIgdbRating(existing.getRatings().igdb())
-                .setGenres(existing.getGenres())
-                .build();
-        return repository.save(updated);
+                .setMetacriticData(newMetacriticData);
+        if (command.name() != null && !command.name().isBlank()) {
+            builder.setName(command.name());
+        }
+        return repository.save(builder.build());
     }
 
     @Transactional
@@ -342,15 +336,11 @@ public class CatalogService {
                 ? info.genres()
                 : existing.getGenres();
 
-        CanonicalGame updated = new CanonicalGame.Builder(existing.getName())
-                .setId(existing.getId())
-                .setSteamRating(existing.getRatings().steam())
+        CanonicalGame updated = existing.toBuilder()
                 .setThumbnailUrl(newThumbnailUrl)
                 .setSteamData(newSteamData)
                 .setGogData(newGogData)
                 .setEpicData(newEpicData)
-                .setMetacriticData(existing.getMetacriticData())
-                .setHltbData(existing.getHltbData())
                 .setIgdbId(igdbId)
                 .setIgdbSlug(igdbSlug)
                 .setIgdbRating(info.rating() != null ? info.rating() : existing.getRatings().igdb())

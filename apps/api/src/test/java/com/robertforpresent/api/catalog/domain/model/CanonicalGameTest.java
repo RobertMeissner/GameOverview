@@ -254,6 +254,40 @@ class CanonicalGameTest {
             assertEquals("stardew-valley", game.getIgdbSlug());
             assertEquals(2, game.getGenres().size());
         }
+
+        @Test
+        @DisplayName("toBuilder preserves all fields and allows overriding single fields")
+        void toBuilderPreservesAllFields() {
+            // given
+            UUID id = UUID.randomUUID();
+            var game = new CanonicalGame.Builder("Stardew Valley")
+                    .setId(id)
+                    .setThumbnailUrl("https://example.com/thumb.jpg")
+                    .setSteamRating(SteamRating.of(90, 10, ReviewSentiment.VERY_POSITIVE))
+                    .setSteamData(new SteamGameData(413150, "Stardew Valley"))
+                    .setHltbData(new HltbGameData(42, "Stardew Valley", 52.0, 94.0, 165.0))
+                    .setIgdbId(17000L)
+                    .setIgdbSlug("stardew-valley")
+                    .setIgdbRating(91.0)
+                    .setGenres(List.of("Simulation", "RPG"))
+                    .build();
+
+            // when
+            var updated = game.toBuilder()
+                    .setHltbData(new HltbGameData(42, "Stardew Valley", 53.0, 95.0, 166.0))
+                    .build();
+
+            // then
+            assertEquals(id, updated.getId());
+            assertEquals("Stardew Valley", updated.getName());
+            assertEquals("https://example.com/thumb.jpg", updated.getThumbnailUrl());
+            assertEquals(413150, updated.getSteamData().appId());
+            assertEquals(17000L, updated.getIgdbId());
+            assertEquals("stardew-valley", updated.getIgdbSlug());
+            assertEquals(91.0, updated.getRatings().igdb());
+            assertEquals(List.of("Simulation", "RPG"), updated.getGenres());
+            assertEquals(53.0, updated.getHltbData().mainStoryHours());
+        }
     }
 
     @Nested

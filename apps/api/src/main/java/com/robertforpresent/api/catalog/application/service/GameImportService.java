@@ -70,14 +70,8 @@ public class GameImportService {
 
         if (existing.isPresent()) {
             CanonicalGame game = existing.get();
-            builder = new CanonicalGame.Builder(game.getName())
-                    .setId(game.getId())
-                    .setSteamRating(game.getRatings().steam())
-                    .setThumbnailUrl(game.getThumbnailUrl() != null ? game.getThumbnailUrl() : command.thumbnailUrl())
-                    .setSteamData(game.getSteamData())
-                    .setGogData(game.getGogData())
-                    .setEpicData(game.getEpicData())
-                    .setMetacriticData(game.getMetacriticData());
+            builder = game.toBuilder()
+                    .setThumbnailUrl(game.getThumbnailUrl() != null ? game.getThumbnailUrl() : command.thumbnailUrl());
             isNew = false;
         } else {
             builder = new CanonicalGame.Builder(normalizedName)

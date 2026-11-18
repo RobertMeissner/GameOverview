@@ -112,10 +112,30 @@ public class CanonicalGame {
     }
 
     /**
+     * Returns a builder pre-populated with this game's current values,
+     * so updates only need to set the fields that actually change.
+     */
+    public Builder toBuilder() {
+        return new Builder(getName())
+                .setId(getId())
+                .setThumbnailUrl(thumbnailUrl)
+                .setSteamRating(ratings.steam())
+                .setIgdbRating(ratings.igdb())
+                .setSteamData(steamData)
+                .setGogData(gogData)
+                .setEpicData(epicData)
+                .setMetacriticData(metacriticData)
+                .setHltbData(hltbData)
+                .setIgdbId(igdbId)
+                .setIgdbSlug(igdbSlug)
+                .setGenres(genres);
+    }
+
+    /**
      * Explicit builder. Favoured over Lombok to have in-depth control
      */
     public static class Builder {
-        private final String name;
+        private String name;
         private UUID id;
         private String thumbnailUrl;
         private SteamRating steamRating;
@@ -131,6 +151,11 @@ public class CanonicalGame {
 
         public Builder(String name) {
             this.name = name;
+        }
+
+        public Builder setName(String name) {
+            this.name = name;
+            return this;
         }
 
         public CanonicalGame build() {

@@ -90,25 +90,16 @@ public class GameCatalogWriterAdapter implements GameCatalogWriter {
     }
 
     private CanonicalGame mergeScrapedData(CanonicalGame existing, ScrapedGameInfo gameInfo) {
-        CanonicalGame.Builder builder = new CanonicalGame.Builder(existing.getName())
-                .setId(existing.getId())
-                .setSteamRating(existing.getRatings().steam())
+        CanonicalGame.Builder builder = existing.toBuilder()
                 .setThumbnailUrl(existing.getThumbnailUrl() != null ? existing.getThumbnailUrl() : gameInfo.coverUrl())
                 .setSteamData(existing.getSteamData() != null ? existing.getSteamData() : extractSteamData(gameInfo))
                 .setGogData(existing.getGogData() != null ? existing.getGogData() : extractGogData(gameInfo))
-                .setEpicData(existing.getEpicData())
-                .setMetacriticData(existing.getMetacriticData())
-                .setHltbData(existing.getHltbData())
                 .setGenres(!gameInfo.genres().isEmpty() ? gameInfo.genres() : existing.getGenres());
 
         if (isIgdbSource(gameInfo)) {
             builder.setIgdbId(gameInfo.externalId())
                     .setIgdbSlug(gameInfo.slug())
                     .setIgdbRating(gameInfo.rating() != null ? gameInfo.rating() : existing.getRatings().igdb());
-        } else {
-            builder.setIgdbId(existing.getIgdbId())
-                    .setIgdbSlug(existing.getIgdbSlug())
-                    .setIgdbRating(existing.getRatings().igdb());
         }
 
         return builder.build();
