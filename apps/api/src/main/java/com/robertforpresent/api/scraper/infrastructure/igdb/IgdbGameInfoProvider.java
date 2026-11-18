@@ -42,13 +42,11 @@ public class IgdbGameInfoProvider implements GameInfoProvider {
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
 
-    public IgdbGameInfoProvider(IgdbConfig config, IgdbAuthService authService) {
+    public IgdbGameInfoProvider(IgdbConfig config, IgdbAuthService authService, HttpClient httpClient, ObjectMapper objectMapper) {
         this.config = config;
         this.authService = authService;
-        this.httpClient = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(10))
-                .build();
-        this.objectMapper = new ObjectMapper();
+        this.httpClient = httpClient;
+        this.objectMapper = objectMapper;
     }
 
     @Override

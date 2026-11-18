@@ -28,14 +28,10 @@ public class ThumbnailService {
     private final HttpClient httpClient;
 
     public ThumbnailService(
-            ThumbnailCacheConfig cacheConfig, CanonicalGameRepository gameRepository) {
+            ThumbnailCacheConfig cacheConfig, CanonicalGameRepository gameRepository, HttpClient httpClient) {
         this.cacheConfig = cacheConfig;
         this.gameRepository = gameRepository;
-        this.httpClient =
-                HttpClient.newBuilder()
-                        .connectTimeout(Duration.ofSeconds(10))
-                        .followRedirects(HttpClient.Redirect.NORMAL)
-                        .build();
+        this.httpClient = httpClient;
     }
 
     public Optional<byte[]> getThumbnail(UUID gameId) {

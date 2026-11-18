@@ -29,12 +29,10 @@ class IgdbAuthService {
     private String accessToken;
     private Instant tokenExpiry;
 
-    IgdbAuthService(IgdbConfig config) {
+    IgdbAuthService(IgdbConfig config, HttpClient httpClient, ObjectMapper objectMapper) {
         this.config = config;
-        this.httpClient = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(10))
-                .build();
-        this.objectMapper = new ObjectMapper();
+        this.httpClient = httpClient;
+        this.objectMapper = objectMapper;
     }
 
     /**

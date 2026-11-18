@@ -37,12 +37,9 @@ public class HltbApiClient {
     private volatile long cacheTime;
     private static final long CACHE_EXPIRY_MS = 60 * 60 * 1000; // 1 hour
 
-    public HltbApiClient() {
-        this.objectMapper = new ObjectMapper();
-        this.httpClient = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(10))
-                .followRedirects(HttpClient.Redirect.NORMAL)
-                .build();
+    public HltbApiClient(HttpClient httpClient, ObjectMapper objectMapper) {
+        this.httpClient = httpClient;
+        this.objectMapper = objectMapper;
     }
 
     /**
