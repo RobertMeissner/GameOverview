@@ -15,7 +15,6 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequestMapping("/stores")
-@CrossOrigin(origins = "http://localhost:4200")
 public class StoreStatsController {
     private final CatalogStatsService statsService;
     private final StoreService storeService;

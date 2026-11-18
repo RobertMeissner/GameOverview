@@ -17,7 +17,6 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/enrichment")
-@CrossOrigin(origins = "http://localhost:4200")
 public class GameEnrichmentController {
     private static final Logger logger = LoggerFactory.getLogger(GameEnrichmentController.class);
 

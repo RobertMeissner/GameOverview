@@ -12,7 +12,6 @@ import java.util.UUID;
 
 @Slf4j
 @RestController
-@CrossOrigin(origins = "*")
 public class GamerCollectionController {
     private final TopRankedMapper mapper;
 

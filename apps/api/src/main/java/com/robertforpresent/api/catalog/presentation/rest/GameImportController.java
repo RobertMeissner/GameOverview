@@ -18,7 +18,6 @@ import java.util.UUID;
 @Slf4j
 @RestController
 @RequestMapping("/import")
-@CrossOrigin(origins = "http://localhost:4200")
 public class GameImportController {
     private static final UUID DEFAULT_GAMER_ID = UUID.fromString("4c580456-1116-4091-b1d6-99fc02b47246");
 

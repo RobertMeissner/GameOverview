@@ -105,7 +105,7 @@ public class GameImportService {
     }
 
     private void applyStoreData(CanonicalGame.Builder builder, ImportGameCommand command) {
-        String store = command.store().toLowerCase();
+        String store = command.store() == null ? "" : command.store().toLowerCase();
         switch (store) {
             case "steam", "steam-family" -> {
                 // "steam-family" is Steam Family Sharing - treat same as steam
