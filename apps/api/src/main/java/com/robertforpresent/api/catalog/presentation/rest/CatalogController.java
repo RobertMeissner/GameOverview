@@ -20,7 +20,6 @@ import java.util.UUID;
  */
 @Slf4j
 @RestController
-@CrossOrigin(origins = "http://localhost:4200")
 public class CatalogController {
     private final CatalogService service;
 

@@ -143,8 +143,12 @@
 
         const fetchGamesList = async (pageToken = '', existingList = []) => {
             const response = await fetch(
-                `https://www.epicgames.com/account/v2/payment/ajaxGetOrderHistory?sortDir=DESC&sortBy=DATE&nextPageToken=${pageToken}&locale=en-US`
+                `https://www.epicgames.com/account/v2/payment/ajaxGetOrderHistory?sortDir=DESC&sortBy=DATE&nextPageToken=${pageToken}&locale=en-US`,
+                { credentials: 'include' }
             );
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status} - Epic is gating the order history endpoint. Make sure you are logged in at epicgames.com, otherwise export via legendary/Heroic instead.`);
+            }
             const data = await response.json();
 
             const gamesList = data.orders.reduce((acc, order) => [
@@ -174,7 +178,29 @@
 
     // Steam export
     async function exportSteamGames() {
-        showNotification('Scanning Steam library... Scroll to bottom first!', 'info');
+        showNotification('Fetching Steam library via XML endpoint...', 'info');
+
+        try {
+            const xmlResponse = await fetch(
+                location.origin + location.pathname + '?tab=all&xml=1',
+                { credentials: 'include' }
+            );
+            const xmlDoc = new DOMParser().parseFromString(await xmlResponse.text(), 'text/xml');
+
+            if (!xmlDoc.querySelector('error')) {
+                const games = [...xmlDoc.querySelectorAll('game')].map(g => ({
+                    name: cleanName(g.querySelector('name')?.textContent || ''),
+                    store: 'steam',
+                    storeId: g.querySelector('appID')?.textContent || null
+                })).filter(g => g.name);
+                sendToGameOverview(games, 'Steam');
+                return;
+            }
+
+            showNotification('XML endpoint blocked (' + xmlDoc.querySelector('error').textContent + ') - falling back to DOM. Scroll to bottom first!', 'info');
+        } catch (error) {
+            console.warn('Steam XML fetch failed, falling back to DOM scrape:', error);
+        }
 
         // Wait a bit for user to scroll
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -183,12 +209,12 @@
         if (!gameRows.length) gameRows = document.querySelectorAll('.gameListRow');
 
         if (!gameRows.length) {
-            showNotification('✗ No games found. Scroll to the bottom of the page first!', 'error');
+            showNotification('✗ No games found. Make sure your profile game details are public, or scroll to the bottom of the page first!', 'error');
             return;
         }
 
         const games = [...gameRows].map(row => {
-            const appid = row.dataset?.appid || row.getAttribute('data-appid') || null;
+            const appid = row.dataset?.appid || row.getAttribute('data-appid') || (row.id || '').replace('game_', '') || null;
             const nameEl = row.querySelector('.gameListRowItemName') || row.querySelector('[class*="GameName"]');
             const rawName = nameEl ? nameEl.textContent.trim() : 'Unknown';
             return {
@@ -196,7 +222,7 @@
                 store: 'steam',
                 storeId: appid
             };
-        }).filter(g => g.name !== 'Unknown');
+        }).filter(g => g.name && g.name !== 'Unknown');
 
         sendToGameOverview(games, 'Steam');
     }
@@ -209,6 +235,20 @@
         let lastCount = 0;
         let noNewItemsCount = 0;
         const maxNoNewItems = 5;
+
+        // The family library scrolls an inner virtualized container, not the window
+        const container = document.querySelector('[class*="sharedlibrary_Container"]') ||
+                          document.querySelector('[class*="libraryhome_Container"]') ||
+                          document.scrollingElement || document.documentElement;
+
+        const scrollStep = () => {
+            const amount = (container.clientHeight || window.innerHeight) * 0.8;
+            if (container === document.scrollingElement || container === document.documentElement) {
+                window.scrollBy(0, amount);
+            } else {
+                container.scrollBy(0, amount);
+            }
+        };
 
         const collectVisibleGames = () => {
             const images = document.querySelectorAll('img[src*="steam/apps"]');
@@ -232,11 +272,11 @@
         const scrollAndCollect = () => {
             return new Promise(resolve => {
                 collectVisibleGames();
-                window.scrollBy(0, window.innerHeight * 0.8);
+                scrollStep();
                 setTimeout(() => {
                     collectVisibleGames();
                     resolve();
-                }, 300);
+                }, 500);
             });
         };
 
@@ -253,7 +293,11 @@
             lastCount = games.size;
         }
 
-        window.scrollTo(0, 0);
+        if (container === document.scrollingElement || container === document.documentElement) {
+            window.scrollTo(0, 0);
+        } else {
+            container.scrollTo(0, 0);
+        }
         const uniqueGames = [...games.values()];
         sendToGameOverview(uniqueGames, 'Steam Family');
     }
@@ -269,8 +313,12 @@
 
             do {
                 const response = await fetch(
-                    `https://www.gog.com/account/getFilteredProducts?mediaType=1&page=${page}`
+                    `https://www.gog.com/account/getFilteredProducts?mediaType=1&hiddenFlag=0&sortBy=title&page=${page}`,
+                    { credentials: 'include' }
                 );
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status} on page ${page} - are you logged in at gog.com/en/account?`);
+                }
                 const data = await response.json();
                 totalPages = data.totalPages;
 

@@ -12,7 +12,6 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/steam")
-@CrossOrigin(origins = "http://localhost:4200")
 public class SteamLibraryImportController {
     private static final Logger logger = LoggerFactory.getLogger(SteamLibraryImportController.class);
     private static final UUID DEFAULT_GAMER_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");

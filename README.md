@@ -61,7 +61,11 @@ There, use the console to run:
 
 ```shell
 const fetchGamesList = async (pageToken = '', existingList = []) => {
-  const data = await (await fetch(`https://www.epicgames.com/account/v2/payment/ajaxGetOrderHistory?sortDir=DESC&sortBy=DATE&nextPageToken=${pageToken}&locale=en-US`)).json();
+  const response = await fetch(`https://www.epicgames.com/account/v2/payment/ajaxGetOrderHistory?sortDir=DESC&sortBy=DATE&nextPageToken=${pageToken}&locale=en-US`, { credentials: 'include' });
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status} - Epic is gating the order history endpoint. Make sure you are logged in at epicgames.com, otherwise export via legendary/Heroic instead.`);
+  }
+  const data = await response.json();
   const gamesList = data.orders.reduce((acc, value) => [...acc, ...value.items.map(v => v.description)], []);
   console.log(`Games on this page: ${gamesList.length}, Next page starts from date: ${data.nextPageToken}`);
   const newList = [...existingList, ...gamesList];

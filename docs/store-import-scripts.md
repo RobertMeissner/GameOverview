@@ -131,7 +131,11 @@ const cleanName = (name) => {
 };
 
 const fetchGamesList = async (pageToken = '', existingList = []) => {
-  const data = await (await fetch(`https://www.epicgames.com/account/v2/payment/ajaxGetOrderHistory?sortDir=DESC&sortBy=DATE&nextPageToken=${pageToken}&locale=en-US`)).json();
+  const response = await fetch(`https://www.epicgames.com/account/v2/payment/ajaxGetOrderHistory?sortDir=DESC&sortBy=DATE&nextPageToken=${pageToken}&locale=en-US`, { credentials: 'include' });
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status} - Epic is gating the order history endpoint. Make sure you are logged in at epicgames.com, otherwise export via legendary/Heroic instead.`);
+  }
+  const data = await response.json();
   const gamesList = data.orders.reduce((acc, order) => [
     ...acc,
     ...order.items.map(item => ({
@@ -201,7 +205,7 @@ fetch(`https://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=${ST
 
 Navigate to: `https://steamcommunity.com/id/YOUR_STEAM_ID/games/?tab=all`
 
-**Important:** Scroll all the way to the bottom first to load ALL games!
+**Note:** The script uses the `?xml=1` XML endpoint, so no scrolling is needed. The DOM fallback requires scrolling to the very bottom first.
 
 ```javascript
 // Name cleanup helper (copy from above or include inline)
@@ -213,20 +217,28 @@ const cleanName = (name) => {
     .replace(/ - Free$/i, '').replace(/ Demo$/i, '').replace(/ - $/g, '').trim();
 };
 
-// Try to find game elements with app IDs
-let gameRows = document.querySelectorAll('[data-appid]');
-if (!gameRows.length) gameRows = document.querySelectorAll('.gameListRow');
+// Preferred: the XML endpoint - no scrolling needed.
+// Requires public game details (or being logged in as this profile).
+const xmlResponse = await fetch(location.origin + location.pathname + '?tab=all&xml=1', { credentials: 'include' });
+const xmlDoc = new DOMParser().parseFromString(await xmlResponse.text(), 'text/xml');
 
-if (!gameRows.length) {
-  console.log("No games found. Try Method 1 (API) instead.");
-} else {
-  const games = [...gameRows].map(row => {
-    const appid = row.dataset?.appid || row.getAttribute('data-appid') || null;
+if (xmlDoc.querySelector('error')) {
+  console.log('XML endpoint error: ' + xmlDoc.querySelector('error').textContent + ' - falling back to DOM scraping (scroll to the very bottom first!)');
+  let gameRows = document.querySelectorAll('[data-appid]');
+  if (!gameRows.length) gameRows = document.querySelectorAll('.gameListRow');
+  const domGames = [...gameRows].map(row => {
+    const appid = row.dataset?.appid || row.getAttribute('data-appid') || (row.id || '').replace('game_', '') || null;
     const nameEl = row.querySelector('.gameListRowItemName') || row.querySelector('[class*="GameName"]');
     const rawName = nameEl ? nameEl.textContent.trim() : 'Unknown';
     return { name: cleanName(rawName), appid };
-  }).filter(g => g.name !== 'Unknown');
-
+  }).filter(g => g.name && g.name !== 'Unknown');
+  console.log("=== STEAM GAMES (" + domGames.length + ") ===");
+  console.log(JSON.stringify(domGames, null, 2));
+} else {
+  const games = [...xmlDoc.querySelectorAll('game')].map(g => ({
+    name: cleanName(g.querySelector('name')?.textContent || ''),
+    appid: g.querySelector('appID')?.textContent || null
+  })).filter(g => g.name);
   console.log("=== STEAM GAMES (" + games.length + ") ===");
   console.log(JSON.stringify(games, null, 2));
 }
@@ -246,6 +258,11 @@ if (!gameRows.length) {
 ### Steam Family Sharing
 
 For games shared via Steam Family Sharing, use the same export methods above but select "Steam Family Sharing" as the store when importing. This helps track which games you own vs. which are shared.
+
+Two important caveats:
+
+- `GetOwnedGames` (Method 1) **never includes family-shared games** - Valve does not expose them via the Web API. Use the family library page on the store instead.
+- On `https://store.steampowered.com/account/familymanagement?tab=library` the game list is a virtualized **inner** scroll container - `window.scrollBy` does not load more rows. Scroll the container element itself (the console script in the Store Dashboard already does this), or export the `?tab=all&xml=1` list of each family member's public profile and merge them.
 
 ## GOG Library Export
 
@@ -269,7 +286,11 @@ async function fetchAllGogGames() {
   let totalPages = 1;
 
   do {
-    const response = await fetch(`https://www.gog.com/account/getFilteredProducts?mediaType=1&page=${page}`);
+    const response = await fetch(`https://www.gog.com/account/getFilteredProducts?mediaType=1&hiddenFlag=0&sortBy=title&page=${page}`, { credentials: 'include' });
+    if (!response.ok) {
+      console.error(`GOG request failed: HTTP ${response.status} on page ${page} - are you logged in at gog.com/en/account?`);
+      return;
+    }
     const data = await response.json();
     totalPages = data.totalPages;
     const games = data.products.map(p => ({

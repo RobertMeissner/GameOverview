@@ -19,7 +19,6 @@ import java.util.UUID;
 @Slf4j
 @RestController
 @RequestMapping("/scraper")
-@CrossOrigin(origins = "http://localhost:4200")
 public class GameScraperController {
     private final GameScraperService scraperService;
 
