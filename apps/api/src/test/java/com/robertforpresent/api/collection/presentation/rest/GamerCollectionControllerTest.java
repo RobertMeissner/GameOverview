@@ -49,9 +49,6 @@ class GamerCollectionControllerTest {
     @MockitoBean
     private GamerCollectionService collectionService;
 
-    @MockitoBean
-    private TopRankedMapper topRankedMapper;
-
     @Nested
     @DisplayName("GET /collection")
     class GetCollectionTests {
@@ -121,8 +118,8 @@ class GamerCollectionControllerTest {
     class GetTopGamesTests {
 
         @Test
-        @DisplayName("returns top 3 games mapped to DTOs")
-        void returnsTop3GamesMappedToDtos() throws Exception {
+        @DisplayName("returns top 3 games with full view including store links")
+        void returnsTop3GamesWithFullView() throws Exception {
             // given
             List<CollectionGameView> topGames = List.of(
                     createGameView(GAME_ID_1, "Best Game", 0.99f, false, false, false),
@@ -130,18 +127,15 @@ class GamerCollectionControllerTest {
             );
             when(collectionService.getTop3(TEST_USER_ID)).thenReturn(topGames);
 
-            TopRankedDTO dto1 = new TopRankedDTO(GAME_ID_1, "Best Game", 0.99f, "thumb1.jpg", false, false, false);
-            TopRankedDTO dto2 = new TopRankedDTO(GAME_ID_2, "Second Best", 0.95f, "thumb2.jpg", false, false, false);
-            when(topRankedMapper.toDto(topGames.get(0))).thenReturn(dto1);
-            when(topRankedMapper.toDto(topGames.get(1))).thenReturn(dto2);
-
             // when/then
             mockMvc.perform(get("/collection/top")
                             .param("userId", String.valueOf(TEST_USER_ID)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(2)))
                     .andExpect(jsonPath("$[0].name", is("Best Game")))
-                    .andExpect(jsonPath("$[0].rating", is(0.99)));
+                    .andExpect(jsonPath("$[0].rating", is(0.99)))
+                    .andExpect(jsonPath("$[0].storeLinks").exists())
+                    .andExpect(jsonPath("$[0].storeOwnership").exists());
         }
 
         @Test
