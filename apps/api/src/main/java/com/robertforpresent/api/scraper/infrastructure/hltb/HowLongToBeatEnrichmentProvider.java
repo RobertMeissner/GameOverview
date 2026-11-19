@@ -68,19 +68,8 @@ public class HowLongToBeatEnrichmentProvider implements GameEnrichmentProvider {
         );
 
         // Build enriched game preserving all existing data
-        CanonicalGame enrichedGame = new CanonicalGame.Builder(game.getName())
-                .setId(game.getId())
-                .setThumbnailUrl(game.getThumbnailUrl())
-                .setSteamRating(game.getRatings().steam())
-                .setSteamData(game.getSteamData())
-                .setGogData(game.getGogData())
-                .setEpicData(game.getEpicData())
-                .setMetacriticData(game.getMetacriticData())
+        CanonicalGame enrichedGame = game.toBuilder()
                 .setHltbData(hltbData)
-                .setIgdbId(game.getIgdbId())
-                .setIgdbSlug(game.getIgdbSlug())
-                .setIgdbRating(game.getRatings().igdb())
-                .setGenres(game.getGenres())
                 .build();
 
         String timeInfo = String.format("Main: %.1fh", hltbGame.mainStoryHours());

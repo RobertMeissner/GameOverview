@@ -60,56 +60,22 @@ public class SteamEnrichmentProvider implements GameEnrichmentProvider {
             return EnrichmentResult.failure(game, "No data returned for Steam app ID " + appId);
         }
 
-        // Build enriched game
-        CanonicalGame.Builder builder = new CanonicalGame.Builder(game.getName())
-                .setId(game.getId());
-
-        // Update Steam data with official name if different
+        // Build enriched game, preserving all existing data
         String officialName = appData.name();
         if (!game.getName().equals(officialName)) {
             String currentSteamName = steamData != null ? steamData.name() : null;
             logger.info("Updating Steam name from '{}' to '{}'", currentSteamName, officialName);
         }
-        builder.setSteamData(new SteamGameData(appId, officialName));
-        builder.setSteamRating(game.getRatings().steam());
+
+        CanonicalGame.Builder builder = game.toBuilder()
+                .setSteamData(new SteamGameData(appId, officialName));
 
         // Update thumbnail only if none is set yet; never override an existing (IGDB) cover
         if ((game.getThumbnailUrl() == null || game.getThumbnailUrl().isBlank())
                 && appData.headerImage() != null && !appData.headerImage().isBlank()) {
             builder.setThumbnailUrl(appData.headerImage());
-        } else if (game.getThumbnailUrl() != null) {
-            builder.setThumbnailUrl(game.getThumbnailUrl());
         }
 
-        // Add Metacritic score if available and not already set
-        if (appData.metacritic() != null && game.getMetacriticData() == null) {
-            // Note: We don't have MetacriticGameData constructor, so skip for now
-            // This would need to be handled by MetacriticEnrichmentProvider
-        }
-
-        // Preserve existing data from other stores
-        if (game.getGogData() != null) {
-            builder.setGogData(game.getGogData());
-        }
-        if (game.getEpicData() != null) {
-            builder.setEpicData(game.getEpicData());
-        }
-        if (game.getMetacriticData() != null) {
-            builder.setMetacriticData(game.getMetacriticData());
-        }
-        if (game.getHltbData() != null) {
-            builder.setHltbData(game.getHltbData());
-        }
-        if (game.getIgdbId() != null) {
-            builder.setIgdbId(game.getIgdbId());
-        }
-        if (game.getIgdbSlug() != null) {
-            builder.setIgdbSlug(game.getIgdbSlug());
-        }
-        builder.setIgdbRating(game.getRatings().igdb());
-        builder.setGenres(game.getGenres());
-
-        // Build the enriched game
         CanonicalGame enrichedGame = builder.build();
 
         return EnrichmentResult.success(
