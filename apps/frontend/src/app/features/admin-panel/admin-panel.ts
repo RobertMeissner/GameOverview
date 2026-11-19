@@ -3,6 +3,7 @@ import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {GamesService} from '../../services/games.service';
+import {gameFlagsOf} from '../../domain/entities/GameFlags';
 import {ScraperService} from '../../services/scraper.service';
 import {AdminGameEntry} from '../../domain/entities/AdminGameEntry';
 import {ScrapedGameInfo} from '../../domain/entities/ScrapedGameInfo';
@@ -231,11 +232,7 @@ export class AdminPanel implements OnInit {
   }
 
   onFlagChange(game: AdminGameEntry): void {
-    this.gamesService.updateGameFlags(game.id, {
-      markedAsPlayed: game.markedAsPlayed,
-      markedAsHidden: game.markedAsHidden,
-      markedForLater: game.markedForLater
-    })
+    this.gamesService.updateGameFlags(game.id, gameFlagsOf(game))
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         error: err => console.error(err)
