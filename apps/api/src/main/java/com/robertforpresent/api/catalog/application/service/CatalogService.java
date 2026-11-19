@@ -1,11 +1,11 @@
 package com.robertforpresent.api.catalog.application.service;
 
+import com.robertforpresent.api.catalog.application.command.RescrapeCommand;
 import com.robertforpresent.api.catalog.application.command.UpdateCatalogCommand;
+import com.robertforpresent.api.catalog.application.dto.RescrapeResult;
 import com.robertforpresent.api.catalog.domain.model.*;
 import com.robertforpresent.api.catalog.domain.port.GameCollectionPort;
 import com.robertforpresent.api.catalog.domain.repository.CanonicalGameRepository;
-import com.robertforpresent.api.catalog.presentation.rest.RescrapeRequest;
-import com.robertforpresent.api.catalog.presentation.rest.RescrapeResult;
 import com.robertforpresent.api.scraper.application.service.GameScraperService;
 import com.robertforpresent.api.scraper.domain.model.ScrapedGameInfo;
 import com.robertforpresent.api.thumbnail.application.service.ThumbnailService;
@@ -254,7 +254,7 @@ public class CatalogService {
      * @return Result of the rescrape operation
      */
     @Transactional
-    public RescrapeResult rescrapeGame(UUID gameId, RescrapeRequest request) {
+    public RescrapeResult rescrapeGame(UUID gameId, RescrapeCommand request) {
         log.debug("Rescraping game {} with request: {}", gameId, request);
 
         CanonicalGame existing = repository.findById(gameId).orElseThrow();

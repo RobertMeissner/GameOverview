@@ -1,4 +1,4 @@
-package com.robertforpresent.api.catalog.presentation.rest;
+package com.robertforpresent.api.catalog.application.dto;
 
 import org.jspecify.annotations.Nullable;
 
