@@ -24,18 +24,11 @@ public class CatalogLookupAdapter implements CatalogLookup {
     @Override
     public Optional<CatalogMatch> findMatch(ScrapedGameInfo gameInfo) {
         // First try to match by Steam App ID (most reliable)
-        for (ScrapedGameInfo.StoreLink link : gameInfo.storeLinks()) {
-            if ("Steam".equals(link.storeName()) && link.storeId() != null) {
-                try {
-                    Integer steamAppId = Integer.parseInt(link.storeId());
-                    Optional<CatalogMatch> steamMatch = findBySteamAppId(steamAppId);
-                    if (steamMatch.isPresent()) {
-                        return steamMatch;
-                    }
-                } catch (NumberFormatException ignored) {
-                    // Invalid Steam ID, continue to name matching
-                }
-            }
+        Optional<CatalogMatch> steamMatch = gameInfo.storeLink("Steam")
+                .flatMap(ScrapedGameInfo.StoreLink::storeIdAsInt)
+                .flatMap(this::findBySteamAppId);
+        if (steamMatch.isPresent()) {
+            return steamMatch;
         }
 
         // Fall back to exact name matching

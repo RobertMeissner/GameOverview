@@ -111,25 +111,16 @@ public class GameCatalogWriterAdapter implements GameCatalogWriter {
 
     @Nullable
     private SteamGameData extractSteamData(ScrapedGameInfo gameInfo) {
-        for (ScrapedGameInfo.StoreLink link : gameInfo.storeLinks()) {
-            if ("Steam".equals(link.storeName()) && link.storeId() != null) {
-                try {
-                    return new SteamGameData(Integer.parseInt(link.storeId()), gameInfo.name());
-                } catch (NumberFormatException ignored) {
-                    // Invalid Steam ID
-                }
-            }
-        }
-        return null;
+        return gameInfo.storeLink("Steam")
+                .flatMap(ScrapedGameInfo.StoreLink::storeIdAsInt)
+                .map(appId -> new SteamGameData(appId, gameInfo.name()))
+                .orElse(null);
     }
 
     @Nullable
     private GogGameData extractGogData(ScrapedGameInfo gameInfo) {
-        for (ScrapedGameInfo.StoreLink link : gameInfo.storeLinks()) {
-            if ("GOG".equals(link.storeName())) {
-                return new GogGameData(null, gameInfo.name(), link.url());
-            }
-        }
-        return null;
+        return gameInfo.storeLink("GOG")
+                .map(link -> new GogGameData(null, gameInfo.name(), link.url()))
+                .orElse(null);
     }
 }

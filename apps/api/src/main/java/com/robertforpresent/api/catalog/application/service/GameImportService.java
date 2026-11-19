@@ -4,6 +4,7 @@ import com.robertforpresent.api.catalog.application.command.ImportGameCommand;
 import com.robertforpresent.api.catalog.domain.model.*;
 import com.robertforpresent.api.catalog.domain.repository.CanonicalGameRepository;
 import com.robertforpresent.api.catalog.domain.port.GameCollectionPort;
+import com.robertforpresent.api.shared.Parsing;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -99,37 +100,12 @@ public class GameImportService {
     }
 
     private void applyStoreData(CanonicalGame.Builder builder, ImportGameCommand command) {
-        String store = command.store() == null ? "" : command.store().toLowerCase();
-        switch (store) {
-            case "steam", "steam-family" -> {
-                // "steam-family" is Steam Family Sharing - treat same as steam
-                Integer appId = parseInteger(command.storeId());
-                builder.setSteamData(new SteamGameData(appId, command.name()));
-            }
-            case "gog" -> {
-                Long gogId = parseLong(command.storeId());
-                builder.setGogData(new GogGameData(gogId, command.name(), command.storeLink()));
-            }
-            case "epic" -> builder.setEpicData(new EpicGameData(command.storeId(), command.name(), command.storeLink()));
-            default -> log.warn("Unknown store: {}", store);
-        }
-    }
-
-    private Integer parseInteger(String value) {
-        if (value == null) return null;
-        try {
-            return Integer.parseInt(value);
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
-
-    private Long parseLong(String value) {
-        if (value == null) return null;
-        try {
-            return Long.parseLong(value);
-        } catch (NumberFormatException e) {
-            return null;
+        switch (StoreCode.fromCode(command.store())) {
+            // "steam-family" is Steam Family Sharing - treated the same as steam
+            case STEAM -> builder.setSteamData(new SteamGameData(Parsing.parseIntOrNull(command.storeId()), command.name()));
+            case GOG -> builder.setGogData(new GogGameData(Parsing.parseLongOrNull(command.storeId()), command.name(), command.storeLink()));
+            case EPIC -> builder.setEpicData(new EpicGameData(command.storeId(), command.name(), command.storeLink()));
+            default -> log.warn("Unknown store: {}", command.store());
         }
     }
 
