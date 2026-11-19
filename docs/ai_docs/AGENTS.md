@@ -2,7 +2,7 @@
 
 ## Repo layout
 - `apps/api` — Spring Boot 4 API, Java 25 (Maven, `./mvnw`), SQLite via JPA. Hexagonal, package-by-feature.
-- `apps/frontend` — Angular 21 frontend (npm/vitest).
+- `apps/frontend` — Angular 22 frontend (npm/vitest).
 - `scripts/` — Python one-off tools for store imports (uv).
 - `htmx-test/` — static HTML prototype, not part of the app.
 - `docs/arc42` — architecture doc template (not yet filled in for the current API).
