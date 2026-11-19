@@ -14,11 +14,9 @@ import java.util.UUID;
 @RestController
 public class GamerCollectionController {
     private final GamerCollectionService service;
-    private final TopRankedMapper mapper;
 
-    public GamerCollectionController(GamerCollectionService service, TopRankedMapper mapper) {
+    public GamerCollectionController(GamerCollectionService service) {
         this.service = service;
-        this.mapper = mapper;
     }
 
     @GetMapping("/collection")
@@ -27,8 +25,8 @@ public class GamerCollectionController {
     }
 
     @GetMapping("/collection/top")
-    public List<TopRankedDTO> getTop3(@RequestParam UUID userId) {
-        return service.getTop3(userId).stream().map(mapper::toDto).toList();
+    public List<CollectionGameView> getTop3(@RequestParam UUID userId) {
+        return service.getTop3(userId);
     }
 
     @PatchMapping("/collection/games/{gameId}")
