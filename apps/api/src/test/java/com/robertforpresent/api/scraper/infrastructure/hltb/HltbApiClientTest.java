@@ -1,5 +1,6 @@
 package com.robertforpresent.api.scraper.infrastructure.hltb;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.robertforpresent.api.scraper.infrastructure.hltb.dto.HltbSearchResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -7,6 +8,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Method;
+import java.net.http.HttpClient;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,7 +23,7 @@ class HltbApiClientTest {
 
     @BeforeEach
     void setUp() {
-        apiClient = new HltbApiClient();
+        apiClient = new HltbApiClient(HttpClient.newHttpClient(), new ObjectMapper());
     }
 
     @Nested

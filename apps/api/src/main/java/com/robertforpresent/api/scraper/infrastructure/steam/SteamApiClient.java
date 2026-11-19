@@ -27,12 +27,10 @@ public class SteamApiClient {
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
 
-    public SteamApiClient(SteamConfig config) {
+    public SteamApiClient(SteamConfig config, HttpClient httpClient, ObjectMapper objectMapper) {
         this.config = config;
-        this.objectMapper = new ObjectMapper();
-        this.httpClient = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(10))
-                .build();
+        this.httpClient = httpClient;
+        this.objectMapper = objectMapper;
     }
 
     /**
