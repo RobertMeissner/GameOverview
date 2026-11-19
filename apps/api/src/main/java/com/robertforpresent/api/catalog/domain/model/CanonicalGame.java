@@ -44,6 +44,9 @@ public class CanonicalGame {
     // Game categories/tags from IGDB
     private final List<String> genres;
 
+    // Set when the last scrape attempt failed; reset on successful scrape or manual edit
+    private final boolean lastScrapeFailed;
+
     private Instant createdAt;
     private Instant updatedAt;
 
@@ -100,6 +103,10 @@ public class CanonicalGame {
         return genres;
     }
 
+    public boolean isLastScrapeFailed() {
+        return lastScrapeFailed;
+    }
+
     // Convenience methods for backward compatibility
     public @Nullable Integer getSteamAppId() {
         return steamData != null ? steamData.appId() : null;
@@ -126,7 +133,8 @@ public class CanonicalGame {
                 .setHltbData(hltbData)
                 .setIgdbId(igdbId)
                 .setIgdbSlug(igdbSlug)
-                .setGenres(genres);
+                .setGenres(genres)
+                .setLastScrapeFailed(lastScrapeFailed);
     }
 
     /**
@@ -146,6 +154,7 @@ public class CanonicalGame {
         private Long igdbId;
         private String igdbSlug;
         private List<String> genres = List.of();
+        private boolean lastScrapeFailed = false;
 
         public Builder(String name) {
             this.name = name;
@@ -223,6 +232,11 @@ public class CanonicalGame {
             return this;
         }
 
+        public Builder setLastScrapeFailed(boolean lastScrapeFailed) {
+            this.lastScrapeFailed = lastScrapeFailed;
+            return this;
+        }
+
         // Convenience methods for backward compatibility
         public Builder setSteamAppId(Integer steamAppId) {
             if (this.steamData == null) {
@@ -254,6 +268,7 @@ public class CanonicalGame {
         igdbId = builder.igdbId;
         igdbSlug = builder.igdbSlug;
         genres = builder.genres;
+        lastScrapeFailed = builder.lastScrapeFailed;
         createdAt = Instant.now();
         updatedAt = Instant.now();
         ratings = new AggregatedRatings(builder.steamRating, builder.igdbRating);

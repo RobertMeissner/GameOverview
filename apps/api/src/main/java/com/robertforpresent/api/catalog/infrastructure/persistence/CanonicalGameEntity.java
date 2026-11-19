@@ -147,6 +147,12 @@ public class CanonicalGameEntity {
     @Column(name = "hltb_completionist_hours")
     private Double hltbCompletionistHours;
 
+    // Nullable so existing rows survive schema updates; null is treated as false
+    @Getter
+    @Setter
+    @Column(name = "last_scrape_failed")
+    private Boolean lastScrapeFailed;
+
     public CanonicalGameEntity(String id, String name, SteamRatingEmbeddable steamRating, String thumbnailUrl,
                                Integer steamAppId, String steamName,
                                Long gogId, String gogName, String gogLink,
@@ -154,7 +160,7 @@ public class CanonicalGameEntity {
                                Long igdbId, String igdbSlug, Double igdbRating,
                                Integer metacriticScore, String metacriticName, String metacriticLink,
                                Integer hltbId, String hltbName, Double hltbMainHours, Double hltbExtraHours, Double hltbCompletionistHours,
-                               String genres) {
+                               String genres, Boolean lastScrapeFailed) {
         this.id = id;
         this.name = name;
         this.steamRating = steamRating;
@@ -179,6 +185,7 @@ public class CanonicalGameEntity {
         this.hltbExtraHours = hltbExtraHours;
         this.hltbCompletionistHours = hltbCompletionistHours;
         this.genres = genres;
+        this.lastScrapeFailed = lastScrapeFailed;
     }
 
     public CanonicalGameEntity() {

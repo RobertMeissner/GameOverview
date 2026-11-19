@@ -40,6 +40,7 @@ public class CanonicalGameEntityMapper {
                 .setIgdbSlug(entity.getIgdbSlug())
                 .setIgdbRating(entity.getIgdbRating())
                 .setGenres(genres)
+                .setLastScrapeFailed(entity.getLastScrapeFailed() != null && entity.getLastScrapeFailed())
                 .build();
     }
 
@@ -79,7 +80,8 @@ public class CanonicalGameEntityMapper {
                 hltbData != null ? hltbData.mainStoryHours() : null,
                 hltbData != null ? hltbData.mainExtraHours() : null,
                 hltbData != null ? hltbData.completionistHours() : null,
-                genres
+                genres,
+                domain.isLastScrapeFailed()
         );
     }
 

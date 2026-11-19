@@ -124,6 +124,10 @@
       &.name-mismatch {
         background: rgba(255, 87, 34, 0.1);
       }
+
+      &.scrape-failed {
+        background: rgba(220, 53, 69, 0.12);
+      }
     }
 
     td {
@@ -161,6 +165,7 @@ tbody tr .col-thumbnail, tbody tr .col-name { background: var(--bg-primary); }
 tbody tr:hover .col-thumbnail, tbody tr:hover .col-name { background: var(--bg-hover); }
 tbody tr.missing-appid .col-thumbnail, tbody tr.missing-appid .col-name { background: rgba(255, 193, 7, 0.1); }
 tbody tr.name-mismatch .col-thumbnail, tbody tr.name-mismatch .col-name { background: rgba(255, 87, 34, 0.1); }
+tbody tr.scrape-failed .col-thumbnail, tbody tr.scrape-failed .col-name { background: rgba(220, 53, 69, 0.12); }
 
 .thumbnail-img {
   width: 60px;

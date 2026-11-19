@@ -12,11 +12,23 @@
           [ngModel]="maxHours()"
           (ngModelChange)="maxHours.set($event)"
           (change)="onFilterChange()"
+          [disabled]="noTimeLimit()"
           min="1"
           max="20"
           step="1"
         />
-        <span class="filter-value">{{ maxHours() }}h</span>
+        <span class="filter-value">{{ noTimeLimit() ? '∞' : maxHours() + 'h' }}</span>
+      </div>
+      <div class="form-check mt-1">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          id="noTimeLimit"
+          [ngModel]="noTimeLimit()"
+          (ngModelChange)="noTimeLimit.set($event)"
+          (change)="onFilterChange()"
+        />
+        <label class="form-check-label" for="noTimeLimit">No limit</label>
       </div>
     </div>
 
