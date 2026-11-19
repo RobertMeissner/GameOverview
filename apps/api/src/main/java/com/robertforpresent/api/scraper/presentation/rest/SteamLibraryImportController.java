@@ -4,6 +4,7 @@ import com.robertforpresent.api.scraper.infrastructure.steam.SteamConfig;
 import com.robertforpresent.api.scraper.infrastructure.steam.SteamLibraryImportService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,14 +17,18 @@ import java.util.UUID;
 @RequestMapping("/steam")
 public class SteamLibraryImportController {
     private static final Logger logger = LoggerFactory.getLogger(SteamLibraryImportController.class);
-    private static final UUID DEFAULT_GAMER_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
 
     private final SteamLibraryImportService importService;
     private final SteamConfig steamConfig;
+    private final UUID defaultGamerId;
 
-    public SteamLibraryImportController(SteamLibraryImportService importService, SteamConfig steamConfig) {
+    public SteamLibraryImportController(
+            SteamLibraryImportService importService,
+            SteamConfig steamConfig,
+            @Value("${app.default-gamer-id:4c580456-1116-4091-b1d6-99fc02b47246}") UUID defaultGamerId) {
         this.importService = importService;
         this.steamConfig = steamConfig;
+        this.defaultGamerId = defaultGamerId;
     }
 
     /**
@@ -60,7 +65,7 @@ public class SteamLibraryImportController {
         }
 
         try {
-            UUID gamerId = request.gamerId() != null ? request.gamerId() : DEFAULT_GAMER_ID;
+            UUID gamerId = request.gamerId() != null ? request.gamerId() : defaultGamerId;
             SteamLibraryImportService.SteamLibraryImportResult result = importService.importSteamLibrary(
                     request.steamId(),
                     gamerId

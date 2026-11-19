@@ -5,7 +5,6 @@ import com.robertforpresent.api.collection.application.dto.AdminGameView;
 import com.robertforpresent.api.collection.application.dto.CollectionGameView;
 import com.robertforpresent.api.collection.application.service.GamerCollectionService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,12 +13,11 @@ import java.util.UUID;
 @Slf4j
 @RestController
 public class GamerCollectionController {
+    private final GamerCollectionService service;
     private final TopRankedMapper mapper;
 
-    @Autowired
-    private GamerCollectionService service;
-
-    public GamerCollectionController(TopRankedMapper mapper) {
+    public GamerCollectionController(GamerCollectionService service, TopRankedMapper mapper) {
+        this.service = service;
         this.mapper = mapper;
     }
 

@@ -9,9 +9,20 @@ public record EpicGameData(
         @Nullable String epicId,
         @Nullable String name,
         @Nullable String link
-) {
+) implements StoreGameData {
     private static final String EPIC_STORE_URL = "https://store.epicgames.com/p/";
 
+    @Override
+    public @Nullable String storeId() {
+        return epicId;
+    }
+
+    @Override
+    public @Nullable String storeName() {
+        return name;
+    }
+
+    @Override
     public @Nullable String storeLink() {
         // If we have a link, check if it contains a UUID-like ID (bad IGDB data)
         if (link != null) {
