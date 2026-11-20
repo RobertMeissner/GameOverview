@@ -10,6 +10,7 @@ import com.robertforpresent.api.scraper.domain.model.ScrapedGameInfo;
 import com.robertforpresent.api.scraper.domain.port.CatalogLookup;
 import com.robertforpresent.api.scraper.domain.port.GameCatalogWriter;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
@@ -46,6 +47,8 @@ public class GameCatalogWriterAdapter implements GameCatalogWriter {
             canonicalGameId = existingMatch.get().gameId();
             created = false;
             log.debug("Found existing game in catalog: {} ({})", gameInfo.name(), canonicalGameId);
+            catalogRepository.findById(canonicalGameId).ifPresent(existing ->
+                    catalogRepository.save(mergeScrapedData(existing, gameInfo)));
         } else {
             // Create new canonical game
             CanonicalGame newGame = createCanonicalGame(gameInfo);
@@ -72,22 +75,52 @@ public class GameCatalogWriterAdapter implements GameCatalogWriter {
 
     private CanonicalGame createCanonicalGame(ScrapedGameInfo gameInfo) {
         CanonicalGame.Builder builder = new CanonicalGame.Builder(gameInfo.name())
-                .setThumbnailUrl(gameInfo.coverUrl());
+                .setThumbnailUrl(gameInfo.coverUrl())
+                .setSteamData(extractSteamData(gameInfo))
+                .setGogData(extractGogData(gameInfo))
+                .setGenres(gameInfo.genres());
 
-        // Extract Steam data if available
-        for (ScrapedGameInfo.StoreLink link : gameInfo.storeLinks()) {
-            if ("Steam".equals(link.storeName()) && link.storeId() != null) {
-                try {
-                    Integer steamAppId = Integer.parseInt(link.storeId());
-                    builder.setSteamData(new SteamGameData(steamAppId, gameInfo.name()));
-                } catch (NumberFormatException ignored) {
-                    // Invalid Steam ID
-                }
-            } else if ("GOG".equals(link.storeName())) {
-                builder.setGogData(new GogGameData(null, gameInfo.name(), link.url()));
-            }
+        if (isIgdbSource(gameInfo)) {
+            builder.setIgdbId(gameInfo.externalId())
+                    .setIgdbSlug(gameInfo.slug())
+                    .setIgdbRating(gameInfo.rating());
         }
 
         return builder.build();
+    }
+
+    private CanonicalGame mergeScrapedData(CanonicalGame existing, ScrapedGameInfo gameInfo) {
+        CanonicalGame.Builder builder = existing.toBuilder()
+                .setThumbnailUrl(existing.getThumbnailUrl() != null ? existing.getThumbnailUrl() : gameInfo.coverUrl())
+                .setSteamData(existing.getSteamData() != null ? existing.getSteamData() : extractSteamData(gameInfo))
+                .setGogData(existing.getGogData() != null ? existing.getGogData() : extractGogData(gameInfo))
+                .setGenres(!gameInfo.genres().isEmpty() ? gameInfo.genres() : existing.getGenres());
+
+        if (isIgdbSource(gameInfo)) {
+            builder.setIgdbId(gameInfo.externalId())
+                    .setIgdbSlug(gameInfo.slug())
+                    .setIgdbRating(gameInfo.rating() != null ? gameInfo.rating() : existing.getRatings().igdb());
+        }
+
+        return builder.build();
+    }
+
+    private boolean isIgdbSource(ScrapedGameInfo gameInfo) {
+        return "igdb".equals(gameInfo.source());
+    }
+
+    @Nullable
+    private SteamGameData extractSteamData(ScrapedGameInfo gameInfo) {
+        return gameInfo.storeLink("Steam")
+                .flatMap(ScrapedGameInfo.StoreLink::storeIdAsInt)
+                .map(appId -> new SteamGameData(appId, gameInfo.name()))
+                .orElse(null);
+    }
+
+    @Nullable
+    private GogGameData extractGogData(ScrapedGameInfo gameInfo) {
+        return gameInfo.storeLink("GOG")
+                .map(link -> new GogGameData(null, gameInfo.name(), link.url()))
+                .orElse(null);
     }
 }

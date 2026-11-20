@@ -1,11 +1,11 @@
 package com.robertforpresent.api.catalog.application.service;
 
+import com.robertforpresent.api.catalog.application.command.RescrapeCommand;
 import com.robertforpresent.api.catalog.application.command.UpdateCatalogCommand;
+import com.robertforpresent.api.catalog.application.dto.RescrapeResult;
 import com.robertforpresent.api.catalog.domain.model.*;
 import com.robertforpresent.api.catalog.domain.port.GameCollectionPort;
 import com.robertforpresent.api.catalog.domain.repository.CanonicalGameRepository;
-import com.robertforpresent.api.catalog.presentation.rest.RescrapeRequest;
-import com.robertforpresent.api.catalog.presentation.rest.RescrapeResult;
 import com.robertforpresent.api.scraper.application.service.GameScraperService;
 import com.robertforpresent.api.scraper.domain.model.ScrapedGameInfo;
 import com.robertforpresent.api.thumbnail.application.service.ThumbnailService;
@@ -114,19 +114,16 @@ public class CatalogService {
                 command.metacriticLink() != null ? command.metacriticLink() : (existingMc != null ? existingMc.link() : null)
         );
 
-        CanonicalGame updated = new CanonicalGame.Builder(existing.getName())
-                .setId(existing.getId())
-                .setSteamRating(existing.getRatings().steam())
-                .setThumbnailUrl(existing.getThumbnailUrl())
+        CanonicalGame.Builder builder = existing.toBuilder()
                 .setSteamData(newSteamData)
                 .setGogData(newGogData)
                 .setEpicData(newEpicData)
                 .setMetacriticData(newMetacriticData)
-                .setIgdbId(existing.getIgdbId())
-                .setIgdbSlug(existing.getIgdbSlug())
-                .setGenres(existing.getGenres())
-                .build();
-        return repository.save(updated);
+                .setLastScrapeFailed(false);
+        if (command.name() != null && !command.name().isBlank()) {
+            builder.setName(command.name());
+        }
+        return repository.save(builder.build());
     }
 
     @Transactional
@@ -258,7 +255,7 @@ public class CatalogService {
      * @return Result of the rescrape operation
      */
     @Transactional
-    public RescrapeResult rescrapeGame(UUID gameId, RescrapeRequest request) {
+    public RescrapeResult rescrapeGame(UUID gameId, RescrapeCommand request) {
         log.debug("Rescraping game {} with request: {}", gameId, request);
 
         CanonicalGame existing = repository.findById(gameId).orElseThrow();
@@ -279,6 +276,7 @@ public class CatalogService {
 
         if (scrapedData.isEmpty()) {
             log.debug("No scraped data found for game {}", gameName);
+            repository.save(existing.toBuilder().setLastScrapeFailed(true).build());
             return RescrapeResult.failure(gameId.toString(), gameName, "No matching game found in IGDB");
         }
 
@@ -286,27 +284,14 @@ public class CatalogService {
         log.debug("Found IGDB data for {}: coverUrl={}, storeLinks={}", gameName, info.coverUrl(), info.storeLinks());
 
         // Extract store links from scraped data
-        Integer steamAppId = null;
-        String steamLink = null;
-        String gogLink = null;
-        String epicLink = null;
-
-        for (ScrapedGameInfo.StoreLink link : info.storeLinks()) {
-            switch (link.storeName()) {
-                case "Steam" -> {
-                    steamLink = link.url();
-                    if (link.storeId() != null) {
-                        try {
-                            steamAppId = Integer.parseInt(link.storeId());
-                        } catch (NumberFormatException e) {
-                            log.debug("Could not parse Steam app ID: {}", link.storeId());
-                        }
-                    }
-                }
-                case "GOG" -> gogLink = link.url();
-                case "Epic Games" -> epicLink = link.url();
-            }
+        var steamLinkOpt = info.storeLink("Steam");
+        String steamLink = steamLinkOpt.map(ScrapedGameInfo.StoreLink::url).orElse(null);
+        Integer steamAppId = steamLinkOpt.flatMap(ScrapedGameInfo.StoreLink::storeIdAsInt).orElse(null);
+        if (steamAppId == null && steamLinkOpt.map(ScrapedGameInfo.StoreLink::storeId).isPresent()) {
+            log.debug("Could not parse Steam app ID: {}", steamLinkOpt.get().storeId());
         }
+        String gogLink = info.storeLink("GOG").map(ScrapedGameInfo.StoreLink::url).orElse(null);
+        String epicLink = info.storeLink("Epic Games").map(ScrapedGameInfo.StoreLink::url).orElse(null);
 
         // Build updated game - preserve existing data if scraped data is null
         SteamGameData existingSteam = existing.getSteamData();
@@ -340,18 +325,16 @@ public class CatalogService {
                 ? info.genres()
                 : existing.getGenres();
 
-        CanonicalGame updated = new CanonicalGame.Builder(existing.getName())
-                .setId(existing.getId())
-                .setSteamRating(existing.getRatings().steam())
+        CanonicalGame updated = existing.toBuilder()
                 .setThumbnailUrl(newThumbnailUrl)
                 .setSteamData(newSteamData)
                 .setGogData(newGogData)
                 .setEpicData(newEpicData)
-                .setMetacriticData(existing.getMetacriticData())
-                .setHltbData(existing.getHltbData())
                 .setIgdbId(igdbId)
                 .setIgdbSlug(igdbSlug)
+                .setIgdbRating(info.rating() != null ? info.rating() : existing.getRatings().igdb())
                 .setGenres(genres)
+                .setLastScrapeFailed(false)
                 .build();
 
         repository.save(updated);

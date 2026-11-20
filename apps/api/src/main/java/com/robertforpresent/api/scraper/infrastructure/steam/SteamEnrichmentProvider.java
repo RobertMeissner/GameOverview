@@ -31,13 +31,22 @@ public class SteamEnrichmentProvider implements GameEnrichmentProvider {
 
     @Override
     public EnrichmentResult enrichGame(CanonicalGame game) {
-        // Check if game has Steam App ID
+        // Check if game has Steam App ID, otherwise try to resolve it by name
         SteamGameData steamData = game.getSteamData();
-        if (steamData == null || steamData.appId() == null) {
-            return EnrichmentResult.noChange(game, "No Steam App ID available");
+        Integer existingAppId = steamData != null ? steamData.appId() : null;
+
+        int appId;
+        if (existingAppId != null) {
+            appId = existingAppId;
+        } else {
+            Optional<Integer> resolvedAppId = apiClient.findAppIdByName(game.getName());
+            if (resolvedAppId.isEmpty()) {
+                return EnrichmentResult.noChange(game, "No Steam App ID available and no exact Steam match for '" + game.getName() + "'");
+            }
+            appId = resolvedAppId.get();
+            logger.info("Resolved Steam App ID {} for game '{}' via store search", appId, game.getName());
         }
 
-        int appId = steamData.appId();
         logger.debug("Enriching game {} with Steam data for app ID {}", game.getName(), appId);
 
         // Fetch app details from Steam
@@ -51,51 +60,22 @@ public class SteamEnrichmentProvider implements GameEnrichmentProvider {
             return EnrichmentResult.failure(game, "No data returned for Steam app ID " + appId);
         }
 
-        // Build enriched game
-        CanonicalGame.Builder builder = new CanonicalGame.Builder(game.getName())
-                .setId(game.getId());
-
-        // Update Steam data with official name if different
+        // Build enriched game, preserving all existing data
         String officialName = appData.name();
         if (!game.getName().equals(officialName)) {
-            logger.info("Updating Steam name from '{}' to '{}'", steamData.name(), officialName);
+            String currentSteamName = steamData != null ? steamData.name() : null;
+            logger.info("Updating Steam name from '{}' to '{}'", currentSteamName, officialName);
         }
-        builder.setSteamData(new SteamGameData(appId, officialName));
 
-        // Update thumbnail if better quality available
-        if (appData.headerImage() != null && !appData.headerImage().isBlank()) {
+        CanonicalGame.Builder builder = game.toBuilder()
+                .setSteamData(new SteamGameData(appId, officialName));
+
+        // Update thumbnail only if none is set yet; never override an existing (IGDB) cover
+        if ((game.getThumbnailUrl() == null || game.getThumbnailUrl().isBlank())
+                && appData.headerImage() != null && !appData.headerImage().isBlank()) {
             builder.setThumbnailUrl(appData.headerImage());
-        } else if (game.getThumbnailUrl() != null) {
-            builder.setThumbnailUrl(game.getThumbnailUrl());
         }
 
-        // Add Metacritic score if available and not already set
-        if (appData.metacritic() != null && game.getMetacriticData() == null) {
-            // Note: We don't have MetacriticGameData constructor, so skip for now
-            // This would need to be handled by MetacriticEnrichmentProvider
-        }
-
-        // Preserve existing data from other stores
-        if (game.getGogData() != null) {
-            builder.setGogData(game.getGogData());
-        }
-        if (game.getEpicData() != null) {
-            builder.setEpicData(game.getEpicData());
-        }
-        if (game.getMetacriticData() != null) {
-            builder.setMetacriticData(game.getMetacriticData());
-        }
-        if (game.getHltbData() != null) {
-            builder.setHltbData(game.getHltbData());
-        }
-        if (game.getIgdbId() != null) {
-            builder.setIgdbId(game.getIgdbId());
-        }
-        if (game.getIgdbSlug() != null) {
-            builder.setIgdbSlug(game.getIgdbSlug());
-        }
-
-        // Build the enriched game
         CanonicalGame enrichedGame = builder.build();
 
         return EnrichmentResult.success(

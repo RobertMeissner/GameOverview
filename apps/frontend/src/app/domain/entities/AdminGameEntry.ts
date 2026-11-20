@@ -27,4 +27,6 @@ export interface AdminGameEntry {
   metacriticLink: string | null;
   // Completeness metric
   completenessPercent: number;
+  // True if the last scrape attempt for this game failed
+  lastScrapeFailed: boolean;
 }

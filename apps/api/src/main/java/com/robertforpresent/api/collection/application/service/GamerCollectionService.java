@@ -7,13 +7,13 @@ import com.robertforpresent.api.catalog.domain.model.GogGameData;
 import com.robertforpresent.api.catalog.domain.model.HltbGameData;
 import com.robertforpresent.api.catalog.domain.model.MetacriticGameData;
 import com.robertforpresent.api.catalog.domain.model.SteamGameData;
+import com.robertforpresent.api.collection.application.command.UpdateFlagsCommand;
 import com.robertforpresent.api.collection.application.dto.AdminGameView;
 import com.robertforpresent.api.collection.application.dto.CollectionGameView;
 import com.robertforpresent.api.collection.application.dto.StoreLinksDTO;
 import com.robertforpresent.api.collection.application.dto.StoreOwnershipDTO;
 import com.robertforpresent.api.collection.domain.model.PersonalizedGame;
 import com.robertforpresent.api.collection.domain.repository.CollectionRepository;
-import com.robertforpresent.api.collection.presentation.rest.UpdateFlagsRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -108,7 +108,7 @@ public class GamerCollectionService {
         );
     }
 
-    public CollectionGameView updateFlags(UUID gamerId, UUID canonicalGameId, UpdateFlagsRequest request) {
+    public CollectionGameView updateFlags(UUID gamerId, UUID canonicalGameId, UpdateFlagsCommand request) {
         PersonalizedGame game = repository.updateFlags(gamerId, canonicalGameId, request.markedAsPlayed(), request.markedAsHidden(), request.markedForLater());
         CanonicalGame canonical = catalog.get(game.getCanonicalGameId());
         return toView(game, canonical);
@@ -205,7 +205,9 @@ public class GamerCollectionService {
                 metacriticData != null ? metacriticData.gameName() : null,
                 metacriticData != null ? metacriticData.storeLink() : null,
                 // Completeness
-                completeness
+                completeness,
+                // Scrape status
+                canonical.isLastScrapeFailed()
         );
     }
 

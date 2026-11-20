@@ -44,7 +44,8 @@ public class CanonicalGame {
     // Game categories/tags from IGDB
     private final List<String> genres;
 
-    private CanonicalMetadata metadata;
+    // Set when the last scrape attempt failed; reset on successful scrape or manual edit
+    private final boolean lastScrapeFailed;
 
     private Instant createdAt;
     private Instant updatedAt;
@@ -102,6 +103,10 @@ public class CanonicalGame {
         return genres;
     }
 
+    public boolean isLastScrapeFailed() {
+        return lastScrapeFailed;
+    }
+
     // Convenience methods for backward compatibility
     public @Nullable Integer getSteamAppId() {
         return steamData != null ? steamData.appId() : null;
@@ -112,13 +117,35 @@ public class CanonicalGame {
     }
 
     /**
+     * Returns a builder pre-populated with this game's current values,
+     * so updates only need to set the fields that actually change.
+     */
+    public Builder toBuilder() {
+        return new Builder(getName())
+                .setId(getId())
+                .setThumbnailUrl(thumbnailUrl)
+                .setSteamRating(ratings.steam())
+                .setIgdbRating(ratings.igdb())
+                .setSteamData(steamData)
+                .setGogData(gogData)
+                .setEpicData(epicData)
+                .setMetacriticData(metacriticData)
+                .setHltbData(hltbData)
+                .setIgdbId(igdbId)
+                .setIgdbSlug(igdbSlug)
+                .setGenres(genres)
+                .setLastScrapeFailed(lastScrapeFailed);
+    }
+
+    /**
      * Explicit builder. Favoured over Lombok to have in-depth control
      */
     public static class Builder {
-        private final String name;
+        private String name;
         private UUID id;
         private String thumbnailUrl;
         private SteamRating steamRating;
+        private Double igdbRating;
         private SteamGameData steamData;
         private GogGameData gogData;
         private EpicGameData epicData;
@@ -127,9 +154,15 @@ public class CanonicalGame {
         private Long igdbId;
         private String igdbSlug;
         private List<String> genres = List.of();
+        private boolean lastScrapeFailed = false;
 
         public Builder(String name) {
             this.name = name;
+        }
+
+        public Builder setName(String name) {
+            this.name = name;
+            return this;
         }
 
         public CanonicalGame build() {
@@ -151,6 +184,11 @@ public class CanonicalGame {
 
         public Builder setSteamRating(SteamRating rating) {
             this.steamRating = rating;
+            return this;
+        }
+
+        public Builder setIgdbRating(Double rating) {
+            this.igdbRating = rating;
             return this;
         }
 
@@ -194,6 +232,11 @@ public class CanonicalGame {
             return this;
         }
 
+        public Builder setLastScrapeFailed(boolean lastScrapeFailed) {
+            this.lastScrapeFailed = lastScrapeFailed;
+            return this;
+        }
+
         // Convenience methods for backward compatibility
         public Builder setSteamAppId(Integer steamAppId) {
             if (this.steamData == null) {
@@ -225,8 +268,9 @@ public class CanonicalGame {
         igdbId = builder.igdbId;
         igdbSlug = builder.igdbSlug;
         genres = builder.genres;
+        lastScrapeFailed = builder.lastScrapeFailed;
         createdAt = Instant.now();
         updatedAt = Instant.now();
-        ratings = new AggregatedRatings(builder.steamRating);
+        ratings = new AggregatedRatings(builder.steamRating, builder.igdbRating);
     }
 }

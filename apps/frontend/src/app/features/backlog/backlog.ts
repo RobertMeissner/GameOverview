@@ -3,9 +3,10 @@ import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {GamesService} from '../../services/games.service';
 import {CollectionEntry} from '../../domain/entities/CollectionEntry';
-
-export type SortField = 'name' | 'rating' | 'playtime';
-export type SortDirection = 'asc' | 'desc';
+import {SortField, SortDirection, sortCollectionEntries, toggleGenre, uniqueGenres} from '../../shared/collection-sort';
+import {formatPlaytimeHours} from '../../shared/formatters';
+import {epicSearchUrl, gogSearchUrl, hltbSearchUrl, steamSearchUrl} from '../../shared/store-links';
+import {gameFlagsOf} from '../../domain/entities/GameFlags';
 
 @Component({
   selector: 'app-backlog',
@@ -26,11 +27,7 @@ export class Backlog implements OnInit {
   sortDirection = signal<SortDirection>('desc');
   selectedGenres = signal<string[]>([]);
 
-  // Compute all unique genres from games
-  availableGenres = computed(() => {
-    const allGenres = this.games().flatMap(game => game.genres || []);
-    return [...new Set(allGenres)].sort();
-  });
+  availableGenres = computed(() => uniqueGenres(this.games()));
 
   filteredAndSortedGames = computed(() => {
     const allGames = this.games();
@@ -48,22 +45,7 @@ export class Backlog implements OnInit {
       filtered = [...allGames];
     }
 
-    // Sort games
-    filtered.sort((a, b) => {
-      let comparison = 0;
-      if (field === 'name') {
-        comparison = a.name.localeCompare(b.name);
-      } else if (field === 'rating') {
-        comparison = a.rating - b.rating;
-      } else if (field === 'playtime') {
-        const aHours = a.storeLinks?.hltbMainHours ?? Infinity;
-        const bHours = b.storeLinks?.hltbMainHours ?? Infinity;
-        comparison = aHours - bHours;
-      }
-      return direction === 'asc' ? comparison : -comparison;
-    });
-
-    return filtered;
+    return sortCollectionEntries(filtered, field, direction);
   });
 
   // Keep old name for backwards compatibility
@@ -79,16 +61,12 @@ export class Backlog implements OnInit {
   }
 
   onFlagChange(game: CollectionEntry): void {
-    const updates = {
-      markedAsPlayed: game.markedAsPlayed,
-      markedAsHidden: game.markedAsHidden,
-      markedForLater: game.markedForLater
-    };
+    const updates = gameFlagsOf(game);
     this.gamesService.updateGameFlags(game.id, updates).subscribe({
       next: () => {
         if (!game.markedForLater) {
-          // Remove from backlog instantly instead of full reload
-          this.games.update(games => games.filter(g => g.id !== game.id));
+          // Game left the backlog: reload the list
+          this.loadGames();
         } else {
           // Update local signal to trigger reactive updates
           this.games.update(games => games.map(g =>
@@ -113,39 +91,15 @@ export class Backlog implements OnInit {
     });
   }
 
-  // Generate store search URLs for games without direct links
-  getSteamSearchUrl(gameName: string): string {
-    return `https://store.steampowered.com/search/?term=${encodeURIComponent(gameName)}`;
-  }
+  protected readonly getSteamSearchUrl = steamSearchUrl;
+  protected readonly getGogSearchUrl = gogSearchUrl;
+  protected readonly getEpicSearchUrl = epicSearchUrl;
+  protected readonly getHltbSearchUrl = hltbSearchUrl;
 
-  getGogSearchUrl(gameName: string): string {
-    return `https://www.gog.com/en/games?query=${encodeURIComponent(gameName)}&order=desc:score`;
-  }
-
-  getEpicSearchUrl(gameName: string): string {
-    return `https://store.epicgames.com/browse?q=${encodeURIComponent(gameName)}`;
-  }
-
-  getHltbSearchUrl(gameName: string): string {
-    return `https://howlongtobeat.com/?q=${encodeURIComponent(gameName)}`;
-  }
-
-  formatPlaytime(hours: number | null | undefined): string {
-    if (hours === null || hours === undefined) return '?h';
-    if (hours < 1) {
-      return `${Math.round(hours * 60)}m`;
-    }
-    return `${Math.round(hours * 10) / 10}h`;
-  }
+  protected readonly formatPlaytime = formatPlaytimeHours;
 
   toggleGenre(genre: string): void {
-    this.selectedGenres.update(genres => {
-      if (genres.includes(genre)) {
-        return genres.filter(g => g !== genre);
-      } else {
-        return [...genres, genre];
-      }
-    });
+    this.selectedGenres.update(genres => toggleGenre(genres, genre));
   }
 
   isGenreSelected(genre: string): boolean {

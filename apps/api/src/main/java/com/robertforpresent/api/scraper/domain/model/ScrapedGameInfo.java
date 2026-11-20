@@ -1,8 +1,10 @@
 package com.robertforpresent.api.scraper.domain.model;
 
+import com.robertforpresent.api.shared.Parsing;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Represents game information scraped from external sources like IGDB.
@@ -28,11 +30,28 @@ public record ScrapedGameInfo(
         storeLinks = storeLinks != null ? List.copyOf(storeLinks) : List.of();
     }
 
+    /**
+     * Finds the first store link whose store name matches (case-insensitive),
+     * e.g. {@code storeLink("Steam")}, {@code storeLink("GOG")}, {@code storeLink("Epic Games")}.
+     */
+    public Optional<StoreLink> storeLink(String storeName) {
+        return storeLinks.stream()
+                .filter(link -> link.storeName().equalsIgnoreCase(storeName))
+                .findFirst();
+    }
+
     public record StoreLink(
             String storeName,
             String url,
             @Nullable String storeId
-    ) {}
+    ) {
+        /**
+         * @return The store ID parsed as an integer, or empty if missing or not numeric
+         */
+        public Optional<Integer> storeIdAsInt() {
+            return Optional.ofNullable(Parsing.parseIntOrNull(storeId));
+        }
+    }
 
     public record PlaytimeInfo(
             @Nullable Double mainStoryHours,

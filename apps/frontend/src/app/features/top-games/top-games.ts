@@ -3,6 +3,9 @@ import {DecimalPipe} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {CollectionEntry} from '../../domain/entities/CollectionEntry';
 import {GamesService} from '../../services/games.service';
+import {formatPlaytimeHours} from '../../shared/formatters';
+import {epicSearchUrl, gogSearchUrl, hltbSearchUrl, steamSearchUrl} from '../../shared/store-links';
+import {gameFlagsOf} from '../../domain/entities/GameFlags';
 
 @Component({
   selector: 'app-top-games',
@@ -30,11 +33,7 @@ export class TopGames implements OnInit {
   }
 
   onFlagChange(game: CollectionEntry): void {
-    const updates = {
-      markedAsPlayed: game.markedAsPlayed ?? false,
-      markedAsHidden: game.markedAsHidden ?? false,
-      markedForLater: game.markedForLater ?? false
-    };
+    const updates = gameFlagsOf(game);
     this.gamesService.updateGameFlags(game.id, updates).subscribe({
       next: () => {
         // Refresh the top games list since flagged games may no longer qualify
@@ -46,28 +45,10 @@ export class TopGames implements OnInit {
     });
   }
 
-  // Generate store search URLs for games without direct links
-  getSteamSearchUrl(gameName: string): string {
-    return `https://store.steampowered.com/search/?term=${encodeURIComponent(gameName)}`;
-  }
+  protected readonly getSteamSearchUrl = steamSearchUrl;
+  protected readonly getGogSearchUrl = gogSearchUrl;
+  protected readonly getEpicSearchUrl = epicSearchUrl;
+  protected readonly getHltbSearchUrl = hltbSearchUrl;
 
-  getGogSearchUrl(gameName: string): string {
-    return `https://www.gog.com/en/games?query=${encodeURIComponent(gameName)}&order=desc:score`;
-  }
-
-  getEpicSearchUrl(gameName: string): string {
-    return `https://store.epicgames.com/browse?q=${encodeURIComponent(gameName)}`;
-  }
-
-  getHltbSearchUrl(gameName: string): string {
-    return `https://howlongtobeat.com/?q=${encodeURIComponent(gameName)}`;
-  }
-
-  formatPlaytime(hours: number | null | undefined): string {
-    if (hours === null || hours === undefined) return '?h';
-    if (hours < 1) {
-      return `${Math.round(hours * 60)}m`;
-    }
-    return `${Math.round(hours * 10) / 10}h`;
-  }
+  protected readonly formatPlaytime = formatPlaytimeHours;
 }

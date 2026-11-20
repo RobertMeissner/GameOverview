@@ -3,12 +3,13 @@ import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {GamesService} from '../../services/games.service';
+import {gameFlagsOf} from '../../domain/entities/GameFlags';
 import {ScraperService} from '../../services/scraper.service';
 import {AdminGameEntry} from '../../domain/entities/AdminGameEntry';
-import {ScrapedGameInfo} from '../../domain/entities/ScrapedGameInfo';
+import {RescrapeResult, ScrapedGameInfo} from '../../domain/entities/ScrapedGameInfo';
 import {forkJoin} from 'rxjs';
 
-export type SortField = 'name' | 'rating' | 'steamAppId';
+export type SortField = 'name' | 'rating' | 'steamAppId' | 'completeness';
 export type SortDirection = 'asc' | 'desc';
 
 @Component({
@@ -28,7 +29,9 @@ export class AdminPanel implements OnInit {
     effect(() => {
       // Track filter signals
       this.filterMissingAppId();
+      this.filterMissingStoreIds();
       this.filterNameMismatch();
+      this.filterScrapeFailed();
       // Reset pagination (untracked to avoid infinite loop)
       this.currentPage.set(0);
     }, { allowSignalWrites: true });
@@ -40,6 +43,7 @@ export class AdminPanel implements OnInit {
 
   games = signal<AdminGameEntry[]>([]);
   editingGame = signal<AdminGameEntry | null>(null);
+  editName = signal<string | null>(null);
   editSteamAppId = signal<number | null>(null);
   editSteamName = signal<string | null>(null);
   editGogId = signal<number | null>(null);
@@ -48,7 +52,9 @@ export class AdminPanel implements OnInit {
   editMetacriticName = signal<string | null>(null);
 
   filterMissingAppId = signal(false);
+  filterMissingStoreIds = signal(false);
   filterNameMismatch = signal(false);
+  filterScrapeFailed = signal(false);
 
   sortField = signal<SortField>('name');
   sortDirection = signal<SortDirection>('asc');
@@ -75,22 +81,28 @@ export class AdminPanel implements OnInit {
   rescrapeAllFailCount = signal(0);
   rescrapeAllStartTime = signal<number | null>(null);
   rescrapeAllElapsedSeconds = signal(0);
+  rescrapeAllCurrentGame = signal<string | null>(null);
+  rescrapeAllLastResult = signal<{name: string; success: boolean; text: string} | null>(null);
   private rescrapeAllTimerInterval: ReturnType<typeof setInterval> | null = null;
 
   filteredAndSortedGames = computed(() => {
     const allGames = this.games();
     const showMissingAppId = this.filterMissingAppId();
+    const showMissingStoreIds = this.filterMissingStoreIds();
     const showNameMismatch = this.filterNameMismatch();
+    const showScrapeFailed = this.filterScrapeFailed();
     const field = this.sortField();
     const direction = this.sortDirection();
 
     let filtered: AdminGameEntry[];
-    if (!showMissingAppId && !showNameMismatch) {
+    if (!showMissingAppId && !showMissingStoreIds && !showNameMismatch && !showScrapeFailed) {
       filtered = [...allGames];
     } else {
       filtered = allGames.filter(game =>
         (showMissingAppId && game.steamAppId === null) ||
-        (showNameMismatch && game.steamName !== null && game.steamName !== game.name)
+        (showMissingStoreIds && game.steamAppId === null && game.gogId === null && game.epicId === null) ||
+        (showNameMismatch && game.steamName !== null && game.steamName !== game.name) ||
+        (showScrapeFailed && game.lastScrapeFailed)
       );
     }
 
@@ -104,6 +116,8 @@ export class AdminPanel implements OnInit {
         const aVal = a.steamAppId ?? -1;
         const bVal = b.steamAppId ?? -1;
         comparison = aVal - bVal;
+      } else if (field === 'completeness') {
+        comparison = a.completenessPercent - b.completenessPercent;
       }
       return direction === 'asc' ? comparison : -comparison;
     });
@@ -152,7 +166,7 @@ export class AdminPanel implements OnInit {
       this.sortDirection.update(dir => dir === 'asc' ? 'desc' : 'asc');
     } else {
       this.sortField.set(field);
-      this.sortDirection.set(field === 'rating' ? 'desc' : 'asc');
+      this.sortDirection.set(field === 'rating' || field === 'completeness' ? 'desc' : 'asc');
     }
     this.currentPage.set(0); // Reset to first page when sorting changes
   }
@@ -179,6 +193,7 @@ export class AdminPanel implements OnInit {
 
   startEdit(game: AdminGameEntry): void {
     this.editingGame.set(game);
+    this.editName.set(game.name);
     this.editSteamAppId.set(game.steamAppId);
     this.editSteamName.set(game.steamName);
     this.editGogId.set(game.gogId);
@@ -189,6 +204,7 @@ export class AdminPanel implements OnInit {
 
   cancelEdit(): void {
     this.editingGame.set(null);
+    this.editName.set(null);
     this.editSteamAppId.set(null);
     this.editSteamName.set(null);
     this.editGogId.set(null);
@@ -202,6 +218,7 @@ export class AdminPanel implements OnInit {
     if (!game) return;
 
     const updates = {
+      name: this.editName() ?? game.name,
       steamAppId: this.editSteamAppId(),
       steamName: this.editSteamName(),
       gogId: this.editGogId(),
@@ -214,9 +231,9 @@ export class AdminPanel implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-          // Update local data instead of full reload
+          // Update local data instead of full reload; manual edits reset the scrape-failed flag
           this.games.update(games => games.map(g =>
-            g.id === game.id ? {...g, ...updates} : g
+            g.id === game.id ? {...g, ...updates, lastScrapeFailed: false} : g
           ));
           this.cancelEdit();
         },
@@ -225,11 +242,7 @@ export class AdminPanel implements OnInit {
   }
 
   onFlagChange(game: AdminGameEntry): void {
-    this.gamesService.updateGameFlags(game.id, {
-      markedAsPlayed: game.markedAsPlayed,
-      markedAsHidden: game.markedAsHidden,
-      markedForLater: game.markedForLater
-    })
+    this.gamesService.updateGameFlags(game.id, gameFlagsOf(game))
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         error: err => console.error(err)
@@ -297,10 +310,10 @@ export class AdminPanel implements OnInit {
           this.rescrapeInProgress.set(false);
           if (result.success) {
             this.rescrapeMessage.set({type: 'success', text: result.message || 'Game data updated successfully!'});
-            this.updateGameInList(game.id, result.updatedFields);
           } else {
             this.rescrapeMessage.set({type: 'error', text: result.message || 'Rescrape failed.'});
           }
+          this.updateGameInList(game.id, result);
         },
         error: err => {
           console.error(err);
@@ -323,10 +336,10 @@ export class AdminPanel implements OnInit {
           this.rescrapeInProgress.set(false);
           if (result.success) {
             this.rescrapeMessage.set({type: 'success', text: result.message || 'Game data updated successfully!'});
-            this.updateGameInList(game.id, result.updatedFields);
           } else {
             this.rescrapeMessage.set({type: 'error', text: result.message || 'Rescrape failed.'});
           }
+          this.updateGameInList(game.id, result);
         },
         error: err => {
           console.error(err);
@@ -336,14 +349,15 @@ export class AdminPanel implements OnInit {
       });
   }
 
-  private updateGameInList(gameId: string, updatedFields: any): void {
-    if (!updatedFields) return;
+  private updateGameInList(gameId: string, result: RescrapeResult): void {
     this.games.update(games => games.map(g => {
       if (g.id !== gameId) return g;
+      const updatedFields = result.updatedFields;
       return {
         ...g,
-        steamAppId: updatedFields.steamAppId ?? g.steamAppId,
-        gogLink: updatedFields.gogLink ?? g.gogLink,
+        steamAppId: updatedFields?.steamAppId ?? g.steamAppId,
+        gogLink: updatedFields?.gogLink ?? g.gogLink,
+        lastScrapeFailed: !result.success,
         // Append timestamp to force thumbnail refresh
         thumbnailUrl: g.thumbnailUrl + '?t=' + Date.now()
       };
@@ -357,6 +371,8 @@ export class AdminPanel implements OnInit {
     this.rescrapeAllTotal.set(this.filteredAndSortedGames().length);
     this.rescrapeAllSuccessCount.set(0);
     this.rescrapeAllFailCount.set(0);
+    this.rescrapeAllCurrentGame.set(null);
+    this.rescrapeAllLastResult.set(null);
   }
 
   closeRescrapeAllModal(): void {
@@ -365,7 +381,7 @@ export class AdminPanel implements OnInit {
   }
 
   startRescrapeAll(): void {
-    const gamesToRescrape = this.filteredAndSortedGames();
+    const gamesToRescrape = this.shuffle([...this.filteredAndSortedGames()]);
     if (gamesToRescrape.length === 0) return;
 
     this.rescrapeAllInProgress.set(true);
@@ -373,15 +389,26 @@ export class AdminPanel implements OnInit {
     this.rescrapeAllTotal.set(gamesToRescrape.length);
     this.rescrapeAllSuccessCount.set(0);
     this.rescrapeAllFailCount.set(0);
+    this.rescrapeAllCurrentGame.set(null);
+    this.rescrapeAllLastResult.set(null);
     this.startRescrapeAllTimer();
 
-    // Process games sequentially to avoid overwhelming the API
+    // Process games sequentially in shuffled order to avoid overwhelming the API
     this.processNextGame(gamesToRescrape, 0);
+  }
+
+  private shuffle(games: AdminGameEntry[]): AdminGameEntry[] {
+    for (let i = games.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [games[i], games[j]] = [games[j], games[i]];
+    }
+    return games;
   }
 
   private processNextGame(games: AdminGameEntry[], index: number): void {
     if (index >= games.length || !this.rescrapeAllInProgress()) {
       this.rescrapeAllInProgress.set(false);
+      this.rescrapeAllCurrentGame.set(null);
       this.stopRescrapeAllTimer();
       // Reload games to get updated data
       this.loadGames();
@@ -390,6 +417,7 @@ export class AdminPanel implements OnInit {
 
     const game = games[index];
     this.rescrapeAllProgress.set(index + 1);
+    this.rescrapeAllCurrentGame.set(game.name);
 
     this.gamesService.rescrapeGame(game.id)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -400,14 +428,38 @@ export class AdminPanel implements OnInit {
           } else {
             this.rescrapeAllFailCount.update(c => c + 1);
           }
+          this.rescrapeAllLastResult.set({
+            name: result.gameName || game.name,
+            success: result.success,
+            text: result.success ? this.describeUpdatedFields(result) : (result.message || 'Rescrape failed')
+          });
           // Small delay to avoid rate limiting
           setTimeout(() => this.processNextGame(games, index + 1), 500);
         },
         error: () => {
           this.rescrapeAllFailCount.update(c => c + 1);
+          this.rescrapeAllLastResult.set({
+            name: game.name,
+            success: false,
+            text: 'Request failed'
+          });
           setTimeout(() => this.processNextGame(games, index + 1), 500);
         }
       });
+  }
+
+  private describeUpdatedFields(result: RescrapeResult): string {
+    const fields = result.updatedFields;
+    if (!fields) return 'updated';
+    const changed: string[] = [];
+    if (fields.thumbnailUrl) changed.push('thumbnail');
+    if (fields.steamAppId != null) changed.push('Steam app ID');
+    if (fields.steamLink) changed.push('Steam link');
+    if (fields.gogLink) changed.push('GOG link');
+    if (fields.epicLink) changed.push('Epic link');
+    if (fields.rating != null) changed.push('rating');
+    if (fields.genres && fields.genres.length > 0) changed.push('genres');
+    return changed.length > 0 ? `updated ${changed.join(', ')}` : 'no new data found';
   }
 
   cancelRescrapeAll(): void {

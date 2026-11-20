@@ -38,7 +38,9 @@ public class CanonicalGameEntityMapper {
                 .setHltbData(hltbData)
                 .setIgdbId(entity.getIgdbId())
                 .setIgdbSlug(entity.getIgdbSlug())
+                .setIgdbRating(entity.getIgdbRating())
                 .setGenres(genres)
+                .setLastScrapeFailed(entity.getLastScrapeFailed() != null && entity.getLastScrapeFailed())
                 .build();
     }
 
@@ -69,6 +71,7 @@ public class CanonicalGameEntityMapper {
                 epicData != null ? epicData.link() : null,
                 domain.getIgdbId(),
                 domain.getIgdbSlug(),
+                domain.getRatings().igdb(),
                 metacriticData != null ? metacriticData.score() : null,
                 metacriticData != null ? metacriticData.gameName() : null,
                 metacriticData != null ? metacriticData.link() : null,
@@ -77,7 +80,8 @@ public class CanonicalGameEntityMapper {
                 hltbData != null ? hltbData.mainStoryHours() : null,
                 hltbData != null ? hltbData.mainExtraHours() : null,
                 hltbData != null ? hltbData.completionistHours() : null,
-                genres
+                genres,
+                domain.isLastScrapeFailed()
         );
     }
 

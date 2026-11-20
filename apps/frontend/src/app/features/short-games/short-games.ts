@@ -3,6 +3,9 @@ import {DecimalPipe} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {CollectionEntry} from '../../domain/entities/CollectionEntry';
 import {GamesService} from '../../services/games.service';
+import {formatPlaytimeHours} from '../../shared/formatters';
+import {epicSearchUrl, gogSearchUrl, hltbSearchUrl, steamSearchUrl} from '../../shared/store-links';
+import {gameFlagsOf} from '../../domain/entities/GameFlags';
 
 @Component({
   selector: 'app-short-games',
@@ -18,6 +21,7 @@ export class ShortGames implements OnInit {
 
   // Filter settings with defaults
   maxHours = signal(5);
+  noTimeLimit = signal(false);
   minRating = signal(80);
   sortBy = signal<'rating' | 'playtime'>('rating');
 
@@ -27,7 +31,8 @@ export class ShortGames implements OnInit {
 
   loadGames(): void {
     this.loading.set(true);
-    this.gamesService.getShortGoodGames(this.maxHours(), this.minRating()).subscribe({
+    const maxHours = this.noTimeLimit() ? Infinity : this.maxHours();
+    this.gamesService.getShortGoodGames(maxHours, this.minRating()).subscribe({
       next: games => {
         this.games.set(this.sortGames(games));
         this.loading.set(false);
@@ -60,11 +65,7 @@ export class ShortGames implements OnInit {
   }
 
   onFlagChange(game: CollectionEntry): void {
-    const updates = {
-      markedAsPlayed: game.markedAsPlayed ?? false,
-      markedAsHidden: game.markedAsHidden ?? false,
-      markedForLater: game.markedForLater ?? false
-    };
+    const updates = gameFlagsOf(game);
     this.gamesService.updateGameFlags(game.id, updates).subscribe({
       next: () => {
         // Update local signal to trigger reactive updates
@@ -78,30 +79,10 @@ export class ShortGames implements OnInit {
     });
   }
 
-  // Generate store search URLs for games without direct links
-  getSteamSearchUrl(gameName: string): string {
-    return `https://store.steampowered.com/search/?term=${encodeURIComponent(gameName)}`;
-  }
+  protected readonly getSteamSearchUrl = steamSearchUrl;
+  protected readonly getGogSearchUrl = gogSearchUrl;
+  protected readonly getEpicSearchUrl = epicSearchUrl;
+  protected readonly getHltbSearchUrl = hltbSearchUrl;
 
-  getGogSearchUrl(gameName: string): string {
-    return `https://www.gog.com/en/games?query=${encodeURIComponent(gameName)}&order=desc:score`;
-  }
-
-  getEpicSearchUrl(gameName: string): string {
-    return `https://store.epicgames.com/browse?q=${encodeURIComponent(gameName)}`;
-  }
-
-  getHltbSearchUrl(gameName: string): string {
-    return `https://howlongtobeat.com/?q=${encodeURIComponent(gameName)}`;
-  }
-
-  formatPlaytime(hours: number | null | undefined): string {
-    if (hours == null) return 'N/A';
-    if (hours < 1) {
-      return `${Math.round(hours * 60)}m`;
-    }
-    const h = Math.floor(hours);
-    const m = Math.round((hours - h) * 60);
-    return m > 0 ? `${h}h ${m}m` : `${h}h`;
-  }
+  protected readonly formatPlaytime = formatPlaytimeHours;
 }

@@ -3,6 +3,7 @@ package com.robertforpresent.api.scraper.infrastructure.steam;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.robertforpresent.api.scraper.infrastructure.steam.dto.SteamAppDetailsResponse;
 import com.robertforpresent.api.scraper.infrastructure.steam.dto.SteamOwnedGamesResponse;
+import com.robertforpresent.api.scraper.infrastructure.steam.dto.SteamStoreSearchResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -26,12 +27,10 @@ public class SteamApiClient {
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
 
-    public SteamApiClient(SteamConfig config) {
+    public SteamApiClient(SteamConfig config, HttpClient httpClient, ObjectMapper objectMapper) {
         this.config = config;
-        this.objectMapper = new ObjectMapper();
-        this.httpClient = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(10))
-                .build();
+        this.httpClient = httpClient;
+        this.objectMapper = objectMapper;
     }
 
     /**
@@ -113,6 +112,44 @@ public class SteamApiClient {
             }
         } catch (Exception e) {
             logger.error("Error fetching app details for app ID: {}", appId, e);
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Search the Steam store for an app whose name exactly matches the given name.
+     * Uses the public store search which doesn't require an API key.
+     *
+     * @param name The exact game name to look up
+     * @return The matching store item, or empty if no exact app match exists
+     */
+    public Optional<Integer> findAppIdByName(String name) {
+        try {
+            String url = String.format("%s/storesearch/?term=%s&cc=us&l=en",
+                    STORE_API_URL, URLEncoder.encode(name, StandardCharsets.UTF_8));
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .timeout(Duration.ofSeconds(30))
+                    .GET()
+                    .build();
+
+            logger.debug("Searching Steam store for app named: {}", name);
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                SteamStoreSearchResponse search = objectMapper.readValue(response.body(), SteamStoreSearchResponse.class);
+                return search.items().stream()
+                        .filter(item -> "app".equals(item.type()))
+                        .filter(item -> item.name() != null && item.name().equalsIgnoreCase(name))
+                        .map(item -> (int) item.id())
+                        .findFirst();
+            }
+
+            logger.error("Failed to search Steam store. Status: {}", response.statusCode());
+            return Optional.empty();
+        } catch (Exception e) {
+            logger.error("Error searching Steam store for '{}'", name, e);
             return Optional.empty();
         }
     }

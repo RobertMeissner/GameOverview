@@ -6,7 +6,7 @@ import org.jspecify.annotations.Nullable;
  * Sealed interface for store-specific game data.
  * Each implementation contains the store's ID, name (as it appears on that store), and a link.
  */
-public sealed interface StoreGameData permits SteamGameData, GogGameData, MetacriticGameData {
+public sealed interface StoreGameData permits SteamGameData, GogGameData, EpicGameData, MetacriticGameData, HltbGameData {
     /**
      * @return The game's ID on this store/platform
      */

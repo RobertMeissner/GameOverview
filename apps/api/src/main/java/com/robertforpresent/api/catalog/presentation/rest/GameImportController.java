@@ -5,6 +5,7 @@ import com.robertforpresent.api.catalog.application.service.GameImportService;
 import com.robertforpresent.api.catalog.application.service.GameImportService.BulkImportResult;
 import com.robertforpresent.api.catalog.application.service.GameImportService.SingleImportResult;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,26 +19,29 @@ import java.util.UUID;
 @Slf4j
 @RestController
 @RequestMapping("/import")
-@CrossOrigin(origins = "http://localhost:4200")
 public class GameImportController {
-    private static final UUID DEFAULT_GAMER_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
-
     private final GameImportService importService;
+    private final UUID defaultGamerId;
 
-    public GameImportController(GameImportService importService) {
+    public GameImportController(
+            GameImportService importService,
+            @Value("${app.default-gamer-id:4c580456-1116-4091-b1d6-99fc02b47246}") UUID defaultGamerId) {
         this.importService = importService;
+        this.defaultGamerId = defaultGamerId;
     }
 
     /**
      * Import multiple games from a store in bulk.
      */
     @PostMapping("/bulk")
-    public ResponseEntity<BulkImportResponse> bulkImport(@RequestBody List<GameImportRequest> requests) {
+    public ResponseEntity<BulkImportResponse> bulkImport(
+            @RequestBody List<GameImportRequest> requests,
+            @RequestParam(required = false) UUID userId) {
         List<ImportGameCommand> commands = requests.stream()
                 .map(this::toCommand)
                 .toList();
 
-        BulkImportResult result = importService.importGames(commands, DEFAULT_GAMER_ID);
+        BulkImportResult result = importService.importGames(commands, resolveGamerId(userId));
 
         return ResponseEntity.ok(toResponse(result));
     }
@@ -46,9 +50,11 @@ public class GameImportController {
      * Import a single game from a store.
      */
     @PostMapping("/single")
-    public ResponseEntity<ImportResult> importSingle(@RequestBody GameImportRequest request) {
+    public ResponseEntity<ImportResult> importSingle(
+            @RequestBody GameImportRequest request,
+            @RequestParam(required = false) UUID userId) {
         try {
-            SingleImportResult result = importService.importSingleGame(toCommand(request), DEFAULT_GAMER_ID);
+            SingleImportResult result = importService.importSingleGame(toCommand(request), resolveGamerId(userId));
             return ResponseEntity.ok(toResponse(result));
         } catch (Exception e) {
             log.error("Failed to import game: {}", request.name(), e);
@@ -65,6 +71,10 @@ public class GameImportController {
                 request.storeLink(),
                 request.thumbnailUrl()
         );
+    }
+
+    private UUID resolveGamerId(UUID userId) {
+        return userId != null ? userId : defaultGamerId;
     }
 
     private ImportResult toResponse(SingleImportResult result) {

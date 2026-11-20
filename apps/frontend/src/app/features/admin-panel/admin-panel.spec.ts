@@ -34,6 +34,13 @@ describe('AdminPanel', () => {
     metacriticScore: null,
     metacriticName: null,
     metacriticLink: null,
+    epicId: null,
+    epicName: null,
+    epicLink: null,
+    igdbId: null,
+    igdbLink: null,
+    completenessPercent: 50,
+    lastScrapeFailed: false,
     ...overrides,
   });
 
@@ -123,6 +130,46 @@ describe('AdminPanel', () => {
       expect(filtered[0].name).toBe('Different Name');
     });
 
+    it('should filter games with neither steam, gog nor epic id', async () => {
+      // given
+      const mockGames = [
+        createMockAdminGame({ id: '1', name: 'Steam only', steamAppId: 123 }),
+        createMockAdminGame({ id: '2', name: 'GOG only', steamAppId: null, gogId: 456 }),
+        createMockAdminGame({ id: '3', name: 'Epic only', steamAppId: null, gogId: null, epicId: 'epic-1' }),
+        createMockAdminGame({ id: '4', name: 'No store id', steamAppId: null, gogId: null, epicId: null }),
+      ];
+      gamesServiceSpy.getAdminGames.mockReturnValue(of(mockGames));
+
+      // when
+      fixture.detectChanges();
+      await fixture.whenStable();
+      component.filterMissingStoreIds.set(true);
+
+      // then
+      const filtered = component.filteredAndSortedGames();
+      expect(filtered.length).toBe(1);
+      expect(filtered[0].name).toBe('No store id');
+    });
+
+    it('should filter games whose last scrape failed', async () => {
+      // given
+      const mockGames = [
+        createMockAdminGame({ id: '1', name: 'Scraped', lastScrapeFailed: false }),
+        createMockAdminGame({ id: '2', name: 'Failed', lastScrapeFailed: true }),
+      ];
+      gamesServiceSpy.getAdminGames.mockReturnValue(of(mockGames));
+
+      // when
+      fixture.detectChanges();
+      await fixture.whenStable();
+      component.filterScrapeFailed.set(true);
+
+      // then
+      const filtered = component.filteredAndSortedGames();
+      expect(filtered.length).toBe(1);
+      expect(filtered[0].name).toBe('Failed');
+    });
+
     it('should show all games when no filter is active', async () => {
       // given
       const mockGames = [
@@ -198,6 +245,36 @@ describe('AdminPanel', () => {
       expect(sorted[1].name).toBe('Low Rated');
     });
 
+    it('should default to descending when sorting by completeness', () => {
+      // when
+      component.setSortField('completeness');
+
+      // then
+      expect(component.sortField()).toBe('completeness');
+      expect(component.sortDirection()).toBe('desc');
+    });
+
+    it('should sort by completeness correctly', async () => {
+      // given
+      const mockGames = [
+        createMockAdminGame({ id: '1', name: 'Incomplete', completenessPercent: 17 }),
+        createMockAdminGame({ id: '2', name: 'Complete', completenessPercent: 100 }),
+        createMockAdminGame({ id: '3', name: 'Partial', completenessPercent: 50 }),
+      ];
+      gamesServiceSpy.getAdminGames.mockReturnValue(of(mockGames));
+
+      // when
+      fixture.detectChanges();
+      await fixture.whenStable();
+      component.setSortField('completeness');
+
+      // then - completeness sorts descending by default
+      const sorted = component.filteredAndSortedGames();
+      expect(sorted[0].completenessPercent).toBe(100);
+      expect(sorted[1].completenessPercent).toBe(50);
+      expect(sorted[2].completenessPercent).toBe(17);
+    });
+
     it('should sort by steamAppId correctly', async () => {
       // given
       const mockGames = [
@@ -224,6 +301,7 @@ describe('AdminPanel', () => {
     it('should populate edit signals when starting edit', async () => {
       // given
       const game = createMockAdminGame({
+        name: 'Stardew Valley',
         steamAppId: 413150,
         steamName: 'Stardew Valley',
         gogId: 123456,
@@ -237,6 +315,7 @@ describe('AdminPanel', () => {
 
       // then
       expect(component.editingGame()).toBe(game);
+      expect(component.editName()).toBe('Stardew Valley');
       expect(component.editSteamAppId()).toBe(413150);
       expect(component.editSteamName()).toBe('Stardew Valley');
       expect(component.editGogId()).toBe(123456);
@@ -255,6 +334,7 @@ describe('AdminPanel', () => {
 
       // then
       expect(component.editingGame()).toBe(null);
+      expect(component.editName()).toBe(null);
       expect(component.editSteamAppId()).toBe(null);
       expect(component.editSteamName()).toBe(null);
       expect(component.editGogId()).toBe(null);
@@ -270,6 +350,7 @@ describe('AdminPanel', () => {
       fixture.detectChanges();
 
       component.startEdit(game);
+      component.editName.set('Renamed Game');
       component.editSteamAppId.set(999);
       component.editSteamName.set('New Steam Name');
       component.editGogId.set(888);
@@ -283,6 +364,7 @@ describe('AdminPanel', () => {
 
       // then
       expect(gamesServiceSpy.updateCatalogValues).toHaveBeenCalledWith('game-123', {
+        name: 'Renamed Game',
         steamAppId: 999,
         steamName: 'New Steam Name',
         gogId: 888,
@@ -292,21 +374,40 @@ describe('AdminPanel', () => {
       });
     });
 
-    it('should reload games and cancel edit after successful save', async () => {
+    it('should update games locally and cancel edit after successful save', async () => {
       // given
-      const game = createMockAdminGame({ id: 'game-123' });
+      const game = createMockAdminGame({ id: 'game-123', steamAppId: 413150 });
       gamesServiceSpy.getAdminGames.mockReturnValue(of([game]));
       fixture.detectChanges();
 
       component.startEdit(game);
+      component.editSteamAppId.set(999);
 
       // when
       component.saveEdit();
       await fixture.whenStable();
 
       // then
-      expect(gamesServiceSpy.getAdminGames).toHaveBeenCalledTimes(2); // once on init, once after save
+      expect(gamesServiceSpy.getAdminGames).toHaveBeenCalledTimes(1); // only on init, save updates locally
+      expect(component.games()[0].steamAppId).toBe(999);
       expect(component.editingGame()).toBe(null);
+    });
+
+    it('should update the game name locally after successful save', async () => {
+      // given
+      const game = createMockAdminGame({ id: 'game-123', name: 'Old Name' });
+      gamesServiceSpy.getAdminGames.mockReturnValue(of([game]));
+      fixture.detectChanges();
+
+      component.startEdit(game);
+      component.editName.set('New Name');
+
+      // when
+      component.saveEdit();
+      await fixture.whenStable();
+
+      // then
+      expect(component.games()[0].name).toBe('New Name');
     });
 
     it('should not call service if no game is being edited', () => {

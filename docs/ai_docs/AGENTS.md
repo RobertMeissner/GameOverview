@@ -1,28 +1,33 @@
 # Agent Guidelines for GameOverview
 
+## Repo layout
+- `apps/api` — Spring Boot 4 API, Java 25 (Maven, `./mvnw`), SQLite via JPA. Hexagonal, package-by-feature.
+- `apps/frontend` — Angular 22 frontend (npm/vitest).
+- `scripts/` — Python one-off tools for store imports (uv).
+- `htmx-test/` — static HTML prototype, not part of the app.
+- `docs/arc42` — architecture doc template (not yet filled in for the current API).
+
 ## Build/Test Commands
-- **Frontend**: `cd frontend && npm test` (single test: `npm test -- --testNamePattern="TestName"`)
-- **Worker**: `cd worker && npm test` (single test: `vitest run src/path/to/test.ts`)
-- **Backend**: `cd backend && uv run pytest` (single test: `uv run pytest tests/test_file.py::test_function`)
-- **Lint**: `cd backend && make pre-commit` (Python), Frontend/Worker use built-in ESLint
-- **Type check**: `cd worker && npm run type-check`, Frontend uses built-in TypeScript
+- **API**: `cd apps/api && ./mvnw verify` (tests only: `./mvnw test`; single test: `./mvnw test -Dtest=ClassName`)
+- **Frontend**: `cd apps/frontend && npm test` (build: `npm run build`, types: `npx tsc --noEmit`)
+- **Lint/format**: `cd apps/api && ./mvnw spotless:check` (Java, google-java-format AOSP); frontend uses Prettier (`npx prettier --check "src/**/*.{ts,html,scss}"`)
+- CI runs the API tests on Java 25 (`.github/workflows/test-pr.yml`, job `api-tests`) and the frontend tests.
+
+## Architecture (apps/api)
+Modules under `com.robertforpresent.api`: `catalog`, `collection`, `scraper`, `thumbnail`, plus `config` and `shared`.
+Each module follows hexagonal layers: `domain` (model, `port`, `repository`), `application` (service, command, dto), `infrastructure` (persistence, external clients, adapters), `presentation/rest` (controllers + request/response records).
+
+Rules:
+- Dependencies point inward only: `application` must not import `presentation`; `domain` must not import infrastructure.
+- Cross-module calls go through ports defined in the consuming module's `domain.port` (e.g. `GameCollectionPort`), implemented by adapters in `infrastructure`.
+- All external data sources implement `catalog.domain.port.ExternalSource` (`GameInfoProvider`, `GameEnrichmentProvider`).
+- Controllers live in `presentation/rest` and map REST DTOs to application commands.
+- One shared `HttpClient` bean (`config/HttpClientConfig`) and Spring's `ObjectMapper`; do not create new ones per class.
+- Store identifiers use `catalog.domain.model.StoreCode`; lenient parsing via `shared/Parsing`.
+- Mutating a `CanonicalGame` goes through `game.toBuilder()....build()`, never by re-listing all builder fields.
 
 ## Code Style
-- **Python**: Use ruff formatting (140 char line length), dataclasses with type hints, snake_case
-- **TypeScript**: Use interfaces over types, explicit return types, camelCase variables
-- **Imports**: Group by external/internal, use absolute paths where possible
-- **Error handling**: Use proper exception types (Python), typed errors (TypeScript)
-- **Naming**: Descriptive names, avoid abbreviations, use consistent patterns
-- **Comments**: Only add when explicitly requested by user
-
-## Architecture
-- **Backend**: Hexagonal architecture (domain/application/adapters), use dependency injection
-- **Frontend**: React with Material-UI, custom hooks for data fetching
-- **Worker**: Cloudflare Workers with D1 database
-- **Testing**: Unit tests required, integration tests for API endpoints
-
-## Key Patterns
-- Use existing utilities and services before creating new ones
-- Follow established patterns in each module (check neighboring files)
-- Maintain type safety across all TypeScript code
-- Use environment-specific configurations via environment variables
+- Java 25: records, sealed types, switch expressions, `var`, `@Nullable` (jspecify). Target release is set by `java.version` in the pom — do not add `source`/`target` overrides.
+- Constructor injection only (no field `@Autowired`).
+- Domain aggregates use explicit builders; Lombok is used for `@Slf4j` and entity getters/setters.
+- 4-space indentation (Spotless google-java-format AOSP). Comments only when explicitly requested.

@@ -17,12 +17,23 @@ public record HltbGameData(
         @Nullable Double mainStoryHours,
         @Nullable Double mainExtraHours,
         @Nullable Double completionistHours
-) {
+) implements StoreGameData {
     private static final String HLTB_BASE_URL = "https://howlongtobeat.com/game/";
+
+    @Override
+    public @Nullable String storeId() {
+        return hltbId != null ? String.valueOf(hltbId) : null;
+    }
+
+    @Override
+    public @Nullable String storeName() {
+        return gameName;
+    }
 
     /**
      * @return Direct link to the HLTB page for this game
      */
+    @Override
     public @Nullable String storeLink() {
         if (hltbId != null) {
             return HLTB_BASE_URL + hltbId;

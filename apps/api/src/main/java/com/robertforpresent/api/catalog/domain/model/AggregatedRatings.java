@@ -6,17 +6,21 @@ import org.jspecify.annotations.Nullable;
 import java.util.ArrayList;
 
 public record AggregatedRatings(
-        @Nullable SteamRating steam) {
+        @Nullable SteamRating steam,
+        @Nullable Double igdb) {
 
     /**
      *
-     * @return Rating from 0 to 100 as integer.
+     * @return Rating from 0 to 100 as integer, averaged over all available sources.
      */
     public int rating() {
-        var scores = new ArrayList<Integer>();
+        var scores = new ArrayList<Double>();
         if (steam != null) {
-            scores.add(steam.rating());
+            scores.add((double) steam.rating());
         }
-        return (int) scores.stream().mapToInt(f -> f).average().orElse(0);
+        if (igdb != null) {
+            scores.add(igdb);
+        }
+        return (int) Math.round(scores.stream().mapToDouble(Double::doubleValue).average().orElse(0));
     }
 }

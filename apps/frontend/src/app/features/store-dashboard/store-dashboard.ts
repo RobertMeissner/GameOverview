@@ -183,22 +183,30 @@ export class StoreDashboard implements OnInit {
       case 'steam':
         script = `// Steam Library Export Script (JSONC with appid)
 // Run on: https://steamcommunity.com/id/YOUR_ID/games/?tab=all
-// IMPORTANT: Scroll to the very bottom first to load ALL games!
+// Uses the XML endpoint - no scrolling needed. Requires public game details (or being logged in as this profile).
 
 ${cleanNameFn}
 
-let gameRows = document.querySelectorAll('[data-appid]');
-if (!gameRows.length) gameRows = document.querySelectorAll('.gameListRow');
+const xmlResponse = await fetch(location.origin + location.pathname + '?tab=all&xml=1', { credentials: 'include' });
+const xmlDoc = new DOMParser().parseFromString(await xmlResponse.text(), 'text/xml');
 
-if (!gameRows.length) {
-  console.log("No games found. Try the Steam API method instead.");
-} else {
-  const games = [...gameRows].map(row => {
-    const appid = row.dataset?.appid || row.getAttribute('data-appid') || null;
+if (xmlDoc.querySelector('error')) {
+  console.log('XML endpoint error: ' + xmlDoc.querySelector('error').textContent + ' - falling back to DOM scraping (scroll to the very bottom first!)');
+  let gameRows = document.querySelectorAll('[data-appid]');
+  if (!gameRows.length) gameRows = document.querySelectorAll('.gameListRow');
+  const domGames = [...gameRows].map(row => {
+    const appid = row.dataset?.appid || row.getAttribute('data-appid') || (row.id || '').replace('game_', '') || null;
     const nameEl = row.querySelector('.gameListRowItemName') || row.querySelector('[class*="GameName"]');
     const rawName = nameEl ? nameEl.textContent.trim() : 'Unknown';
     return { name: cleanName(rawName), appid };
-  }).filter(g => g.name !== 'Unknown');
+  }).filter(g => g.name && g.name !== 'Unknown');
+  console.log("=== STEAM GAMES (" + domGames.length + ") ===");
+  console.log(JSON.stringify(domGames, null, 2));
+} else {
+  const games = [...xmlDoc.querySelectorAll('game')].map(g => ({
+    name: cleanName(g.querySelector('name')?.textContent || ''),
+    appid: g.querySelector('appID')?.textContent || null
+  })).filter(g => g.name);
   console.log("=== STEAM GAMES (" + games.length + ") ===");
   console.log(JSON.stringify(games, null, 2));
 }`;
@@ -267,10 +275,19 @@ console.log(uniqueGames.join("\\n"));`;
   let noNewItemsCount = 0;
   const maxNoNewItems = 5; // Stop after 5 scroll attempts with no new items
 
-  // Find the scrollable container
+  // Find the scrollable container (the family library scrolls an inner div, not the window)
   const container = document.querySelector('[class*="sharedlibrary_Container"]') ||
                     document.querySelector('[class*="libraryhome_Container"]') ||
-                    document.documentElement;
+                    document.scrollingElement || document.documentElement;
+
+  const scrollStep = () => {
+    const amount = (container.clientHeight || window.innerHeight) * 0.8;
+    if (container === document.scrollingElement || container === document.documentElement) {
+      window.scrollBy(0, amount);
+    } else {
+      container.scrollBy(0, amount);
+    }
+  };
 
   const collectVisibleGames = () => {
     const images = document.querySelectorAll('img[src*="steam/apps"]');
@@ -291,14 +308,14 @@ console.log(uniqueGames.join("\\n"));`;
     return new Promise(resolve => {
       collectVisibleGames();
 
-      // Scroll down
-      window.scrollBy(0, window.innerHeight * 0.8);
+      // Scroll down inside the actual scrollable container
+      scrollStep();
 
       // Wait for new content to load
       setTimeout(() => {
         collectVisibleGames();
         resolve();
-      }, 300);
+      }, 500);
     });
   };
 
@@ -320,7 +337,11 @@ console.log(uniqueGames.join("\\n"));`;
   }
 
   // Scroll back to top
-  window.scrollTo(0, 0);
+  if (container === document.scrollingElement || container === document.documentElement) {
+    window.scrollTo(0, 0);
+  } else {
+    container.scrollTo(0, 0);
+  }
 
   const uniqueGames = [...games.values()];
   console.log("=== STEAM FAMILY LIBRARY (" + uniqueGames.length + ") ===");
@@ -337,7 +358,11 @@ ${cleanNameFn}
 async function fetchAllGogGames() {
   let page = 1, allGames = [], totalPages = 1;
   do {
-    const response = await fetch(\`https://www.gog.com/account/getFilteredProducts?mediaType=1&page=\${page}\`);
+    const response = await fetch(\`https://www.gog.com/account/getFilteredProducts?mediaType=1&hiddenFlag=0&sortBy=title&page=\${page}\`, { credentials: 'include' });
+    if (!response.ok) {
+      console.error(\`GOG request failed: HTTP \${response.status} on page \${page} - are you logged in at gog.com/en/account?\`);
+      return;
+    }
     const data = await response.json();
     totalPages = data.totalPages;
     const games = data.products.map(p => ({ name: cleanName(p.title), appid: String(p.id) }));
@@ -359,7 +384,11 @@ fetchAllGogGames();`;
 ${cleanNameFn}
 
 const fetchGamesList = async (pageToken = '', existingList = []) => {
-  const data = await (await fetch(\`https://www.epicgames.com/account/v2/payment/ajaxGetOrderHistory?sortDir=DESC&sortBy=DATE&nextPageToken=\${pageToken}&locale=en-US\`)).json();
+  const response = await fetch(\`https://www.epicgames.com/account/v2/payment/ajaxGetOrderHistory?sortDir=DESC&sortBy=DATE&nextPageToken=\${pageToken}&locale=en-US\`, { credentials: 'include' });
+  if (!response.ok) {
+    throw new Error(\`HTTP \${response.status} - Epic is gating the order history endpoint. Make sure you are logged in at epicgames.com, otherwise export via legendary/Heroic instead.\`);
+  }
+  const data = await response.json();
   const gamesList = data.orders.reduce((acc, order) => [
     ...acc,
     ...order.items.map(item => ({ name: cleanName(item.description), appid: item.offerId || item.id || null }))
