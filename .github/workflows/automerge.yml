@@ -1,0 +1,44 @@
+name: Automerge dependabot PRs
+
+# Dependabot PRs against main are merged automatically (squash) once the
+# "Pull Request Tests" workflow for the PR head SHA has passed.
+# The branch itself stays protected by convention: only PRs with green CI
+# get merged; everything else waits for a human.
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  automerge:
+    runs-on: ubuntu-latest
+    name: Automerge
+    if: github.actor == 'dependabot[bot]'
+
+    steps:
+      - name: Wait for Pull Request Tests workflow
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SHA="${{ github.event.pull_request.head.sha }}"
+          RUN=""
+          for i in $(seq 1 30); do
+            RUN=$(gh run list --workflow=test-pr.yml --sha "$SHA" --json databaseId -q '.[0].databaseId' 2>/dev/null || true)
+            [ -n "$RUN" ] && break
+            sleep 10
+          done
+          if [ -z "$RUN" ]; then
+            echo "No Pull Request Tests run found for $SHA"
+            exit 1
+          fi
+          gh run watch "$RUN" --exit-status
+
+      - name: Merge PR (squash, delete branch)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr merge "${{ github.event.pull_request.number }}" --squash --delete-branch
