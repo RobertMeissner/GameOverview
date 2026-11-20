@@ -9,6 +9,7 @@ import {
   ScrapedGameInfo,
   ScraperStatus
 } from '../domain/entities/ScrapedGameInfo';
+import {ScrapeHealthReport} from '../domain/entities/ScrapeHealthReport';
 
 @Injectable({providedIn: 'root'})
 export class ScraperService {
@@ -42,5 +43,13 @@ export class ScraperService {
 
   getStatus(): Observable<ScraperStatus> {
     return this.http.get<ScraperStatus>(`${this.apiUrl}/scraper/status`);
+  }
+
+  /**
+   * Run the scrape health check over the configured reference games.
+   * Makes live calls to the external providers, so trigger it on demand.
+   */
+  getHealth(): Observable<ScrapeHealthReport> {
+    return this.http.get<ScrapeHealthReport>(`${this.apiUrl}/scraper/health`);
   }
 }

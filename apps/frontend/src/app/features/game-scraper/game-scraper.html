@@ -9,6 +9,89 @@
     </div>
   }
 
+  <!-- Health Check Section -->
+  <div class="health-section">
+    <div class="health-header">
+      <h3 class="health-title">Scraping Health</h3>
+      <button class="btn btn-sm btn-outline-primary" (click)="runHealthCheck()" [disabled]="healthLoading()">
+        @if (healthLoading()) {
+          <span class="spinner-border spinner-border-sm me-1"></span>
+          Checking external APIs...
+        } @else {
+          <i class="bi bi-heart-pulse me-1"></i>
+          Run health check
+        }
+      </button>
+    </div>
+    <p class="health-hint">Runs the configured reference games through IGDB search, all enrichment providers and the thumbnail download, and reports what still works.</p>
+
+    @if (healthError(); as healthErr) {
+      <div class="alert alert-danger mt-2">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        {{ healthErr }}
+      </div>
+    }
+
+    @if (healthReport(); as report) {
+      <div class="status-banner mt-2" [class.status-enabled]="report.failedCount === 0" [class.status-disabled]="report.failedCount > 0">
+        <i class="bi" [class.bi-check-circle-fill]="report.failedCount === 0" [class.bi-exclamation-triangle-fill]="report.failedCount > 0"></i>
+        <span>{{ report.okCount }}/{{ report.referenceGames.length }} reference games OK (checked {{ report.checkedAt | date:'medium' }})</span>
+      </div>
+
+      @if (report.providers.length > 0) {
+        <div class="provider-chips">
+          @for (p of report.providers; track p.name) {
+            <span class="provider-chip" [class.chip-ok]="p.enabled" [class.chip-off]="!p.enabled">
+              <i class="bi" [class.bi-check-circle]="p.enabled" [class.bi-x-circle]="!p.enabled"></i>
+              {{ p.name }}@if (!p.enabled) { (disabled) }
+            </span>
+          }
+        </div>
+      }
+
+      <div class="health-games">
+        @for (g of report.referenceGames; track g.query) {
+          <div class="health-game" [class.game-ok]="g.ok" [class.game-fail]="!g.ok">
+            <div class="health-game-title">
+              <i class="bi" [class.bi-check-circle-fill]="g.ok" [class.bi-x-circle-fill]="!g.ok"></i>
+              <strong>{{ g.query }}</strong>
+              @if (g.found) {
+                <span class="ms-1">→ {{ g.matchedName }}@if (g.rating != null) { ({{ g.rating | number:'1.0-0' }}) }</span>
+              } @else {
+                <span class="badge bg-danger ms-1">not found</span>
+              }
+              @if (g.inCatalog) {
+                <span class="badge bg-secondary ms-1">in catalog</span>
+              }
+              @if (g.thumbnail) {
+                <span class="badge ms-1" [class.bg-success]="g.thumbnail.ok" [class.bg-danger]="!g.thumbnail.ok">
+                  thumbnail HTTP {{ g.thumbnail.httpStatus }}
+                </span>
+              }
+            </div>
+            @if (g.providerChecks.length > 0) {
+              <ul class="provider-checks">
+                @for (pc of g.providerChecks; track pc.provider) {
+                  <li [class.check-ok]="pc.ok" [class.check-fail]="!pc.ok">
+                    <i class="bi" [class.bi-check-circle-fill]="pc.ok && pc.enriched" [class.bi-dash-circle]="pc.ok && !pc.enriched" [class.bi-x-circle-fill]="!pc.ok"></i>
+                    <strong>{{ pc.provider }}</strong>
+                    @if (!pc.ok) {
+                      <span class="text-danger"> — {{ pc.message }}</span>
+                    } @else if (pc.enriched) {
+                      <span class="text-success"> — enriched</span>
+                    } @else {
+                      <span class="text-muted"> — no change ({{ pc.message }})</span>
+                    }
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+
   <!-- Search Section -->
   <div class="search-section">
     <div class="search-row">

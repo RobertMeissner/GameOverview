@@ -3,6 +3,7 @@ import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {ScraperService} from '../../services/scraper.service';
 import {EnrichedGameInfo, ScraperStatus} from '../../domain/entities/ScrapedGameInfo';
+import {ScrapeHealthReport} from '../../domain/entities/ScrapeHealthReport';
 
 @Component({
   selector: 'app-game-scraper',
@@ -21,9 +22,28 @@ export class GameScraper implements OnInit {
   successMessage = signal<string | null>(null);
   status = signal<ScraperStatus | null>(null);
   selectedGame = signal<EnrichedGameInfo | null>(null);
+  healthReport = signal<ScrapeHealthReport | null>(null);
+  healthLoading = signal(false);
+  healthError = signal<string | null>(null);
 
   ngOnInit(): void {
     this.loadStatus();
+  }
+
+  runHealthCheck(): void {
+    this.healthLoading.set(true);
+    this.healthError.set(null);
+    this.scraperService.getHealth().subscribe({
+      next: report => {
+        this.healthReport.set(report);
+        this.healthLoading.set(false);
+      },
+      error: err => {
+        console.error('Health check failed', err);
+        this.healthLoading.set(false);
+        this.healthError.set('Health check failed — is the API running?');
+      }
+    });
   }
 
   private loadStatus(): void {

@@ -492,3 +492,122 @@
     grid-template-columns: 1fr;
   }
 }
+
+.health-section {
+  background: var(--bg-primary);
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.health-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.health-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.health-hint {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin: 0.25rem 0 0;
+}
+
+.provider-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.provider-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+
+  &.chip-ok {
+    background: rgba(40, 167, 69, 0.12);
+    color: #28a745;
+    border: 1px solid rgba(40, 167, 69, 0.3);
+  }
+
+  &.chip-off {
+    background: rgba(108, 117, 125, 0.12);
+    color: var(--text-secondary);
+    border: 1px solid rgba(108, 117, 125, 0.3);
+  }
+}
+
+.health-games {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.health-game {
+  border: 1px solid var(--border-color, rgba(128, 128, 128, 0.25));
+  border-radius: 8px;
+  padding: 0.6rem 0.9rem;
+
+  &.game-ok {
+    border-left: 3px solid #28a745;
+  }
+
+  &.game-fail {
+    border-left: 3px solid #dc3545;
+  }
+}
+
+.health-game-title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+
+  .bi-check-circle-fill {
+    color: #28a745;
+  }
+
+  .bi-x-circle-fill {
+    color: #dc3545;
+  }
+}
+
+.provider-checks {
+  list-style: none;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  font-size: 0.8rem;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.1rem 0;
+
+    &.check-ok .bi {
+      color: #28a745;
+    }
+
+    &.check-ok .bi-dash-circle {
+      color: var(--text-secondary);
+    }
+
+    &.check-fail .bi {
+      color: #dc3545;
+    }
+  }
+}
