@@ -6,6 +6,7 @@ import {environment} from '../../environments/environment';
 import {CollectionEntry} from '../domain/entities/CollectionEntry';
 import {AdminGameEntry} from '../domain/entities/AdminGameEntry';
 import {RescrapeRequest, RescrapeResult} from '../domain/entities/ScrapedGameInfo';
+import {GameFlags} from '../domain/entities/GameFlags';
 
 export interface CatalogGameEntry {
   id: string;
@@ -43,11 +44,7 @@ export class GamesService {
       .pipe(map(games => games.map(game => this.withCachedThumbnail(game))));
   }
 
-  updateGameFlags(gameId: string, flags: {
-    markedAsPlayed: boolean;
-    markedAsHidden: boolean;
-    markedForLater: boolean;
-  }): Observable<CollectionEntry> {
+  updateGameFlags(gameId: string, flags: GameFlags): Observable<CollectionEntry> {
     return this.http.patch<CollectionEntry>(`${this.apiUrl}/collection/games/${gameId}`, flags, {params: {"userId": this.userId}})
       .pipe(map(game => this.withCachedThumbnail(game)));
   }
