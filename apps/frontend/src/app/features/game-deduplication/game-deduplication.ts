@@ -131,8 +131,7 @@ export class GameDeduplication implements OnInit, OnDestroy {
     this.gamesService.getAdminGames().subscribe({
       next: games => {
         this.games.set(games);
-        this.buildGameIndex(games);
-        this.findDuplicatesOptimized();
+        this.findDuplicates();
         this.loading.set(false);
       },
       error: err => {
@@ -306,8 +305,8 @@ export class GameDeduplication implements OnInit, OnDestroy {
     this.duplicateGroups.set(groups);
   }
 
-  // Keep old method name for backwards compatibility with template
   findDuplicates(): void {
+    this.buildGameIndex(this.games());
     this.findDuplicatesOptimized();
   }
 

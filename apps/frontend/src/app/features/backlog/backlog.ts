@@ -87,8 +87,8 @@ export class Backlog implements OnInit {
     this.gamesService.updateGameFlags(game.id, updates).subscribe({
       next: () => {
         if (!game.markedForLater) {
-          // Remove from backlog instantly instead of full reload
-          this.games.update(games => games.filter(g => g.id !== game.id));
+          // Game left the backlog: reload the list
+          this.loadGames();
         } else {
           // Update local signal to trigger reactive updates
           this.games.update(games => games.map(g =>
