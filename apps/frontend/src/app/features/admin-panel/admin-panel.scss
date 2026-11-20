@@ -39,6 +39,41 @@
   gap: 0.5rem;
 }
 
+.name-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  .search-icon {
+    position: absolute;
+    left: 0.55rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    pointer-events: none;
+  }
+
+  .name-search-input {
+    width: 220px;
+    padding-left: 1.75rem;
+    padding-right: 1.75rem;
+  }
+
+  .clear-search {
+    position: absolute;
+    right: 0.3rem;
+    border: none;
+    background: none;
+    padding: 0.1rem 0.3rem;
+    line-height: 1;
+    color: var(--text-secondary);
+    cursor: pointer;
+
+    &:hover {
+      color: var(--text-primary);
+    }
+  }
+}
+
 .sort-buttons {
   display: flex;
   gap: 0.5rem;

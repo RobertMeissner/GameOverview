@@ -185,6 +185,81 @@ describe('AdminPanel', () => {
       // then
       expect(component.filteredAndSortedGames().length).toBe(2);
     });
+
+    it('should filter games by name search case-insensitively', async () => {
+      // given
+      const mockGames = [
+        createMockAdminGame({ id: '1', name: 'Hades' }),
+        createMockAdminGame({ id: '2', name: 'Stardew Valley' }),
+        createMockAdminGame({ id: '3', name: 'Hades II' }),
+      ];
+      gamesServiceSpy.getAdminGames.mockReturnValue(of(mockGames));
+
+      // when
+      fixture.detectChanges();
+      await fixture.whenStable();
+      component.searchName.set('HADE');
+
+      // then
+      const filtered = component.filteredAndSortedGames();
+      expect(filtered.map(g => g.name)).toEqual(['Hades', 'Hades II']);
+    });
+
+    it('should match the name search against store names to find wrongly connected games', async () => {
+      // given
+      const mockGames = [
+        createMockAdminGame({ id: '1', name: 'Some Other Game', steamName: 'Hades' }),
+        createMockAdminGame({ id: '2', name: 'Stardew Valley', steamName: 'Stardew Valley' }),
+      ];
+      gamesServiceSpy.getAdminGames.mockReturnValue(of(mockGames));
+
+      // when
+      fixture.detectChanges();
+      await fixture.whenStable();
+      component.searchName.set('hades');
+
+      // then
+      const filtered = component.filteredAndSortedGames();
+      expect(filtered.length).toBe(1);
+      expect(filtered[0].name).toBe('Some Other Game');
+    });
+
+    it('should combine the name search with checkbox filters', async () => {
+      // given
+      const mockGames = [
+        createMockAdminGame({ id: '1', name: 'Hades', lastScrapeFailed: true }),
+        createMockAdminGame({ id: '2', name: 'Hades II', lastScrapeFailed: false }),
+      ];
+      gamesServiceSpy.getAdminGames.mockReturnValue(of(mockGames));
+
+      // when
+      fixture.detectChanges();
+      await fixture.whenStable();
+      component.filterScrapeFailed.set(true);
+      component.searchName.set('hades');
+
+      // then
+      const filtered = component.filteredAndSortedGames();
+      expect(filtered.length).toBe(1);
+      expect(filtered[0].name).toBe('Hades');
+    });
+
+    it('should show all games when the name search is empty or whitespace', async () => {
+      // given
+      const mockGames = [
+        createMockAdminGame({ id: '1', name: 'Hades' }),
+        createMockAdminGame({ id: '2', name: 'Stardew Valley' }),
+      ];
+      gamesServiceSpy.getAdminGames.mockReturnValue(of(mockGames));
+
+      // when
+      fixture.detectChanges();
+      await fixture.whenStable();
+      component.searchName.set('   ');
+
+      // then
+      expect(component.filteredAndSortedGames().length).toBe(2);
+    });
   });
 
   describe('sorting', () => {
