@@ -28,14 +28,12 @@ jobs:
 
       - name: Run Frontend tests with coverage
         run: npx vitest run --coverage --coverage.reporter=lcov --coverage.reporter=json-summary --coverage.reporter=text
-        continue-on-error: true
 
       - name: Build Frontend (production build test)
         run: npm run build
 
       - name: Check TypeScript types
         run: npx tsc --noEmit
-        continue-on-error: true
 
       - name: Run Prettier check
         run: npx prettier --check "src/**/*.{ts,html,scss}"
@@ -81,8 +79,8 @@ jobs:
           java-version: '25'
           cache: maven
 
-      - name: Build and test API
-        run: ./mvnw --batch-mode --no-transfer-progress verify
+      - name: Check formatting (Spotless) and build/test API
+        run: ./mvnw --batch-mode --no-transfer-progress spotless:check verify
 
   quality-summary:
     runs-on: ubuntu-latest
