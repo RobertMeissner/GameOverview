@@ -2,86 +2,85 @@
 
 # GameOverview
 
-This is a PoC. Everything is WIP. It is not production-ready. If you see anything of value here, please let me know.
+Personal game-library dashboard: a scraper/enrichment backend plus an Angular frontend that shows
+the highest-ranked games in my library that I haven't played yet — so I don't waste time switching
+between Steam, GoG, Epic and other store accounts looking for something to play.
 
-You will encounter bugs and unexpected behaviour.
+This is a one-person PoC. Everything is WIP and not production-ready. You will encounter bugs and
+unexpected behaviour.
 
-Parts of the used API are reverse engineered or simply obtained by misusing certain parts. Use at your own discretion.
+Parts of the used APIs are reverse engineered or simply obtained by misusing certain parts of the
+stores' websites. Use at your own discretion.
 
-## What is this?
+## Stack
 
-Combination of scraper and dashboard to find the currently highest ranked game in my library that I did not play yet.
+| Part | Technology |
+|------|------------|
+| `apps/api` | Spring Boot 4, Java 25, Maven (`./mvnw`), SQLite via JPA, hexagonal package-by-feature |
+| `apps/frontend` | Angular, npm, vitest |
+| `scripts/` | Python one-off tools for store imports (uv) |
+| `docs/ai_docs/AGENTS.md` | architecture + coding rules for agents and humans |
+| `docs/arc42/` | arc42 architecture doc template (not yet filled in for the current API) |
+| `htmx-test/` | static HTML prototype, not part of the app |
 
-It saves me a lot of time switching between different accounts (Steam, GoG, Epic, potentially more in the future)
-finding a great game to play.
+## Running locally
 
-## What is this NOT?
+API (port 8080):
 
-Anything remotely complete or user safe.
-
-## Usage
-
-Run `src/main.py` to parse Steam API.
-
-Run `streamlit run game_dashboard.py` to start the streamlit dashboard.
-
-# Sources
-
-## Steam
-
-Go to `https://store.steampowered.com/account/licenses/` and copy only the list of games there to `data/steam`.
-
-Should look like this:
-
-````text
-Game 1
-
-Game 2
-Game 3
-Game 3 Demo
-...
-````
-
-## GoG
-
-Go to `https://www.gog.com/en/account`. In the devConsole, use Inspector. You should find an object called `gogData`.
-Copy the complete script content to `data/gog_1`.
-
-Should look like this:
-
-````text
-var gogData = {"sortBy":"date_ ...
-````
-
-## Epic Games
-
-Go to `https://www.epicgames.com/account/transactions?lang=de&productName=egs`
-
-There, use the console to run:
-
-```shell
-const fetchGamesList = async (pageToken = '', existingList = []) => {
-  const response = await fetch(`https://www.epicgames.com/account/v2/payment/ajaxGetOrderHistory?sortDir=DESC&sortBy=DATE&nextPageToken=${pageToken}&locale=en-US`, { credentials: 'include' });
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status} - Epic is gating the order history endpoint. Make sure you are logged in at epicgames.com, otherwise export via legendary/Heroic instead.`);
-  }
-  const data = await response.json();
-  const gamesList = data.orders.reduce((acc, value) => [...acc, ...value.items.map(v => v.description)], []);
-  console.log(`Games on this page: ${gamesList.length}, Next page starts from date: ${data.nextPageToken}`);
-  const newList = [...existingList, ...gamesList];
-  if (!data.nextPageToken) return newList;
-  return await fetchGamesList(data.nextPageToken, newList);
-}
-fetchGamesList().then(console.log);
+```bash
+cd apps/api
+IGDB_CLIENT_ID=... IGDB_CLIENT_SECRET=... STEAM_API_KEY=... ./mvnw spring-boot:run
 ```
 
-Wait.
-Copy results from the console into `data/epic_console_log.json`
+Frontend (port 4200, talks to `http://localhost:8080`, see `apps/frontend/src/environments/`):
 
-Kudos go to [NikkelM](https://github.com/NikkelM/Steam-App-ID-Finder)
+```bash
+cd apps/frontend
+npm ci
+npm start
+```
 
-# Development
+Or both via `make run` from the repo root.
 
-Create an issue, pull-request and/or contact me here.
+### Configuration (API)
 
-Figma: https://www.figma.com/design/WaL1cRWR8mN7nRGXEO8xX6/Goodplays?node-id=1669-162202&t=JleBbmPvfxw7D1PR-1
+Environment variables (see `apps/api/src/main/resources/application.properties`):
+
+- `IGDB_CLIENT_ID` / `IGDB_CLIENT_SECRET` — IGDB (Twitch) API credentials, get them at
+  https://dev.twitch.tv/console/apps
+- `STEAM_API_KEY` — Steam Web API key, get it at https://steamcommunity.com/dev/apikey
+- `CORS_ALLOWED_ORIGINS` — defaults to `http://localhost:4200`
+- `APP_DEFAULT_GAMER_ID` — gamer used when a request has no `userId`
+
+The database is a local SQLite file at `./data/gamedb.sqlite`; thumbnails are cached in
+`./data/thumbnails`.
+
+## Store imports
+
+See [docs/store-import-scripts.md](docs/store-import-scripts.md) and the scripts in `scripts/`
+(Tampermonkey userscript for one-click export, plus Python importers). Steam libraries can also be
+imported directly through the API (`POST /steam/import-library`).
+
+## Health check
+
+`GET /scraper/health` smoke-tests the scraping pipeline (catalog search, IGDB/Steam/HLTB/GOG/Rawg
+enrichment, thumbnail download) against the reference games in `scraper.reference-games`
+(default: Elden Ring, Hades, Stardew Valley, Cyberpunk 2077). The same check runs monthly via
+`.github/workflows/health-check.yml` and opens an issue when something is broken; the result is
+also visible on the "Game Scraper" page in the frontend.
+
+## Development
+
+```bash
+# API: format check + tests
+cd apps/api && ./mvnw spotless:check verify
+
+# Frontend: tests, build, types, lint
+cd apps/frontend && npm test && npm run build && npx tsc --noEmit && npm run lint
+```
+
+CI (`.github/workflows/test-pr.yml`) runs both test suites on every PR to `main`; Dependabot opens
+grouped weekly dependency PRs which are auto-merged once CI is green
+(`.github/workflows/automerge.yml`).
+
+Create an issue or pull request if you want to contribute.
