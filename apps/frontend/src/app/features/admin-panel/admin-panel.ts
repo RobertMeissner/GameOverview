@@ -32,6 +32,7 @@ export class AdminPanel implements OnInit {
       this.filterMissingStoreIds();
       this.filterNameMismatch();
       this.filterScrapeFailed();
+      this.searchName();
       // Reset pagination (untracked to avoid infinite loop)
       this.currentPage.set(0);
     }, { allowSignalWrites: true });
@@ -55,6 +56,7 @@ export class AdminPanel implements OnInit {
   filterMissingStoreIds = signal(false);
   filterNameMismatch = signal(false);
   filterScrapeFailed = signal(false);
+  searchName = signal('');
 
   sortField = signal<SortField>('name');
   sortDirection = signal<SortDirection>('asc');
@@ -91,6 +93,7 @@ export class AdminPanel implements OnInit {
     const showMissingStoreIds = this.filterMissingStoreIds();
     const showNameMismatch = this.filterNameMismatch();
     const showScrapeFailed = this.filterScrapeFailed();
+    const nameQuery = this.searchName().trim().toLowerCase();
     const field = this.sortField();
     const direction = this.sortDirection();
 
@@ -103,6 +106,13 @@ export class AdminPanel implements OnInit {
         (showMissingStoreIds && game.steamAppId === null && game.gogId === null && game.epicId === null) ||
         (showNameMismatch && game.steamName !== null && game.steamName !== game.name) ||
         (showScrapeFailed && game.lastScrapeFailed)
+      );
+    }
+
+    if (nameQuery) {
+      filtered = filtered.filter(game =>
+        [game.name, game.steamName, game.gogName, game.epicName, game.metacriticName]
+          .some(n => n !== null && n.toLowerCase().includes(nameQuery))
       );
     }
 

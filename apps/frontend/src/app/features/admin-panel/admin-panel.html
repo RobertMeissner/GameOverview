@@ -20,6 +20,17 @@
         <input class="form-check-input" type="checkbox" id="filter-scrape-failed" [(ngModel)]="filterScrapeFailed">
         <label class="form-check-label" for="filter-scrape-failed" title="Games whose last scrape attempt failed">Scrape Failed</label>
       </div>
+      <div class="name-search ms-auto">
+        <i class="bi bi-search search-icon"></i>
+        <input type="text" class="form-control form-control-sm name-search-input" id="search-name"
+               placeholder="Search by name..." [(ngModel)]="searchName"
+               title="Matches the game name and all store names (Steam, GoG, Epic, Metacritic)">
+        @if (searchName()) {
+          <button type="button" class="clear-search" (click)="searchName.set('')" title="Clear search">
+            <i class="bi bi-x"></i>
+          </button>
+        }
+      </div>
     </div>
 
     <div class="sort-row">
