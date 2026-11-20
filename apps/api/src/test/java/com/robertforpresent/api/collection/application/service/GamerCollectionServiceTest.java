@@ -1,6 +1,9 @@
+/* (C)2026 */
 package com.robertforpresent.api.collection.application.service;
 
-import com.robertforpresent.api.catalog.application.service.CatalogService;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
+
 import com.robertforpresent.api.catalog.domain.model.CanonicalGame;
 import com.robertforpresent.api.catalog.domain.model.GogGameData;
 import com.robertforpresent.api.catalog.domain.model.MetacriticGameData;
@@ -9,7 +12,11 @@ import com.robertforpresent.api.catalog.domain.model.steam.ReviewSentiment;
 import com.robertforpresent.api.catalog.domain.model.steam.SteamRating;
 import com.robertforpresent.api.collection.application.dto.AdminGameView;
 import com.robertforpresent.api.collection.domain.model.PersonalizedGame;
+import com.robertforpresent.api.collection.domain.port.CatalogReadPort;
 import com.robertforpresent.api.collection.domain.repository.CollectionRepository;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -18,24 +25,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
-
 /**
  * Unit tests for GamerCollectionService.
  */
 @ExtendWith(MockitoExtension.class)
 class GamerCollectionServiceTest {
 
-    @Mock
-    private CollectionRepository repository;
+    @Mock private CollectionRepository repository;
 
-    @Mock
-    private CatalogService catalogService;
+    @Mock private CatalogReadPort catalog;
 
     private GamerCollectionService service;
 
@@ -46,7 +44,7 @@ class GamerCollectionServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new GamerCollectionService(repository, catalogService);
+        service = new GamerCollectionService(repository, catalog);
     }
 
     @Nested
@@ -61,10 +59,13 @@ class GamerCollectionServiceTest {
             var unplayedGame = createPersonalizedGame(GAME_ID_2, false, false, false);
 
             when(repository.findByGamerId(GAMER_ID)).thenReturn(List.of(playedGame, unplayedGame));
-            when(catalogService.getByIds(List.of(GAME_ID_1, GAME_ID_2))).thenReturn(Map.of(
-                    GAME_ID_1, createCanonicalGame(GAME_ID_1, "Played Game", 0.95f),
-                    GAME_ID_2, createCanonicalGame(GAME_ID_2, "Unplayed Game", 0.80f)
-            ));
+            when(catalog.getByIds(List.of(GAME_ID_1, GAME_ID_2)))
+                    .thenReturn(
+                            Map.of(
+                                    GAME_ID_1, createCanonicalGame(GAME_ID_1, "Played Game", 0.95f),
+                                    GAME_ID_2,
+                                            createCanonicalGame(
+                                                    GAME_ID_2, "Unplayed Game", 0.80f)));
 
             // when
             var top3 = service.getTop3(GAMER_ID);
@@ -82,10 +83,12 @@ class GamerCollectionServiceTest {
             var visibleGame = createPersonalizedGame(GAME_ID_2, false, false, false);
 
             when(repository.findByGamerId(GAMER_ID)).thenReturn(List.of(hiddenGame, visibleGame));
-            when(catalogService.getByIds(List.of(GAME_ID_1, GAME_ID_2))).thenReturn(Map.of(
-                    GAME_ID_1, createCanonicalGame(GAME_ID_1, "Hidden Game", 0.95f),
-                    GAME_ID_2, createCanonicalGame(GAME_ID_2, "Visible Game", 0.80f)
-            ));
+            when(catalog.getByIds(List.of(GAME_ID_1, GAME_ID_2)))
+                    .thenReturn(
+                            Map.of(
+                                    GAME_ID_1, createCanonicalGame(GAME_ID_1, "Hidden Game", 0.95f),
+                                    GAME_ID_2,
+                                            createCanonicalGame(GAME_ID_2, "Visible Game", 0.80f)));
 
             // when
             var top3 = service.getTop3(GAMER_ID);
@@ -103,10 +106,12 @@ class GamerCollectionServiceTest {
             var normalGame = createPersonalizedGame(GAME_ID_2, false, false, false);
 
             when(repository.findByGamerId(GAMER_ID)).thenReturn(List.of(laterGame, normalGame));
-            when(catalogService.getByIds(List.of(GAME_ID_1, GAME_ID_2))).thenReturn(Map.of(
-                    GAME_ID_1, createCanonicalGame(GAME_ID_1, "Later Game", 0.95f),
-                    GAME_ID_2, createCanonicalGame(GAME_ID_2, "Normal Game", 0.80f)
-            ));
+            when(catalog.getByIds(List.of(GAME_ID_1, GAME_ID_2)))
+                    .thenReturn(
+                            Map.of(
+                                    GAME_ID_1, createCanonicalGame(GAME_ID_1, "Later Game", 0.95f),
+                                    GAME_ID_2,
+                                            createCanonicalGame(GAME_ID_2, "Normal Game", 0.80f)));
 
             // when
             var top3 = service.getTop3(GAMER_ID);
@@ -126,13 +131,15 @@ class GamerCollectionServiceTest {
             var game3 = createPersonalizedGame(GAME_ID_3, false, false, false);
             var game4 = createPersonalizedGame(gameId4, false, false, false);
 
-            when(repository.findByGamerId(GAMER_ID)).thenReturn(List.of(game1, game2, game3, game4));
-            when(catalogService.getByIds(List.of(GAME_ID_1, GAME_ID_2, GAME_ID_3, gameId4))).thenReturn(Map.of(
-                    GAME_ID_1, createCanonicalGame(GAME_ID_1, "Game 1", 0.70f),
-                    GAME_ID_2, createCanonicalGame(GAME_ID_2, "Game 2", 0.90f),
-                    GAME_ID_3, createCanonicalGame(GAME_ID_3, "Game 3", 0.80f),
-                    gameId4, createCanonicalGame(gameId4, "Game 4", 0.60f)
-            ));
+            when(repository.findByGamerId(GAMER_ID))
+                    .thenReturn(List.of(game1, game2, game3, game4));
+            when(catalog.getByIds(List.of(GAME_ID_1, GAME_ID_2, GAME_ID_3, gameId4)))
+                    .thenReturn(
+                            Map.of(
+                                    GAME_ID_1, createCanonicalGame(GAME_ID_1, "Game 1", 0.70f),
+                                    GAME_ID_2, createCanonicalGame(GAME_ID_2, "Game 2", 0.90f),
+                                    GAME_ID_3, createCanonicalGame(GAME_ID_3, "Game 3", 0.80f),
+                                    gameId4, createCanonicalGame(gameId4, "Game 4", 0.60f)));
 
             // when
             var top3 = service.getTop3(GAMER_ID);
@@ -157,10 +164,12 @@ class GamerCollectionServiceTest {
             var normalGame = createPersonalizedGame(GAME_ID_2, false, false, false);
 
             when(repository.findByGamerId(GAMER_ID)).thenReturn(List.of(laterGame, normalGame));
-            when(catalogService.getByIds(List.of(GAME_ID_1, GAME_ID_2))).thenReturn(Map.of(
-                    GAME_ID_1, createCanonicalGame(GAME_ID_1, "Later Game", 0.80f),
-                    GAME_ID_2, createCanonicalGame(GAME_ID_2, "Normal Game", 0.90f)
-            ));
+            when(catalog.getByIds(List.of(GAME_ID_1, GAME_ID_2)))
+                    .thenReturn(
+                            Map.of(
+                                    GAME_ID_1, createCanonicalGame(GAME_ID_1, "Later Game", 0.80f),
+                                    GAME_ID_2,
+                                            createCanonicalGame(GAME_ID_2, "Normal Game", 0.90f)));
 
             // when
             var backlog = service.getBacklog(GAMER_ID);
@@ -179,10 +188,12 @@ class GamerCollectionServiceTest {
             var game2 = createPersonalizedGame(GAME_ID_2, false, false, true);
 
             when(repository.findByGamerId(GAMER_ID)).thenReturn(List.of(game1, game2));
-            when(catalogService.getByIds(List.of(GAME_ID_1, GAME_ID_2))).thenReturn(Map.of(
-                    GAME_ID_1, createCanonicalGame(GAME_ID_1, "Lower Rated", 0.70f),
-                    GAME_ID_2, createCanonicalGame(GAME_ID_2, "Higher Rated", 0.90f)
-            ));
+            when(catalog.getByIds(List.of(GAME_ID_1, GAME_ID_2)))
+                    .thenReturn(
+                            Map.of(
+                                    GAME_ID_1, createCanonicalGame(GAME_ID_1, "Lower Rated", 0.70f),
+                                    GAME_ID_2,
+                                            createCanonicalGame(GAME_ID_2, "Higher Rated", 0.90f)));
 
             // when
             var backlog = service.getBacklog(GAMER_ID);
@@ -200,9 +211,11 @@ class GamerCollectionServiceTest {
             var normalGame = createPersonalizedGame(GAME_ID_1, false, false, false);
 
             when(repository.findByGamerId(GAMER_ID)).thenReturn(List.of(normalGame));
-            when(catalogService.getByIds(List.of(GAME_ID_1))).thenReturn(Map.of(
-                    GAME_ID_1, createCanonicalGame(GAME_ID_1, "Normal Game", 0.80f)
-            ));
+            when(catalog.getByIds(List.of(GAME_ID_1)))
+                    .thenReturn(
+                            Map.of(
+                                    GAME_ID_1,
+                                    createCanonicalGame(GAME_ID_1, "Normal Game", 0.80f)));
 
             // when
             var backlog = service.getBacklog(GAMER_ID);
@@ -221,17 +234,18 @@ class GamerCollectionServiceTest {
         void includesAllStoreDataInAdminView() {
             // given
             var game = createPersonalizedGame(GAME_ID_1, false, false, false);
-            var canonical = createCanonicalGameWithStoreData(
-                    GAME_ID_1,
-                    "Test Game",
-                    0.85f,
-                    new SteamGameData(413150, "Test Game Steam"),
-                    new GogGameData(123456L, "Test Game GOG", "https://www.gog.com/game/test"),
-                    new MetacriticGameData(89, "Test Game", null)
-            );
+            var canonical =
+                    createCanonicalGameWithStoreData(
+                            GAME_ID_1,
+                            "Test Game",
+                            0.85f,
+                            new SteamGameData(413150, "Test Game Steam"),
+                            new GogGameData(
+                                    123456L, "Test Game GOG", "https://www.gog.com/game/test"),
+                            new MetacriticGameData(89, "Test Game", null));
 
             when(repository.findByGamerId(GAMER_ID)).thenReturn(List.of(game));
-            when(catalogService.getByIds(List.of(GAME_ID_1))).thenReturn(Map.of(GAME_ID_1, canonical));
+            when(catalog.getByIds(List.of(GAME_ID_1))).thenReturn(Map.of(GAME_ID_1, canonical));
 
             // when
             List<AdminGameView> adminGames = service.getAdminCollection(GAMER_ID);
@@ -264,7 +278,7 @@ class GamerCollectionServiceTest {
             var canonical = createCanonicalGame(GAME_ID_1, "Test Game", 0.85f);
 
             when(repository.findByGamerId(GAMER_ID)).thenReturn(List.of(game));
-            when(catalogService.getByIds(List.of(GAME_ID_1))).thenReturn(Map.of(GAME_ID_1, canonical));
+            when(catalog.getByIds(List.of(GAME_ID_1))).thenReturn(Map.of(GAME_ID_1, canonical));
 
             // when
             List<AdminGameView> adminGames = service.getAdminCollection(GAMER_ID);
@@ -294,17 +308,17 @@ class GamerCollectionServiceTest {
         void includesStoreLinksInCollectionView() {
             // given
             var game = createPersonalizedGame(GAME_ID_1, false, false, false);
-            var canonical = createCanonicalGameWithStoreData(
-                    GAME_ID_1,
-                    "Test Game",
-                    0.85f,
-                    new SteamGameData(413150, "Test Game"),
-                    new GogGameData(123456L, "Test Game", "https://www.gog.com/game/test"),
-                    null
-            );
+            var canonical =
+                    createCanonicalGameWithStoreData(
+                            GAME_ID_1,
+                            "Test Game",
+                            0.85f,
+                            new SteamGameData(413150, "Test Game"),
+                            new GogGameData(123456L, "Test Game", "https://www.gog.com/game/test"),
+                            null);
 
             when(repository.findByGamerId(GAMER_ID)).thenReturn(List.of(game));
-            when(catalogService.getByIds(List.of(GAME_ID_1))).thenReturn(Map.of(GAME_ID_1, canonical));
+            when(catalog.getByIds(List.of(GAME_ID_1))).thenReturn(Map.of(GAME_ID_1, canonical));
 
             // when
             var collection = service.getCollection(GAMER_ID);
@@ -326,7 +340,7 @@ class GamerCollectionServiceTest {
             var canonical = createCanonicalGame(GAME_ID_1, "Test Game", 0.85f);
 
             when(repository.findByGamerId(GAMER_ID)).thenReturn(List.of(game));
-            when(catalogService.getByIds(List.of(GAME_ID_1))).thenReturn(Map.of(GAME_ID_1, canonical));
+            when(catalog.getByIds(List.of(GAME_ID_1))).thenReturn(Map.of(GAME_ID_1, canonical));
 
             // when
             var collection = service.getCollection(GAMER_ID);
@@ -342,12 +356,21 @@ class GamerCollectionServiceTest {
 
     // Helper methods
 
-    private PersonalizedGame createPersonalizedGame(UUID gameId, boolean played, boolean hidden, boolean later) {
-        return new PersonalizedGame.Builder().setGamerId(GAMER_ID).setCanonicalId(gameId).setMarkAsPlayed(played).setMarkAsHidden(hidden).setMarkAsForLater(later).build();
+    private PersonalizedGame createPersonalizedGame(
+            UUID gameId, boolean played, boolean hidden, boolean later) {
+        return new PersonalizedGame.Builder()
+                .setGamerId(GAMER_ID)
+                .setCanonicalId(gameId)
+                .setMarkAsPlayed(played)
+                .setMarkAsHidden(hidden)
+                .setMarkAsForLater(later)
+                .build();
     }
 
     private CanonicalGame createCanonicalGame(UUID id, String name, float rating) {
-        SteamRating steamRating = SteamRating.of((int) (rating * 100), (int) ((1 - rating) * 100), ReviewSentiment.MIXED);
+        SteamRating steamRating =
+                SteamRating.of(
+                        (int) (rating * 100), (int) ((1 - rating) * 100), ReviewSentiment.MIXED);
         return new CanonicalGame.Builder(name)
                 .setId(id)
                 .setSteamRating(steamRating)
@@ -356,9 +379,15 @@ class GamerCollectionServiceTest {
     }
 
     private CanonicalGame createCanonicalGameWithStoreData(
-            UUID id, String name, float rating,
-            SteamGameData steamData, GogGameData gogData, MetacriticGameData metacriticData) {
-        SteamRating steamRating = SteamRating.of((int) (rating * 100), (int) ((1 - rating) * 100), ReviewSentiment.MIXED);
+            UUID id,
+            String name,
+            float rating,
+            SteamGameData steamData,
+            GogGameData gogData,
+            MetacriticGameData metacriticData) {
+        SteamRating steamRating =
+                SteamRating.of(
+                        (int) (rating * 100), (int) ((1 - rating) * 100), ReviewSentiment.MIXED);
         return new CanonicalGame.Builder(name)
                 .setId(id)
                 .setSteamRating(steamRating)

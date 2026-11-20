@@ -1,14 +1,14 @@
+/* (C)2026 */
 package com.robertforpresent.api.scraper.presentation.rest;
 
-import com.robertforpresent.api.scraper.infrastructure.steam.SteamConfig;
-import com.robertforpresent.api.scraper.infrastructure.steam.SteamLibraryImportService;
+import com.robertforpresent.api.scraper.application.service.SteamLibraryImportService;
+import com.robertforpresent.api.scraper.domain.port.SteamLibraryPort;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.UUID;
 
 /**
  * REST controller for importing Steam library with playtime information.
@@ -16,18 +16,20 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/steam")
 public class SteamLibraryImportController {
-    private static final Logger logger = LoggerFactory.getLogger(SteamLibraryImportController.class);
+    private static final Logger logger =
+            LoggerFactory.getLogger(SteamLibraryImportController.class);
 
     private final SteamLibraryImportService importService;
-    private final SteamConfig steamConfig;
+    private final SteamLibraryPort steamLibrary;
     private final UUID defaultGamerId;
 
     public SteamLibraryImportController(
             SteamLibraryImportService importService,
-            SteamConfig steamConfig,
-            @Value("${app.default-gamer-id:4c580456-1116-4091-b1d6-99fc02b47246}") UUID defaultGamerId) {
+            SteamLibraryPort steamLibrary,
+            @Value("${app.default-gamer-id:4c580456-1116-4091-b1d6-99fc02b47246}")
+                    UUID defaultGamerId) {
         this.importService = importService;
-        this.steamConfig = steamConfig;
+        this.steamLibrary = steamLibrary;
         this.defaultGamerId = defaultGamerId;
     }
 
@@ -38,58 +40,52 @@ public class SteamLibraryImportController {
      * @return Result of the import operation
      */
     @PostMapping("/import-library")
-    public ResponseEntity<SteamLibraryImportResponse> importLibrary(@RequestBody SteamLibraryImportRequest request) {
+    public ResponseEntity<SteamLibraryImportResponse> importLibrary(
+            @RequestBody SteamLibraryImportRequest request) {
         logger.info("Received Steam library import request for Steam ID: {}", request.steamId());
 
-        if (!steamConfig.isEnabled()) {
+        if (!steamLibrary.isEnabled()) {
             logger.error("Steam integration is not enabled. Please configure STEAM_API_KEY.");
             return ResponseEntity.badRequest()
-                    .body(new SteamLibraryImportResponse(
-                            false,
-                            0,
-                            0,
-                            0,
-                            "Steam integration is not enabled. Please configure STEAM_API_KEY environment variable."
-                    ));
+                    .body(
+                            new SteamLibraryImportResponse(
+                                    false,
+                                    0,
+                                    0,
+                                    0,
+                                    "Steam integration is not enabled. Please configure"
+                                            + " STEAM_API_KEY environment variable."));
         }
 
         if (request.steamId() == null || request.steamId().isBlank()) {
             return ResponseEntity.badRequest()
-                    .body(new SteamLibraryImportResponse(
-                            false,
-                            0,
-                            0,
-                            0,
-                            "Steam ID is required"
-                    ));
+                    .body(new SteamLibraryImportResponse(false, 0, 0, 0, "Steam ID is required"));
         }
 
         try {
             UUID gamerId = request.gamerId() != null ? request.gamerId() : defaultGamerId;
-            SteamLibraryImportService.SteamLibraryImportResult result = importService.importSteamLibrary(
-                    request.steamId(),
-                    gamerId
-            );
+            SteamLibraryImportService.SteamLibraryImportResult result =
+                    importService.importSteamLibrary(request.steamId(), gamerId);
 
             boolean success = result.failed() == 0 || (result.created() + result.updated() > 0);
 
-            return ResponseEntity.ok(new SteamLibraryImportResponse(
-                    success,
-                    result.created(),
-                    result.updated(),
-                    result.failed(),
-                    result.message()
-            ));
+            return ResponseEntity.ok(
+                    new SteamLibraryImportResponse(
+                            success,
+                            result.created(),
+                            result.updated(),
+                            result.failed(),
+                            result.message()));
         } catch (Exception e) {
             logger.error("Failed to import Steam library for Steam ID: {}", request.steamId(), e);
             return ResponseEntity.internalServerError()
-                    .body(new SteamLibraryImportResponse(
-                            false,
-                            0,
-                            0,
-                            0,
-                            "Error importing Steam library: " + e.getMessage()
-                    ));
+                    .body(
+                            new SteamLibraryImportResponse(
+                                    false,
+                                    0,
+                                    0,
+                                    0,
+                                    "Error importing Steam library: " + e.getMessage()));
         }
     }
 
@@ -100,30 +96,20 @@ public class SteamLibraryImportController {
      */
     @GetMapping("/status")
     public ResponseEntity<SteamStatusResponse> getStatus() {
-        boolean enabled = steamConfig.isEnabled();
-        String message = enabled
-                ? "Steam integration is enabled and ready"
-                : "Steam integration requires STEAM_API_KEY environment variable";
+        boolean enabled = steamLibrary.isEnabled();
+        String message =
+                enabled
+                        ? "Steam integration is enabled and ready"
+                        : "Steam integration requires STEAM_API_KEY environment variable";
 
         return ResponseEntity.ok(new SteamStatusResponse(enabled, message));
     }
 
     // Request/Response DTOs
-    public record SteamLibraryImportRequest(
-            String steamId,
-            UUID gamerId
-    ) {}
+    public record SteamLibraryImportRequest(String steamId, UUID gamerId) {}
 
     public record SteamLibraryImportResponse(
-            boolean success,
-            int created,
-            int updated,
-            int failed,
-            String message
-    ) {}
+            boolean success, int created, int updated, int failed, String message) {}
 
-    public record SteamStatusResponse(
-            boolean enabled,
-            String message
-    ) {}
+    public record SteamStatusResponse(boolean enabled, String message) {}
 }

@@ -1,9 +1,9 @@
-/* (C)2025 */
+/* (C)2025-2026 */
 package com.robertforpresent.api.thumbnail.application.service;
 
 import com.robertforpresent.api.catalog.domain.model.CanonicalGame;
 import com.robertforpresent.api.catalog.domain.repository.CanonicalGameRepository;
-import com.robertforpresent.api.thumbnail.infrastructure.cache.ThumbnailCacheConfig;
+import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -12,30 +12,47 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
-
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
 public class ThumbnailService {
 
-    private final ThumbnailCacheConfig cacheConfig;
+    @Value("${thumbnail.cache.directory:./data/thumbnails}")
+    private String cacheDirectory;
+
+    @Value("${thumbnail.cache.enabled:true}")
+    private boolean cacheEnabled;
+
+    private Path cachePath;
+
     private final CanonicalGameRepository gameRepository;
     private final HttpClient httpClient;
 
-    public ThumbnailService(
-            ThumbnailCacheConfig cacheConfig, CanonicalGameRepository gameRepository, HttpClient httpClient) {
-        this.cacheConfig = cacheConfig;
+    public ThumbnailService(CanonicalGameRepository gameRepository, HttpClient httpClient) {
         this.gameRepository = gameRepository;
         this.httpClient = httpClient;
     }
 
+    @PostConstruct
+    public void init() throws IOException {
+        if (cacheEnabled) {
+            cachePath = Paths.get(cacheDirectory);
+            if (!Files.exists(cachePath)) {
+                Files.createDirectories(cachePath);
+                log.info("Created thumbnail cache directory: {}", cachePath.toAbsolutePath());
+            }
+        }
+    }
+
     public Optional<byte[]> getThumbnail(UUID gameId) {
-        if (!cacheConfig.isEnabled()) {
+        if (!cacheEnabled) {
             return Optional.empty();
         }
 
@@ -62,7 +79,7 @@ public class ThumbnailService {
     }
 
     private Path getCacheFilePath(UUID gameId) {
-        return cacheConfig.getCachePath().resolve(gameId + ".jpg");
+        return cachePath.resolve(gameId + ".jpg");
     }
 
     private Optional<byte[]> readFromCache(Path cachedFile) {
@@ -148,16 +165,15 @@ public class ThumbnailService {
 
     public long getCacheSize() {
         try {
-            return Files.walk(cacheConfig.getCachePath())
+            return Files.walk(cachePath)
                     .filter(Files::isRegularFile)
-                    .mapToLong(
-                            path -> {
-                                try {
-                                    return Files.size(path);
-                                } catch (IOException e) {
-                                    return 0;
-                                }
-                            })
+                    .mapToLong(path -> {
+                        try {
+                            return Files.size(path);
+                        } catch (IOException e) {
+                            return 0;
+                        }
+                    })
                     .sum();
         } catch (IOException e) {
             return 0;
