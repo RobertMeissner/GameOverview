@@ -1,15 +1,22 @@
+/* (C)2026 */
 package com.robertforpresent.api.catalog.application.service;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import com.robertforpresent.api.catalog.application.command.RescrapeCommand;
 import com.robertforpresent.api.catalog.application.command.UpdateCatalogCommand;
 import com.robertforpresent.api.catalog.application.dto.RescrapeResult;
 import com.robertforpresent.api.catalog.domain.model.CanonicalGame;
 import com.robertforpresent.api.catalog.domain.port.GameCollectionPort;
+import com.robertforpresent.api.catalog.domain.port.ScrapingPort;
+import com.robertforpresent.api.catalog.domain.port.ThumbnailCachePort;
 import com.robertforpresent.api.catalog.domain.repository.CanonicalGameRepository;
-import com.robertforpresent.api.scraper.application.service.GameScraperService;
-import com.robertforpresent.api.scraper.domain.model.GameSearchResult;
 import com.robertforpresent.api.scraper.domain.model.ScrapedGameInfo;
-import com.robertforpresent.api.thumbnail.application.service.ThumbnailService;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -19,36 +26,29 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class CatalogServiceTest {
-    @Mock
-    private CanonicalGameRepository repository;
+    @Mock private CanonicalGameRepository repository;
 
-    @Mock
-    private GameCollectionPort collectionPort;
+    @Mock private GameCollectionPort collectionPort;
 
-    @Mock
-    private GameScraperService scraperService;
+    @Mock private ScrapingPort scrapingPort;
 
-    @Mock
-    private ThumbnailService thumbnailService;
+    @Mock private ThumbnailCachePort thumbnailCachePort;
 
-    @Mock
-    private GameEnrichmentService enrichmentService;
+    @Mock private GameEnrichmentService enrichmentService;
 
     private CatalogService service;
 
     @BeforeEach
     void setUp() {
-        service = new CatalogService(repository, collectionPort, scraperService, thumbnailService, enrichmentService);
+        service =
+                new CatalogService(
+                        repository,
+                        collectionPort,
+                        scrapingPort,
+                        thumbnailCachePort,
+                        enrichmentService);
     }
 
     @Test
@@ -94,11 +94,12 @@ class CatalogServiceTest {
             UUID id2 = UUID.randomUUID();
             UUID id3 = UUID.randomUUID();
 
-            when(repository.findAllByIds(any())).thenReturn(List.of(
-                    new CanonicalGame.Builder("Game 1").setId(id1).build(),
-                    new CanonicalGame.Builder("Game 2").setId(id2).build(),
-                    new CanonicalGame.Builder("Game 3").setId(id3).build()
-            ));
+            when(repository.findAllByIds(any()))
+                    .thenReturn(
+                            List.of(
+                                    new CanonicalGame.Builder("Game 1").setId(id1).build(),
+                                    new CanonicalGame.Builder("Game 2").setId(id2).build(),
+                                    new CanonicalGame.Builder("Game 3").setId(id3).build()));
 
             service.getByIds(List.of(id1, id2, id3));
 
@@ -152,10 +153,11 @@ class CatalogServiceTest {
 
         @BeforeEach
         void setUpGame() {
-            game = new CanonicalGame.Builder("Test Game")
-                    .setId(UUID.randomUUID())
-                    .setLastScrapeFailed(true)
-                    .build();
+            game =
+                    new CanonicalGame.Builder("Test Game")
+                            .setId(UUID.randomUUID())
+                            .setLastScrapeFailed(true)
+                            .build();
             when(repository.findById(game.getId())).thenReturn(Optional.of(game));
             when(repository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         }
@@ -163,8 +165,7 @@ class CatalogServiceTest {
         @Test
         @DisplayName("sets lastScrapeFailed when no IGDB match is found")
         void setsFlagOnFailure() {
-            when(scraperService.searchGames("Test Game", 1))
-                    .thenReturn(new GameSearchResult("Test Game", List.of(), "igdb"));
+            when(scrapingPort.findFirstByName("Test Game")).thenReturn(Optional.empty());
 
             RescrapeResult result = service.rescrapeGame(game.getId(), new RescrapeCommand(null));
 
@@ -177,11 +178,21 @@ class CatalogServiceTest {
         @Test
         @DisplayName("resets lastScrapeFailed on successful scrape")
         void resetsFlagOnSuccess() {
-            ScrapedGameInfo info = new ScrapedGameInfo(
-                    1234L, "Test Game", "test-game", null, "https://cover.url/img.jpg",
-                    88.0, 2020, List.of("RPG"), List.of("PC"), List.of(), null, "igdb");
-            when(scraperService.searchGames("Test Game", 1))
-                    .thenReturn(new GameSearchResult("Test Game", List.of(info), "igdb"));
+            ScrapedGameInfo info =
+                    new ScrapedGameInfo(
+                            1234L,
+                            "Test Game",
+                            "test-game",
+                            null,
+                            "https://cover.url/img.jpg",
+                            88.0,
+                            2020,
+                            List.of("RPG"),
+                            List.of("PC"),
+                            List.of(),
+                            null,
+                            "igdb");
+            when(scrapingPort.findFirstByName("Test Game")).thenReturn(Optional.of(info));
 
             RescrapeResult result = service.rescrapeGame(game.getId(), new RescrapeCommand(null));
 
@@ -194,9 +205,20 @@ class CatalogServiceTest {
         @Test
         @DisplayName("updateCatalogValues resets lastScrapeFailed on manual edit")
         void manualEditResetsFlag() {
-            UpdateCatalogCommand command = new UpdateCatalogCommand(
-                    "New Name", 413150, "Steam Name", null, null, null,
-                    null, null, null, null, null, null);
+            UpdateCatalogCommand command =
+                    new UpdateCatalogCommand(
+                            "New Name",
+                            413150,
+                            "Steam Name",
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null);
 
             service.updateCatalogValues(game.getId(), command);
 
@@ -239,9 +261,9 @@ class CatalogServiceTest {
             UUID targetId = UUID.randomUUID();
             when(repository.findById(targetId)).thenReturn(Optional.empty());
 
-            assertThrows(Exception.class, () ->
-                    service.mergeGames(targetId, List.of(UUID.randomUUID()))
-            );
+            assertThrows(
+                    Exception.class,
+                    () -> service.mergeGames(targetId, List.of(UUID.randomUUID())));
         }
     }
 }

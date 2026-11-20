@@ -1,3 +1,4 @@
+/* (C)2026 */
 package com.robertforpresent.api.catalog.application.service;
 
 import com.robertforpresent.api.catalog.application.command.RescrapeCommand;
@@ -5,19 +6,18 @@ import com.robertforpresent.api.catalog.application.command.UpdateCatalogCommand
 import com.robertforpresent.api.catalog.application.dto.RescrapeResult;
 import com.robertforpresent.api.catalog.domain.model.*;
 import com.robertforpresent.api.catalog.domain.port.GameCollectionPort;
+import com.robertforpresent.api.catalog.domain.port.ScrapingPort;
+import com.robertforpresent.api.catalog.domain.port.ThumbnailCachePort;
 import com.robertforpresent.api.catalog.domain.repository.CanonicalGameRepository;
-import com.robertforpresent.api.scraper.application.service.GameScraperService;
 import com.robertforpresent.api.scraper.domain.model.ScrapedGameInfo;
-import com.robertforpresent.api.thumbnail.application.service.ThumbnailService;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Application service for catalog operations.
@@ -28,20 +28,20 @@ import java.util.stream.Collectors;
 public class CatalogService {
     private final CanonicalGameRepository repository;
     private final GameCollectionPort collectionPort;
-    private final GameScraperService scraperService;
-    private final ThumbnailService thumbnailService;
+    private final ScrapingPort scrapingPort;
+    private final ThumbnailCachePort thumbnailCachePort;
     private final GameEnrichmentService enrichmentService;
 
     public CatalogService(
             CanonicalGameRepository repository,
             GameCollectionPort collectionPort,
-            GameScraperService scraperService,
-            ThumbnailService thumbnailService,
+            ScrapingPort scrapingPort,
+            ThumbnailCachePort thumbnailCachePort,
             GameEnrichmentService enrichmentService) {
         this.repository = repository;
         this.collectionPort = collectionPort;
-        this.scraperService = scraperService;
-        this.thumbnailService = thumbnailService;
+        this.scrapingPort = scrapingPort;
+        this.thumbnailCachePort = thumbnailCachePort;
         this.enrichmentService = enrichmentService;
     }
 
@@ -85,41 +85,64 @@ public class CatalogService {
 
         // Build updated Steam data
         SteamGameData existingSteam = existing.getSteamData();
-        SteamGameData newSteamData = new SteamGameData(
-                command.steamAppId() != null ? command.steamAppId() : (existingSteam != null ? existingSteam.appId() : null),
-                command.steamName() != null ? command.steamName() : (existingSteam != null ? existingSteam.name() : null)
-        );
+        SteamGameData newSteamData =
+                new SteamGameData(
+                        command.steamAppId() != null
+                                ? command.steamAppId()
+                                : (existingSteam != null ? existingSteam.appId() : null),
+                        command.steamName() != null
+                                ? command.steamName()
+                                : (existingSteam != null ? existingSteam.name() : null));
 
         // Build updated GoG data
         GogGameData existingGog = existing.getGogData();
-        GogGameData newGogData = new GogGameData(
-                command.gogId() != null ? command.gogId() : (existingGog != null ? existingGog.gogId() : null),
-                command.gogName() != null ? command.gogName() : (existingGog != null ? existingGog.name() : null),
-                command.gogLink() != null ? command.gogLink() : (existingGog != null ? existingGog.link() : null)
-        );
+        GogGameData newGogData =
+                new GogGameData(
+                        command.gogId() != null
+                                ? command.gogId()
+                                : (existingGog != null ? existingGog.gogId() : null),
+                        command.gogName() != null
+                                ? command.gogName()
+                                : (existingGog != null ? existingGog.name() : null),
+                        command.gogLink() != null
+                                ? command.gogLink()
+                                : (existingGog != null ? existingGog.link() : null));
 
         // Build updated Epic Games data
         EpicGameData existingEpic = existing.getEpicData();
-        EpicGameData newEpicData = new EpicGameData(
-                command.epicId() != null ? command.epicId() : (existingEpic != null ? existingEpic.epicId() : null),
-                command.epicName() != null ? command.epicName() : (existingEpic != null ? existingEpic.name() : null),
-                command.epicLink() != null ? command.epicLink() : (existingEpic != null ? existingEpic.link() : null)
-        );
+        EpicGameData newEpicData =
+                new EpicGameData(
+                        command.epicId() != null
+                                ? command.epicId()
+                                : (existingEpic != null ? existingEpic.epicId() : null),
+                        command.epicName() != null
+                                ? command.epicName()
+                                : (existingEpic != null ? existingEpic.name() : null),
+                        command.epicLink() != null
+                                ? command.epicLink()
+                                : (existingEpic != null ? existingEpic.link() : null));
 
         // Build updated Metacritic data
         MetacriticGameData existingMc = existing.getMetacriticData();
-        MetacriticGameData newMetacriticData = new MetacriticGameData(
-                command.metacriticScore() != null ? command.metacriticScore() : (existingMc != null ? existingMc.score() : null),
-                command.metacriticName() != null ? command.metacriticName() : (existingMc != null ? existingMc.gameName() : null),
-                command.metacriticLink() != null ? command.metacriticLink() : (existingMc != null ? existingMc.link() : null)
-        );
+        MetacriticGameData newMetacriticData =
+                new MetacriticGameData(
+                        command.metacriticScore() != null
+                                ? command.metacriticScore()
+                                : (existingMc != null ? existingMc.score() : null),
+                        command.metacriticName() != null
+                                ? command.metacriticName()
+                                : (existingMc != null ? existingMc.gameName() : null),
+                        command.metacriticLink() != null
+                                ? command.metacriticLink()
+                                : (existingMc != null ? existingMc.link() : null));
 
-        CanonicalGame.Builder builder = existing.toBuilder()
-                .setSteamData(newSteamData)
-                .setGogData(newGogData)
-                .setEpicData(newEpicData)
-                .setMetacriticData(newMetacriticData)
-                .setLastScrapeFailed(false);
+        CanonicalGame.Builder builder =
+                existing.toBuilder()
+                        .setSteamData(newSteamData)
+                        .setGogData(newGogData)
+                        .setEpicData(newEpicData)
+                        .setMetacriticData(newMetacriticData)
+                        .setLastScrapeFailed(false);
         if (command.name() != null && !command.name().isBlank()) {
             builder.setName(command.name());
         }
@@ -137,7 +160,11 @@ public class CatalogService {
         for (UUID sourceId : sourceIds) {
             // Verify source exists
             CanonicalGame source = repository.findById(sourceId).orElseThrow();
-            log.debug("Merging source game '{}' ({}) into target '{}'", source.getName(), sourceId, target.getName());
+            log.debug(
+                    "Merging source game '{}' ({}) into target '{}'",
+                    source.getName(),
+                    sourceId,
+                    target.getName());
 
             // Update all personalized game references to point to target
             collectionPort.updateCanonicalGameReferences(sourceId, targetId);
@@ -148,7 +175,10 @@ public class CatalogService {
             log.info("Deleted source game: {} ({})", source.getName(), sourceId);
         }
 
-        log.info("Merge completed successfully: {} source games merged into {}", sourceIds.size(), targetId);
+        log.info(
+                "Merge completed successfully: {} source games merged into {}",
+                sourceIds.size(),
+                targetId);
     }
 
     /**
@@ -163,10 +193,9 @@ public class CatalogService {
 
         // Group the already-filtered results by normalized name
         return duplicateGames.stream()
-                .collect(Collectors.groupingBy(
-                        game -> game.getName().toLowerCase().trim(),
-                        Collectors.toList()
-                ));
+                .collect(
+                        Collectors.groupingBy(
+                                game -> game.getName().toLowerCase().trim(), Collectors.toList()));
     }
 
     /**
@@ -185,24 +214,28 @@ public class CatalogService {
             List<CanonicalGame> games = entry.getValue();
 
             // Sort by completeness score (descending) to find the best one to keep
-            games.sort((a, b) -> Integer.compare(calculateCompleteness(b), calculateCompleteness(a)));
+            games.sort(
+                    (a, b) -> Integer.compare(calculateCompleteness(b), calculateCompleteness(a)));
 
             CanonicalGame target = games.get(0);
-            List<UUID> sourceIds = games.stream()
-                    .skip(1)
-                    .map(CanonicalGame::getId)
-                    .toList();
+            List<UUID> sourceIds = games.stream().skip(1).map(CanonicalGame::getId).toList();
 
             if (!sourceIds.isEmpty()) {
-                log.debug("Merging '{}': keeping {} (score={}), merging {} others",
-                        entry.getKey(), target.getId(), calculateCompleteness(target), sourceIds.size());
+                log.debug(
+                        "Merging '{}': keeping {} (score={}), merging {} others",
+                        entry.getKey(),
+                        target.getId(),
+                        calculateCompleteness(target),
+                        sourceIds.size());
                 mergeGames(target.getId(), sourceIds);
                 totalMerged += sourceIds.size();
             }
         }
 
-        log.info("Auto-merge completed: {} games merged into {} unique entries",
-                totalMerged, duplicates.size());
+        log.info(
+                "Auto-merge completed: {} games merged into {} unique entries",
+                totalMerged,
+                duplicates.size());
         return totalMerged;
     }
 
@@ -265,83 +298,100 @@ public class CatalogService {
         Optional<ScrapedGameInfo> scrapedData;
         if (request.igdbId() != null) {
             // Fetch by IGDB ID directly
-            scrapedData = scraperService.getGameDetails(request.igdbId());
+            scrapedData = scrapingPort.getGameDetails(request.igdbId());
         } else {
             // Search by game name and take first result
-            var searchResult = scraperService.searchGames(gameName, 1);
-            scrapedData = searchResult.results().isEmpty()
-                    ? Optional.empty()
-                    : Optional.of(searchResult.results().get(0));
+            scrapedData = scrapingPort.findFirstByName(gameName);
         }
 
         if (scrapedData.isEmpty()) {
             log.debug("No scraped data found for game {}", gameName);
             repository.save(existing.toBuilder().setLastScrapeFailed(true).build());
-            return RescrapeResult.failure(gameId.toString(), gameName, "No matching game found in IGDB");
+            return RescrapeResult.failure(
+                    gameId.toString(), gameName, "No matching game found in IGDB");
         }
 
         ScrapedGameInfo info = scrapedData.get();
-        log.debug("Found IGDB data for {}: coverUrl={}, storeLinks={}", gameName, info.coverUrl(), info.storeLinks());
+        log.debug(
+                "Found IGDB data for {}: coverUrl={}, storeLinks={}",
+                gameName,
+                info.coverUrl(),
+                info.storeLinks());
 
         // Extract store links from scraped data
         var steamLinkOpt = info.storeLink("Steam");
         String steamLink = steamLinkOpt.map(ScrapedGameInfo.StoreLink::url).orElse(null);
-        Integer steamAppId = steamLinkOpt.flatMap(ScrapedGameInfo.StoreLink::storeIdAsInt).orElse(null);
-        if (steamAppId == null && steamLinkOpt.map(ScrapedGameInfo.StoreLink::storeId).isPresent()) {
+        Integer steamAppId =
+                steamLinkOpt.flatMap(ScrapedGameInfo.StoreLink::storeIdAsInt).orElse(null);
+        if (steamAppId == null
+                && steamLinkOpt.map(ScrapedGameInfo.StoreLink::storeId).isPresent()) {
             log.debug("Could not parse Steam app ID: {}", steamLinkOpt.get().storeId());
         }
         String gogLink = info.storeLink("GOG").map(ScrapedGameInfo.StoreLink::url).orElse(null);
-        String epicLink = info.storeLink("Epic Games").map(ScrapedGameInfo.StoreLink::url).orElse(null);
+        String epicLink =
+                info.storeLink("Epic Games").map(ScrapedGameInfo.StoreLink::url).orElse(null);
 
         // Build updated game - preserve existing data if scraped data is null
         SteamGameData existingSteam = existing.getSteamData();
-        SteamGameData newSteamData = new SteamGameData(
-                steamAppId != null ? steamAppId : (existingSteam != null ? existingSteam.appId() : null),
-                existingSteam != null ? existingSteam.name() : null
-        );
+        SteamGameData newSteamData =
+                new SteamGameData(
+                        steamAppId != null
+                                ? steamAppId
+                                : (existingSteam != null ? existingSteam.appId() : null),
+                        existingSteam != null ? existingSteam.name() : null);
 
         GogGameData existingGog = existing.getGogData();
-        GogGameData newGogData = new GogGameData(
-                existingGog != null ? existingGog.gogId() : null,
-                existingGog != null ? existingGog.name() : null,
-                gogLink != null ? gogLink : (existingGog != null ? existingGog.link() : null)
-        );
+        GogGameData newGogData =
+                new GogGameData(
+                        existingGog != null ? existingGog.gogId() : null,
+                        existingGog != null ? existingGog.name() : null,
+                        gogLink != null
+                                ? gogLink
+                                : (existingGog != null ? existingGog.link() : null));
 
         EpicGameData existingEpic = existing.getEpicData();
-        EpicGameData newEpicData = new EpicGameData(
-                existingEpic != null ? existingEpic.epicId() : null,
-                existingEpic != null ? existingEpic.name() : null,
-                epicLink != null ? epicLink : (existingEpic != null ? existingEpic.link() : null)
-        );
+        EpicGameData newEpicData =
+                new EpicGameData(
+                        existingEpic != null ? existingEpic.epicId() : null,
+                        existingEpic != null ? existingEpic.name() : null,
+                        epicLink != null
+                                ? epicLink
+                                : (existingEpic != null ? existingEpic.link() : null));
 
-        String newThumbnailUrl = info.coverUrl() != null ? info.coverUrl() : existing.getThumbnailUrl();
+        String newThumbnailUrl =
+                info.coverUrl() != null ? info.coverUrl() : existing.getThumbnailUrl();
 
         // Store IGDB ID and slug from scraped data
         Long igdbId = info.externalId();
         String igdbSlug = info.slug();
 
         // Get genres from scraped data, or preserve existing
-        List<String> genres = info.genres() != null && !info.genres().isEmpty()
-                ? info.genres()
-                : existing.getGenres();
+        List<String> genres =
+                info.genres() != null && !info.genres().isEmpty()
+                        ? info.genres()
+                        : existing.getGenres();
 
-        CanonicalGame updated = existing.toBuilder()
-                .setThumbnailUrl(newThumbnailUrl)
-                .setSteamData(newSteamData)
-                .setGogData(newGogData)
-                .setEpicData(newEpicData)
-                .setIgdbId(igdbId)
-                .setIgdbSlug(igdbSlug)
-                .setIgdbRating(info.rating() != null ? info.rating() : existing.getRatings().igdb())
-                .setGenres(genres)
-                .setLastScrapeFailed(false)
-                .build();
+        CanonicalGame updated =
+                existing.toBuilder()
+                        .setThumbnailUrl(newThumbnailUrl)
+                        .setSteamData(newSteamData)
+                        .setGogData(newGogData)
+                        .setEpicData(newEpicData)
+                        .setIgdbId(igdbId)
+                        .setIgdbSlug(igdbSlug)
+                        .setIgdbRating(
+                                info.rating() != null
+                                        ? info.rating()
+                                        : existing.getRatings().igdb())
+                        .setGenres(genres)
+                        .setLastScrapeFailed(false)
+                        .build();
 
         repository.save(updated);
 
         // Evict cached thumbnail so it will be re-downloaded with new URL
         if (info.coverUrl() != null && !info.coverUrl().equals(existing.getThumbnailUrl())) {
-            thumbnailService.evict(gameId);
+            thumbnailCachePort.evict(gameId);
             log.debug("Evicted cached thumbnail for game {} to download new image", gameName);
         }
 
@@ -353,15 +403,15 @@ public class CatalogService {
             log.warn("Enrichment failed for game {}: {}", gameName, e.getMessage());
         }
 
-        RescrapeResult.UpdatedFields fields = new RescrapeResult.UpdatedFields(
-                info.coverUrl(),
-                steamAppId,
-                steamLink,
-                gogLink,
-                epicLink,
-                info.rating(),
-                info.genres()
-        );
+        RescrapeResult.UpdatedFields fields =
+                new RescrapeResult.UpdatedFields(
+                        info.coverUrl(),
+                        steamAppId,
+                        steamLink,
+                        gogLink,
+                        epicLink,
+                        info.rating(),
+                        info.genres());
 
         log.debug("Successfully rescraped game {}", gameName);
         return RescrapeResult.success(gameId.toString(), gameName, fields);

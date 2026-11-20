@@ -1,6 +1,6 @@
+/* (C)2026 */
 package com.robertforpresent.api.collection.application.service;
 
-import com.robertforpresent.api.catalog.application.service.CatalogService;
 import com.robertforpresent.api.catalog.domain.model.CanonicalGame;
 import com.robertforpresent.api.catalog.domain.model.EpicGameData;
 import com.robertforpresent.api.catalog.domain.model.GogGameData;
@@ -13,9 +13,8 @@ import com.robertforpresent.api.collection.application.dto.CollectionGameView;
 import com.robertforpresent.api.collection.application.dto.StoreLinksDTO;
 import com.robertforpresent.api.collection.application.dto.StoreOwnershipDTO;
 import com.robertforpresent.api.collection.domain.model.PersonalizedGame;
+import com.robertforpresent.api.collection.domain.port.CatalogReadPort;
 import com.robertforpresent.api.collection.domain.repository.CollectionRepository;
-import org.springframework.stereotype.Service;
-
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -23,29 +22,33 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Service;
 
 @Service
 public class GamerCollectionService {
     private final CollectionRepository repository;
-    private final CatalogService catalog;
+    private final CatalogReadPort catalog;
 
     public List<CollectionGameView> getCollection(UUID gamerId) {
         List<PersonalizedGame> personalizedGames = repository.findByGamerId(gamerId);
 
         // Deduplicate by canonical game ID, merging ownership flags from all duplicates
-        Map<UUID, PersonalizedGame> uniqueByCanonicalId = personalizedGames.stream()
-                .collect(Collectors.toMap(
-                        PersonalizedGame::getCanonicalGameId,
-                        Function.identity(),
-                        this::mergePersonalizedGames, // Merge ownership flags
-                        LinkedHashMap::new // Preserve order
-                ));
+        Map<UUID, PersonalizedGame> uniqueByCanonicalId =
+                personalizedGames.stream()
+                        .collect(
+                                Collectors.toMap(
+                                        PersonalizedGame::getCanonicalGameId,
+                                        Function.identity(),
+                                        this::mergePersonalizedGames, // Merge ownership flags
+                                        LinkedHashMap::new // Preserve order
+                                        ));
 
         List<UUID> canonicalIds = uniqueByCanonicalId.keySet().stream().toList();
         Map<UUID, CanonicalGame> gamesById = catalog.getByIds(canonicalIds);
 
         return uniqueByCanonicalId.values().stream()
-                .filter(pg -> gamesById.containsKey(pg.getCanonicalGameId())) // Skip orphaned records
+                .filter(pg ->
+                        gamesById.containsKey(pg.getCanonicalGameId())) // Skip orphaned records
                 .map(pg -> toView(pg, gamesById.get(pg.getCanonicalGameId())))
                 .toList();
     }
@@ -54,7 +57,8 @@ public class GamerCollectionService {
      * Merges two PersonalizedGame records, combining ownership flags (OR logic)
      * and keeping flags/playtime from the record with more data.
      */
-    private PersonalizedGame mergePersonalizedGames(PersonalizedGame existing, PersonalizedGame replacement) {
+    private PersonalizedGame mergePersonalizedGames(
+            PersonalizedGame existing, PersonalizedGame replacement) {
         return new PersonalizedGame.Builder()
                 .setCanonicalId(existing.getCanonicalGameId())
                 .setGamerId(existing.getGamerId())
@@ -63,29 +67,38 @@ public class GamerCollectionService {
                 .setMarkAsHidden(existing.isMarkedAsHidden() || replacement.isMarkedAsHidden())
                 .setMarkAsForLater(existing.isMarkedForLater() || replacement.isMarkedForLater())
                 // Keep highest playtime
-                .setSteamPlaytimeMinutes(Math.max(
-                        existing.getSteamPlaytimeMinutes() != null ? existing.getSteamPlaytimeMinutes() : 0,
-                        replacement.getSteamPlaytimeMinutes() != null ? replacement.getSteamPlaytimeMinutes() : 0
-                ))
+                .setSteamPlaytimeMinutes(
+                        Math.max(
+                                existing.getSteamPlaytimeMinutes() != null
+                                        ? existing.getSteamPlaytimeMinutes()
+                                        : 0,
+                                replacement.getSteamPlaytimeMinutes() != null
+                                        ? replacement.getSteamPlaytimeMinutes()
+                                        : 0))
                 // Merge ownership flags (OR logic - owned on either record = owned)
                 .setOwnedOnSteam(existing.isOwnedOnSteam() || replacement.isOwnedOnSteam())
                 .setOwnedOnGog(existing.isOwnedOnGog() || replacement.isOwnedOnGog())
                 .setOwnedOnEpic(existing.isOwnedOnEpic() || replacement.isOwnedOnEpic())
                 .setOwnedOnXbox(existing.isOwnedOnXbox() || replacement.isOwnedOnXbox())
-                .setOwnedOnPlayStation(existing.isOwnedOnPlayStation() || replacement.isOwnedOnPlayStation())
-                .setOtherStores(existing.getOtherStores() != null ? existing.getOtherStores() : replacement.getOtherStores())
+                .setOwnedOnPlayStation(
+                        existing.isOwnedOnPlayStation() || replacement.isOwnedOnPlayStation())
+                .setOtherStores(
+                        existing.getOtherStores() != null
+                                ? existing.getOtherStores()
+                                : replacement.getOtherStores())
                 .build();
     }
 
     public List<CollectionGameView> getTop3(UUID gamerId) {
         return getCollection(gamerId).stream()
-                .filter(game -> !game.markedAsPlayed() && !game.markedAsHidden() && !game.markedForLater())
+                .filter(game ->
+                        !game.markedAsPlayed() && !game.markedAsHidden() && !game.markedForLater())
                 .sorted(Comparator.comparing(CollectionGameView::rating).reversed())
                 .limit(3)
                 .toList();
     }
 
-    public GamerCollectionService(CollectionRepository repository, CatalogService catalog) {
+    public GamerCollectionService(CollectionRepository repository, CatalogReadPort catalog) {
         this.repository = repository;
         this.catalog = catalog;
     }
@@ -104,12 +117,18 @@ public class GamerCollectionService {
                 storeLinks,
                 pg.getSteamPlaytimeMinutes(),
                 storeOwnership,
-                canonical.getGenres()
-        );
+                canonical.getGenres());
     }
 
-    public CollectionGameView updateFlags(UUID gamerId, UUID canonicalGameId, UpdateFlagsCommand request) {
-        PersonalizedGame game = repository.updateFlags(gamerId, canonicalGameId, request.markedAsPlayed(), request.markedAsHidden(), request.markedForLater());
+    public CollectionGameView updateFlags(
+            UUID gamerId, UUID canonicalGameId, UpdateFlagsCommand request) {
+        PersonalizedGame game =
+                repository.updateFlags(
+                        gamerId,
+                        canonicalGameId,
+                        request.markedAsPlayed(),
+                        request.markedAsHidden(),
+                        request.markedForLater());
         CanonicalGame canonical = catalog.get(game.getCanonicalGameId());
         return toView(game, canonical);
     }
@@ -118,19 +137,22 @@ public class GamerCollectionService {
         List<PersonalizedGame> personalizedGames = repository.findByGamerId(gamerId);
 
         // Deduplicate by canonical game ID, merging ownership flags from all duplicates
-        Map<UUID, PersonalizedGame> uniqueByCanonicalId = personalizedGames.stream()
-                .collect(Collectors.toMap(
-                        PersonalizedGame::getCanonicalGameId,
-                        Function.identity(),
-                        this::mergePersonalizedGames, // Merge ownership flags
-                        LinkedHashMap::new // Preserve order
-                ));
+        Map<UUID, PersonalizedGame> uniqueByCanonicalId =
+                personalizedGames.stream()
+                        .collect(
+                                Collectors.toMap(
+                                        PersonalizedGame::getCanonicalGameId,
+                                        Function.identity(),
+                                        this::mergePersonalizedGames, // Merge ownership flags
+                                        LinkedHashMap::new // Preserve order
+                                        ));
 
         List<UUID> canonicalIds = uniqueByCanonicalId.keySet().stream().toList();
         Map<UUID, CanonicalGame> gamesById = catalog.getByIds(canonicalIds);
 
         return uniqueByCanonicalId.values().stream()
-                .filter(pg -> gamesById.containsKey(pg.getCanonicalGameId())) // Skip orphaned records
+                .filter(pg ->
+                        gamesById.containsKey(pg.getCanonicalGameId())) // Skip orphaned records
                 .map(pg -> toAdminView(pg, gamesById.get(pg.getCanonicalGameId())))
                 .toList();
     }
@@ -152,12 +174,15 @@ public class GamerCollectionService {
      * @param minRating Minimum rating (0-100 scale)
      * @return List of short and good games, sorted by rating descending
      */
-    public List<CollectionGameView> getShortAndGoodGames(UUID gamerId, double maxHours, int minRating) {
+    public List<CollectionGameView> getShortAndGoodGames(
+            UUID gamerId, double maxHours, int minRating) {
         return getCollection(gamerId).stream()
-                .filter(game -> !game.markedAsPlayed() && !game.markedAsHidden() && !game.markedForLater())
+                .filter(game ->
+                        !game.markedAsPlayed() && !game.markedAsHidden() && !game.markedForLater())
                 .filter(game -> game.rating() >= minRating)
                 .filter(game -> {
-                    Double hltbHours = game.storeLinks() != null ? game.storeLinks().hltbMainHours() : null;
+                    Double hltbHours =
+                            game.storeLinks() != null ? game.storeLinks().hltbMainHours() : null;
                     return hltbHours != null && hltbHours <= maxHours;
                 })
                 .sorted(Comparator.comparing(CollectionGameView::rating).reversed())
@@ -207,8 +232,7 @@ public class GamerCollectionService {
                 // Completeness
                 completeness,
                 // Scrape status
-                canonical.isLastScrapeFailed()
-        );
+                canonical.isLastScrapeFailed());
     }
 
     private int calculateCompleteness(CanonicalGame game) {
@@ -257,8 +281,7 @@ public class GamerCollectionService {
                 metacriticData != null ? metacriticData.storeLink() : null,
                 metacriticData != null ? metacriticData.score() : null,
                 hltbData != null ? hltbData.storeLink() : null,
-                hltbData != null ? hltbData.mainStoryHours() : null
-        );
+                hltbData != null ? hltbData.mainStoryHours() : null);
     }
 
     /**
@@ -286,7 +309,6 @@ public class GamerCollectionService {
                 pg.isOwnedOnEpic(),
                 pg.isOwnedOnXbox(),
                 pg.isOwnedOnPlayStation(),
-                pg.getOtherStores()
-        );
+                pg.getOtherStores());
     }
 }
