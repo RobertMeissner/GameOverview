@@ -1,6 +1,8 @@
 package com.robertforpresent.api.scraper.presentation.rest;
 
+import com.robertforpresent.api.scraper.application.dto.ScrapeHealthReport;
 import com.robertforpresent.api.scraper.application.service.GameScraperService;
+import com.robertforpresent.api.scraper.application.service.ScrapeHealthService;
 import com.robertforpresent.api.scraper.domain.model.EnrichedSearchResult;
 import com.robertforpresent.api.scraper.domain.model.GameSearchResult;
 import com.robertforpresent.api.scraper.domain.model.ScrapedGameInfo;
@@ -21,9 +23,11 @@ import java.util.UUID;
 @RequestMapping("/scraper")
 public class GameScraperController {
     private final GameScraperService scraperService;
+    private final ScrapeHealthService healthService;
 
-    public GameScraperController(GameScraperService scraperService) {
+    public GameScraperController(GameScraperService scraperService, ScrapeHealthService healthService) {
         this.scraperService = scraperService;
+        this.healthService = healthService;
     }
 
     /**
@@ -116,6 +120,19 @@ public class GameScraperController {
             response.put("message", addResult.created() ? "Game added to catalog and library" : "Game added to library (already in catalog)");
             return ResponseEntity.ok(response);
         }).orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * Live health check of the scraping pipeline: searches the configured reference games
+     * ({@code scraper.reference-games}) via the catalog provider, runs every enabled enrichment
+     * provider against them, and verifies thumbnail downloads. Reports per-provider pass/fail.
+     *
+     * @return Health report over all reference games
+     */
+    @GetMapping("/health")
+    public ResponseEntity<ScrapeHealthReport> healthCheck() {
+        log.debug("Running scrape health check");
+        return ResponseEntity.ok(healthService.check());
     }
 
     /**
