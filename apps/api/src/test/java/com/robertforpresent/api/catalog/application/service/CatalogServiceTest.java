@@ -1,15 +1,21 @@
 package com.robertforpresent.api.catalog.application.service;
 
+import com.robertforpresent.api.catalog.application.command.RescrapeCommand;
+import com.robertforpresent.api.catalog.application.command.UpdateCatalogCommand;
+import com.robertforpresent.api.catalog.application.dto.RescrapeResult;
 import com.robertforpresent.api.catalog.domain.model.CanonicalGame;
 import com.robertforpresent.api.catalog.domain.port.GameCollectionPort;
 import com.robertforpresent.api.catalog.domain.repository.CanonicalGameRepository;
 import com.robertforpresent.api.scraper.application.service.GameScraperService;
+import com.robertforpresent.api.scraper.domain.model.GameSearchResult;
+import com.robertforpresent.api.scraper.domain.model.ScrapedGameInfo;
 import com.robertforpresent.api.thumbnail.application.service.ThumbnailService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -135,6 +141,68 @@ class CatalogServiceTest {
 
             verify(repository, times(1)).findByNameIgnoreCase("Test Game");
             verify(repository, never()).findAll();
+        }
+    }
+
+    @Nested
+    @DisplayName("rescrapeGame() scrape-failed flag")
+    class RescrapeFlagTests {
+
+        private CanonicalGame game;
+
+        @BeforeEach
+        void setUpGame() {
+            game = new CanonicalGame.Builder("Test Game")
+                    .setId(UUID.randomUUID())
+                    .setLastScrapeFailed(true)
+                    .build();
+            when(repository.findById(game.getId())).thenReturn(Optional.of(game));
+            when(repository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        }
+
+        @Test
+        @DisplayName("sets lastScrapeFailed when no IGDB match is found")
+        void setsFlagOnFailure() {
+            when(scraperService.searchGames("Test Game", 1))
+                    .thenReturn(new GameSearchResult("Test Game", List.of(), "igdb"));
+
+            RescrapeResult result = service.rescrapeGame(game.getId(), new RescrapeCommand(null));
+
+            assertFalse(result.success());
+            ArgumentCaptor<CanonicalGame> captor = ArgumentCaptor.forClass(CanonicalGame.class);
+            verify(repository).save(captor.capture());
+            assertTrue(captor.getValue().isLastScrapeFailed());
+        }
+
+        @Test
+        @DisplayName("resets lastScrapeFailed on successful scrape")
+        void resetsFlagOnSuccess() {
+            ScrapedGameInfo info = new ScrapedGameInfo(
+                    1234L, "Test Game", "test-game", null, "https://cover.url/img.jpg",
+                    88.0, 2020, List.of("RPG"), List.of("PC"), List.of(), null, "igdb");
+            when(scraperService.searchGames("Test Game", 1))
+                    .thenReturn(new GameSearchResult("Test Game", List.of(info), "igdb"));
+
+            RescrapeResult result = service.rescrapeGame(game.getId(), new RescrapeCommand(null));
+
+            assertTrue(result.success());
+            ArgumentCaptor<CanonicalGame> captor = ArgumentCaptor.forClass(CanonicalGame.class);
+            verify(repository).save(captor.capture());
+            assertFalse(captor.getValue().isLastScrapeFailed());
+        }
+
+        @Test
+        @DisplayName("updateCatalogValues resets lastScrapeFailed on manual edit")
+        void manualEditResetsFlag() {
+            UpdateCatalogCommand command = new UpdateCatalogCommand(
+                    "New Name", 413150, "Steam Name", null, null, null,
+                    null, null, null, null, null, null);
+
+            service.updateCatalogValues(game.getId(), command);
+
+            ArgumentCaptor<CanonicalGame> captor = ArgumentCaptor.forClass(CanonicalGame.class);
+            verify(repository).save(captor.capture());
+            assertFalse(captor.getValue().isLastScrapeFailed());
         }
     }
 

@@ -205,7 +205,9 @@ public class GamerCollectionService {
                 metacriticData != null ? metacriticData.gameName() : null,
                 metacriticData != null ? metacriticData.storeLink() : null,
                 // Completeness
-                completeness
+                completeness,
+                // Scrape status
+                canonical.isLastScrapeFailed()
         );
     }
 

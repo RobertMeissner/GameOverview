@@ -74,6 +74,7 @@ describe('GamesService', () => {
     igdbId: null,
     igdbLink: null,
     completenessPercent: 50,
+    lastScrapeFailed: false,
   };
 
   beforeEach(() => {

@@ -40,6 +40,7 @@ describe('AdminPanel', () => {
     igdbId: null,
     igdbLink: null,
     completenessPercent: 50,
+    lastScrapeFailed: false,
     ...overrides,
   });
 
@@ -127,6 +128,46 @@ describe('AdminPanel', () => {
       const filtered = component.filteredAndSortedGames();
       expect(filtered.length).toBe(1);
       expect(filtered[0].name).toBe('Different Name');
+    });
+
+    it('should filter games with neither steam, gog nor epic id', async () => {
+      // given
+      const mockGames = [
+        createMockAdminGame({ id: '1', name: 'Steam only', steamAppId: 123 }),
+        createMockAdminGame({ id: '2', name: 'GOG only', steamAppId: null, gogId: 456 }),
+        createMockAdminGame({ id: '3', name: 'Epic only', steamAppId: null, gogId: null, epicId: 'epic-1' }),
+        createMockAdminGame({ id: '4', name: 'No store id', steamAppId: null, gogId: null, epicId: null }),
+      ];
+      gamesServiceSpy.getAdminGames.mockReturnValue(of(mockGames));
+
+      // when
+      fixture.detectChanges();
+      await fixture.whenStable();
+      component.filterMissingStoreIds.set(true);
+
+      // then
+      const filtered = component.filteredAndSortedGames();
+      expect(filtered.length).toBe(1);
+      expect(filtered[0].name).toBe('No store id');
+    });
+
+    it('should filter games whose last scrape failed', async () => {
+      // given
+      const mockGames = [
+        createMockAdminGame({ id: '1', name: 'Scraped', lastScrapeFailed: false }),
+        createMockAdminGame({ id: '2', name: 'Failed', lastScrapeFailed: true }),
+      ];
+      gamesServiceSpy.getAdminGames.mockReturnValue(of(mockGames));
+
+      // when
+      fixture.detectChanges();
+      await fixture.whenStable();
+      component.filterScrapeFailed.set(true);
+
+      // then
+      const filtered = component.filteredAndSortedGames();
+      expect(filtered.length).toBe(1);
+      expect(filtered[0].name).toBe('Failed');
     });
 
     it('should show all games when no filter is active', async () => {

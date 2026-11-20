@@ -30,7 +30,9 @@ public record AdminGameView(
         String metacriticName,
         String metacriticLink,
         // Completeness metric (percentage of non-null important fields)
-        int completenessPercent
+        int completenessPercent,
+        // True if the last scrape attempt for this game failed
+        boolean lastScrapeFailed
 ) {
     private static final String IGDB_GAME_URL = "https://www.igdb.com/games/";
 

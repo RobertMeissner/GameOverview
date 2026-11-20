@@ -118,7 +118,8 @@ public class CatalogService {
                 .setSteamData(newSteamData)
                 .setGogData(newGogData)
                 .setEpicData(newEpicData)
-                .setMetacriticData(newMetacriticData);
+                .setMetacriticData(newMetacriticData)
+                .setLastScrapeFailed(false);
         if (command.name() != null && !command.name().isBlank()) {
             builder.setName(command.name());
         }
@@ -275,6 +276,7 @@ public class CatalogService {
 
         if (scrapedData.isEmpty()) {
             log.debug("No scraped data found for game {}", gameName);
+            repository.save(existing.toBuilder().setLastScrapeFailed(true).build());
             return RescrapeResult.failure(gameId.toString(), gameName, "No matching game found in IGDB");
         }
 
@@ -332,6 +334,7 @@ public class CatalogService {
                 .setIgdbSlug(igdbSlug)
                 .setIgdbRating(info.rating() != null ? info.rating() : existing.getRatings().igdb())
                 .setGenres(genres)
+                .setLastScrapeFailed(false)
                 .build();
 
         repository.save(updated);

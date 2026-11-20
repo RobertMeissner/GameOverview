@@ -28,6 +28,7 @@ describe('GameDeduplication', () => {
     igdbId: null,
     igdbLink: null,
     completenessPercent: 0,
+    lastScrapeFailed: false,
     ...overrides,
   });
 

@@ -18,6 +18,7 @@ export class ShortGames implements OnInit {
 
   // Filter settings with defaults
   maxHours = signal(5);
+  noTimeLimit = signal(false);
   minRating = signal(80);
   sortBy = signal<'rating' | 'playtime'>('rating');
 
@@ -27,7 +28,8 @@ export class ShortGames implements OnInit {
 
   loadGames(): void {
     this.loading.set(true);
-    this.gamesService.getShortGoodGames(this.maxHours(), this.minRating()).subscribe({
+    const maxHours = this.noTimeLimit() ? Infinity : this.maxHours();
+    this.gamesService.getShortGoodGames(maxHours, this.minRating()).subscribe({
       next: games => {
         this.games.set(this.sortGames(games));
         this.loading.set(false);
